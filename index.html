@@ -1,0 +1,970 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>经典游戏合集</title>
+    <style>
+        /* 基础样式 */
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3f37c9;
+            --accent-color: #4895ef;
+            --dark-color: #2b2d42;
+            --light-color: #f8f9fa;
+            --success-color: #4cc9f0;
+            --danger-color: #f72585;
+            --warning-color: #f8961e;
+            --info-color: #be5b33;
+        }
+        
+        body {
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        /* 顶部信息栏 */
+        #top-bar {
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        #info-bar {
+            background: linear-gradient(135deg, var(--dark-color), var(--secondary-color));
+            color: white;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .info-item {
+            display: flex;
+            align-items: center;
+            margin: 5px 10px;
+            font-size: 14px;
+            background: rgba(255,255,255,0.1);
+            padding: 5px 12px;
+            border-radius: 20px;
+            transition: all 0.3s ease;
+        }
+        
+        .info-item:hover {
+            background: rgba(255,255,255,0.2);
+            transform: translateY(-2px);
+        }
+        
+        .info-item i {
+            margin-right: 8px;
+            font-size: 16px;
+        }
+        
+        /* 导航栏 */
+        #top-nav {
+            background: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.05);
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .nav-links a {
+            color: var(--dark-color);
+            text-decoration: none;
+            font-size: 15px;
+            padding: 8px 15px;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+        
+        .nav-links a:hover {
+            background: var(--light-color);
+            color: var(--primary-color);
+            transform: translateY(-2px);
+        }
+        
+        /* 搜索区域 */
+        #search-box {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        
+        #search-input {
+            padding: 10px 15px;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            width: 250px;
+            font-size: 14px;
+            transition: all 0.3s;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        
+        #search-input:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(72, 149, 239, 0.2);
+        }
+        
+        #search-btn, #clear-search-btn {
+            border: none;
+            border-radius: 6px;
+            padding: 10px 16px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        #search-btn {
+            background: var(--primary-color);
+            color: white;
+        }
+        
+        #search-btn:hover {
+            background: var(--secondary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+        
+        #clear-search-btn {
+            background: var(--light-color);
+            color: var(--danger-color);
+            border: 1px solid #f0f0f0;
+        }
+        
+        #clear-search-btn:hover {
+            background: #f8f9fa;
+            color: #d90429;
+            transform: translateY(-2px);
+        }
+        
+        /* 搜索历史 */
+        #search-history {
+            margin: 20px auto;
+            padding: 20px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            max-width: 800px;
+            display: none;
+        }
+        
+        #search-history h3 {
+            margin-top: 0;
+            color: var(--dark-color);
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+        }
+        
+        #search-history h3 i {
+            margin-right: 10px;
+            color: var(--accent-color);
+        }
+        
+        #search-history-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        #search-history-list li {
+            padding: 12px 15px;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.2s;
+        }
+        
+        #search-history-list li:last-child {
+            border-bottom: none;
+        }
+        
+        #search-history-list li:hover {
+            background-color: #f9f9f9;
+            transform: translateX(5px);
+        }
+        
+        .search-item {
+            flex-grow: 1;
+            cursor: pointer;
+            color: var(--dark-color);
+        }
+        
+        .search-time {
+            color: #888;
+            font-size: 0.85em;
+            margin: 0 15px;
+        }
+        
+        .delete-search {
+            color: var(--danger-color);
+            cursor: pointer;
+            font-weight: bold;
+            padding: 0 5px;
+            transition: all 0.2s;
+        }
+        
+        .delete-search:hover {
+            transform: scale(1.2);
+        }
+        
+        /* 游戏标题 */
+        #header {
+            background: linear-gradient(135deg, var(--primary-color), var(--info-color));
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        #header::before {
+            content: "";
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%);
+            transform: rotate(30deg);
+            z-index: 0;
+        }
+        
+        #header h1 {
+            margin: 0;
+            font-size: 2.8em;
+            font-weight: 700;
+            position: relative;
+            z-index: 1;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        /* 游戏介绍区域 */
+        #game-intro {
+            background: white;
+            padding: 25px;
+            margin: 0 auto 40px;
+            max-width: 1200px;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            border: 1px solid rgba(0,0,0,0.03);
+        }
+        
+        #game-intro h2 {
+            margin-top: 0;
+            color: var(--dark-color);
+            border-bottom: 1px solid #eee;
+            padding-bottom: 15px;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+        }
+        
+        #game-intro h2 i {
+            margin-right: 12px;
+            color: var(--accent-color);
+        }
+        
+        .game-description {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 25px;
+            margin-top: 20px;
+        }
+        
+        .game-desc-card {
+            flex: 1;
+            min-width: 250px;
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+            border: 1px solid rgba(0,0,0,0.03);
+        }
+        
+        .game-desc-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+        
+        .game-desc-card h3 {
+            margin-top: 0;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            font-size: 18px;
+        }
+        
+        .game-desc-card h3 i {
+            margin-right: 12px;
+            font-size: 20px;
+            width: 30px;
+            height: 30px;
+            background: rgba(72, 149, 239, 0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .game-desc-card p {
+            color: #666;
+            font-size: 15px;
+            line-height: 1.6;
+        }
+        
+        /* 游戏选择容器 */
+        #game-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            padding: 20px;
+            max-width: 1300px;
+            margin: 0 auto;
+            gap: 25px;
+        }
+        
+        /* 游戏卡片样式 */
+        .game-card {
+            width: 280px;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            position: relative;
+            border: 1px solid rgba(0,0,0,0.03);
+        }
+        
+        .game-card::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(to bottom, rgba(0,0,0,0) 60%, rgba(0,0,0,0.4));
+            z-index: 1;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .game-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 12px 25px rgba(0,0,0,0.15);
+        }
+        
+        .game-card:hover::after {
+            opacity: 1;
+        }
+        
+        .game-thumbnail {
+            width: 100%;
+            height: 180px;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+            transition: all 0.5s;
+        }
+        
+        .game-card:hover .game-thumbnail {
+            transform: scale(1.05);
+        }
+        
+        .game-info {
+            padding: 20px;
+            position: relative;
+            z-index: 2;
+            background: white;
+        }
+        
+        .game-info h3 {
+            margin: 0 0 8px 0;
+            color: var(--dark-color);
+            font-size: 1.4em;
+            font-weight: 600;
+        }
+        
+        .game-info p {
+            margin: 0;
+            color: #777;
+            font-size: 0.95em;
+        }
+        
+        /* 游戏显示区域 */
+        #game-display {
+            width: 100%;
+            text-align: center;
+            margin-top: 30px;
+            display: none;
+            position: relative;
+            padding: 20px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+            max-width: 1000px;
+            margin: 30px auto;
+            border: 1px solid rgba(0,0,0,0.03);
+        }
+        
+        canvas {
+            background: #000;
+            margin: 0 auto;
+            display: block;
+            box-shadow: 0 3px 15px rgba(0,0,0,0.2);
+            border-radius: 8px;
+        }
+        
+        /* 控制按钮 */
+        .controls {
+            margin: 25px 0 15px;
+            text-align: center;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        
+        button {
+            padding: 12px 24px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.3s;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        button i {
+            font-size: 14px;
+        }
+        
+        #startBtn {
+            background: var(--success-color);
+        }
+        
+        #startBtn:hover {
+            background: #3aa8d8;
+        }
+        
+        #pauseBtn {
+            background: var(--warning-color);
+        }
+        
+        #pauseBtn:hover {
+            background: #e68a19;
+        }
+        
+        #restartBtn {
+            background: var(--danger-color);
+        }
+        
+        #restartBtn:hover {
+            background: #e51773;
+        }
+        
+        #backBtn {
+            background: var(--dark-color);
+        }
+        
+        #backBtn:hover {
+            background: #1a1b2e;
+        }
+        
+        /* 游戏统计信息 */
+        .game-stats {
+            margin: 15px;
+            font-size: 18px;
+            color: var(--dark-color);
+            font-weight: 600;
+            background: rgba(72, 149, 239, 0.1);
+            padding: 10px 15px;
+            border-radius: 8px;
+            display: inline-block;
+        }
+        
+        /* 排行榜模态框样式 */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 100;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.7);
+            overflow: auto;
+            backdrop-filter: blur(5px);
+        }
+        
+        .modal-content {
+            background-color: white;
+            margin: 8% auto;
+            padding: 30px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 700px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            position: relative;
+            animation: modalFadeIn 0.3s;
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+        
+        @keyframes modalFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .close {
+            color: #aaa;
+            position: absolute;
+            right: 25px;
+            top: 20px;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .close:hover {
+            color: var(--danger-color);
+            transform: rotate(90deg);
+        }
+        
+        #leaderboard-title {
+            margin-top: 0;
+            color: var(--dark-color);
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        #leaderboard-title i {
+            color: var(--accent-color);
+        }
+        
+        #leaderboard-list {
+            margin-top: 20px;
+            max-height: 500px;
+            overflow-y: auto;
+            border-radius: 8px;
+            border: 1px solid #eee;
+        }
+        
+        .leaderboard-entry {
+            display: flex;
+            justify-content: space-between;
+            padding: 15px 20px;
+            border-bottom: 1px solid #f0f0f0;
+            align-items: center;
+            gap: 15px;
+            transition: all 0.2s;
+        }
+        
+        .leaderboard-entry:hover {
+            background-color: #f9f9f9;
+        }
+        
+        .leaderboard-entry:nth-child(odd) {
+            background-color: #fcfcfc;
+        }
+        
+        .leaderboard-entry span:first-child {
+            font-weight: bold;
+            width: 30px;
+            flex-shrink: 0;
+            color: var(--primary-color);
+        }
+        
+        .leaderboard-entry span:nth-child(2) {
+            flex-grow: 1;
+            padding: 0 15px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            color: var(--dark-color);
+        }
+        
+        .leaderboard-entry span:last-child {
+            flex-shrink: 0;
+            text-align: right;
+            color: #777;
+            font-size: 0.9em;
+            min-width: 120px;
+        }
+        
+        /* 排行榜清空按钮 */
+        #clear-leaderboard-btn {
+            background: var(--danger-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 500;
+            transition: all 0.3s;
+            display: block;
+            margin: 0 auto 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        #clear-leaderboard-btn:hover {
+            background: #e51773;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        /* 排行榜按钮 */
+        #leaderboard-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: linear-gradient(135deg, var(--primary-color), var(--info-color));
+            color: white;
+            padding: 15px 20px;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            z-index: 10;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        #leaderboard-btn:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 992px) {
+            #info-bar {
+                justify-content: center;
+            }
+            
+            .game-description {
+                gap: 20px;
+            }
+            
+            .game-card {
+                width: calc(50% - 20px);
+            }
+        }
+        
+        @media (max-width: 768px) {
+            #top-nav {
+                flex-direction: column;
+                gap: 15px;
+                padding: 15px;
+            }
+            
+            .nav-links {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            #search-box {
+                width: 100%;
+                margin-top: 10px;
+            }
+            
+            #search-input {
+                width: 100%;
+            }
+            
+            .game-card {
+                width: 100%;
+                max-width: 350px;
+            }
+            
+            .modal-content {
+                width: 95%;
+                margin: 15% auto;
+                padding: 20px;
+            }
+            
+            #leaderboard-btn {
+                bottom: 20px;
+                right: 20px;
+                padding: 12px 18px;
+                font-size: 15px;
+            }
+            
+            .leaderboard-entry {
+                flex-wrap: wrap;
+            }
+            
+            .leaderboard-entry span:last-child {
+                width: 100%;
+                text-align: left;
+                padding-top: 5px;
+                min-width: auto;
+            }
+            
+            #search-history {
+                margin: 15px;
+                width: calc(100% - 30px);
+            }
+        }
+        
+        @media (max-width: 576px) {
+            #header h1 {
+                font-size: 2.2em;
+            }
+            
+            .controls button {
+                width: 100%;
+                margin: 5px 0;
+            }
+            
+            .game-thumbnail {
+                height: 150px;
+            }
+            
+            .modal-content {
+                padding: 15px;
+            }
+            
+            #search-history-list li {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .search-time {
+                margin: 5px 0 0 0;
+                font-size: 0.8em;
+            }
+            
+            .delete-search {
+                align-self: flex-end;
+                margin-top: 5px;
+            }
+            
+            #leaderboard-btn {
+                bottom: 15px;
+                right: 15px;
+                padding: 10px 15px;
+                font-size: 14px;
+            }
+        }
+    </style>
+    <!-- 引入Font Awesome图标库 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- 引入Google字体 -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div id="top-bar">
+        <div id="info-bar">
+            <div class="info-item">
+                <i class="fas fa-clock"></i>
+                <span id="current-time">加载中...</span>
+            </div>
+            <div class="info-item">
+                <i class="fas fa-calendar-alt"></i>
+                <span id="current-date">加载中...</span>
+            </div>
+            <div class="info-item">
+                <i class="fas fa-cloud"></i>
+                <span id="weather-info">晴天 25°C</span>
+            </div>
+            <div class="info-item">
+                <i class="fas fa-tint"></i>
+                <span id="humidity-info">湿度: 65%</span>
+            </div>
+            <div class="info-item">
+                <i class="fas fa-thermometer-half"></i>
+                <span id="body-temp-info">体感: 26°C</span>
+            </div>
+        </div>
+    </div>
+
+   
+    <!-- 网页标签按钮 -->
+<div id="quick-links-btn" class="info-item">
+    <i class="fas fa-bookmark"></i>
+    <span>网页标签</span>
+</div>
+
+<!-- 网页标签面板 -->
+<div id="quick-links-panel" style="display: none; position: fixed; top: 100px; right: 20px; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); z-index: 1000; max-width: 300px;">
+    <h3 style="margin-top: 0; display: flex; justify-content: space-between; align-items: center;">
+        <span><i class="fas fa-bookmark"></i> 网页标签</span>
+        <button id="add-quick-link" style="background: var(--primary-color); color: white; border: none; border-radius: 4px; padding: 5px 10px; cursor: pointer; font-size: 12px;">添加</button>
+    </h3>
+    <div id="quick-links-list" style="max-height: 400px; overflow-y: auto;"></div>
+    <div id="add-link-form" style="display: none; margin-top: 10px;">
+        <input type="text" id="link-name" placeholder="名称" style="width: 100%; padding: 8px; margin-bottom: 5px; border: 1px solid #ddd; border-radius: 4px;">
+        <input type="text" id="link-url" placeholder="URL (包含http://或https://)" style="width: 100%; padding: 8px; margin-bottom: 5px; border: 1px solid #ddd; border-radius: 4px;">
+        <div style="display: flex; justify-content: flex-end; gap: 5px;">
+            <button id="cancel-add-link" style="padding: 5px 10px; background: #f0f0f0; border: none; border-radius: 4px; cursor: pointer;">取消</button>
+            <button id="save-link" style="padding: 5px 10px; background: var(--primary-color); color: white; border: none; border-radius: 4px; cursor: pointer;">保存</button>
+        </div>
+    </div>
+</div>
+    <!-- 顶部导航栏 -->
+    <div id="top-nav">
+        <div class="nav-links">
+            <a href="https://www.baidu.com" target="_blank"><i class="fas fa-search"></i> 百度</a>
+            <a href="https://www.google.com" target="_blank"><i class="fab fa-google"></i> Google</a>
+            <a href="https://www.bing.com" target="_blank"><i class="fas fa-globe"></i> Bing</a>
+            <a href="https://github.com" target="_blank"><i class="fab fa-github"></i> GitHub</a>
+            <a href="https://zh.wikipedia.org" target="_blank"><i class="fas fa-book"></i> 维基百科</a>
+        </div>
+        
+        <div id="search-box">
+            <input type="text" id="search-input" placeholder="输入搜索内容...">
+            <button id="search-btn"><i class="fas fa-search"></i> 搜索</button>
+            <button id="clear-search-btn"><i class="fas fa-trash"></i> 清空</button>
+        </div>
+    </div>
+    
+    <!-- 搜索记录 -->
+    <div id="search-history">
+        <h3><i class="fas fa-history"></i> 搜索记录</h3>
+        <ul id="search-history-list"></ul>
+    </div>
+    
+    <!-- 游戏标题 -->
+    <div id="header">
+        <h1>经典游戏合集</h1>
+    </div>
+    
+    <!-- 游戏介绍区域 -->
+    <div id="game-intro">
+        <h2><i class="fas fa-gamepad"></i> 游戏介绍</h2>
+        <div class="game-description">
+            <div class="game-desc-card">
+                <h3><i class="fas fa-snake"></i> 贪吃蛇</h3>
+                <p>经典贪吃蛇游戏，控制蛇吃食物变长，避免撞墙或咬到自己。随着分数增加，蛇的速度会越来越快，挑战你的反应极限！</p>
+            </div>
+            <div class="game-desc-card">
+                <h3><i class="fas fa-shapes"></i> 俄罗斯方块</h3>
+                <p>经典俄罗斯方块游戏，旋转移动下落的方块，填满整行消除得分。随着等级提升，方块下落速度加快，考验你的空间思维能力！</p>
+            </div>
+            <div class="game-desc-card">
+                <h3><i class="fas fa-boxes"></i> 推箱子</h3>
+                <p>逻辑解谜游戏，推动箱子到指定位置。共3个难度递增的关卡，用最少的步数完成挑战，锻炼你的逻辑思维能力！</p>
+            </div>
+            <div class="game-desc-card">
+                <h3><i class="fas fa-music"></i> 钢琴块</h3>
+                <p>节奏反应游戏，点击下落的黑色方块得分，避免点击白色方块。随着游戏进行，下落速度加快，测试你的反应速度和手眼协调能力！</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 游戏选择区域 -->
+    <div id="game-container">
+        <!-- 贪吃蛇游戏卡片 -->
+        <div class="game-card" data-game="snake">
+            <div class="game-thumbnail" style="background: linear-gradient(135deg, #4CAF50, #81C784);"></div>
+            <div class="game-info">
+                <h3>贪吃蛇</h3>
+                <p>经典贪吃蛇游戏，挑战你的反应速度</p>
+            </div>
+        </div>
+        
+        <!-- 俄罗斯方块游戏卡片 -->
+        <div class="game-card" data-game="tetris">
+            <div class="game-thumbnail" style="background: linear-gradient(135deg, #2196F3, #64B5F6);"></div>
+            <div class="game-info">
+                <h3>俄罗斯方块</h3>
+                <p>经典俄罗斯方块，测试你的空间思维能力</p>
+            </div>
+        </div>
+        
+        <!-- 推箱子游戏卡片 -->
+        <div class="game-card" data-game="sokoban">
+            <div class="game-thumbnail" style="background: linear-gradient(135deg, #FF9800, #FFB74D);"></div>
+            <div class="game-info">
+                <h3>推箱子</h3>
+                <p>经典推箱子游戏，考验你的逻辑思维</p>
+            </div>
+        </div>
+        
+        <!-- 钢琴块游戏卡片 -->
+        <div class="game-card" data-game="piano">
+            <div class="game-thumbnail" style="background: linear-gradient(135deg, #9C27B0, #E91E63);"></div>
+            <div class="game-info">
+                <h3>钢琴块</h3>
+                <p>经典钢琴块游戏，测试你的反应速度</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 游戏显示区域 -->
+    <div id="game-display">
+        <div class="game-stats" id="gameStats"></div>
+        <canvas id="gameCanvas"></canvas>
+        <div class="controls">
+            <button id="startBtn"><i class="fas fa-play"></i> 开始游戏</button>
+            <button id="pauseBtn"><i class="fas fa-pause"></i> 暂停</button>
+            <button id="restartBtn"><i class="fas fa-redo"></i> 重新开始</button>
+            <button id="backBtn"><i class="fas fa-arrow-left"></i> 返回列表</button>
+        </div>
+    </div>
+    
+    <!-- 排行榜模态框 -->
+    <div id="leaderboard-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 id="leaderboard-title"><i class="fas fa-trophy"></i> 排行榜</h2>
+            <button id="clear-leaderboard-btn"><i class="fas fa-trash"></i> 清空排行榜</button>
+            <div id="leaderboard-list"></div>
+        </div>
+    </div>
+    
+    <!-- 排行榜按钮 -->
+    <button id="leaderboard-btn"><i class="fas fa-trophy"></i> 排行榜</button>
+    
+    <!-- 游戏脚本 -->
+    <script src="games.js"></script>
+</body>
+</html>
