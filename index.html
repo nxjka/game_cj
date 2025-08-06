@@ -25,6 +25,7 @@
             background: #f5f7fa;
             color: #333;
             line-height: 1.6;
+            touch-action: manipulation;
         }
         
         /* 顶部信息栏 */
@@ -436,6 +437,7 @@
             display: block;
             box-shadow: 0 3px 15px rgba(0,0,0,0.2);
             border-radius: 8px;
+            touch-action: none;
         }
         
         /* 控制按钮 */
@@ -463,6 +465,8 @@
             align-items: center;
             justify-content: center;
             gap: 8px;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
         }
         
         button:hover {
@@ -516,6 +520,100 @@
             padding: 10px 15px;
             border-radius: 8px;
             display: inline-block;
+        }
+        
+        /* 移动端方向键控制面板 */
+        .mobile-controls {
+            display: none;
+            margin-top: 20px;
+            justify-content: center;
+            touch-action: none;
+        }
+        
+        .dpad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            gap: 5px;
+            width: 150px;
+            height: 150px;
+        }
+        
+        .dpad-btn {
+            background: rgba(0, 0, 0, 0.5);
+            border: none;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            transition: all 0.1s;
+        }
+        
+        .dpad-btn:active {
+            background: rgba(0, 0, 0, 0.8);
+            transform: scale(0.95);
+        }
+        
+        .dpad-up {
+            grid-column: 2;
+            grid-row: 1;
+        }
+        
+        .dpad-left {
+            grid-column: 1;
+            grid-row: 2;
+        }
+        
+        .dpad-center {
+            grid-column: 2;
+            grid-row: 2;
+            background: transparent;
+        }
+        
+        .dpad-right {
+            grid-column: 3;
+            grid-row: 2;
+        }
+        
+        .dpad-down {
+            grid-column: 2;
+            grid-row: 3;
+        }
+        
+        /* 特殊控制按钮 */
+        .action-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-left: 20px;
+            justify-content: center;
+        }
+        
+        .action-btn {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background: rgba(0, 0, 0, 0.5);
+            border: none;
+            color: white;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            transition: all 0.1s;
+        }
+        
+        .action-btn:active {
+            background: rgba(0, 0, 0, 0.8);
+            transform: scale(0.95);
         }
         
         /* 排行榜模态框样式 */
@@ -683,6 +781,48 @@
             box-shadow: 0 8px 20px rgba(0,0,0,0.3);
         }
         
+        /* 网页标签按钮 */
+        #quick-links-btn {
+            position: fixed;
+            bottom: 30px;
+            left: 30px;
+            background: linear-gradient(135deg, var(--primary-color), var(--info-color));
+            color: white;
+            padding: 15px 20px;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            z-index: 10;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        #quick-links-btn:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+        }
+        
+        /* 网页标签面板 */
+        #quick-links-panel {
+            display: none;
+            position: fixed;
+            top: 100px;
+            left: 20px;
+            right: 20px;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            z-index: 1000;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        
         /* 响应式设计 */
         @media (max-width: 992px) {
             #info-bar {
@@ -730,11 +870,18 @@
                 padding: 20px;
             }
             
-            #leaderboard-btn {
+            #leaderboard-btn, #quick-links-btn {
                 bottom: 20px;
-                right: 20px;
                 padding: 12px 18px;
                 font-size: 15px;
+            }
+            
+            #leaderboard-btn {
+                right: 20px;
+            }
+            
+            #quick-links-btn {
+                left: 20px;
             }
             
             .leaderboard-entry {
@@ -787,11 +934,40 @@
                 margin-top: 5px;
             }
             
-            #leaderboard-btn {
-                bottom: 15px;
-                right: 15px;
-                padding: 10px 15px;
-                font-size: 14px;
+            /* 移动端显示方向键 */
+            .mobile-controls {
+                display: flex;
+            }
+            
+            /* 调整游戏显示区域 */
+            #game-display {
+                padding-bottom: 120px;
+            }
+            
+            /* 调整钢琴块游戏控制 */
+            .piano-controls {
+                display: flex;
+                justify-content: center;
+                margin-top: 20px;
+            }
+            
+            .piano-key {
+                width: 60px;
+                height: 60px;
+                margin: 0 5px;
+                background: rgba(0,0,0,0.5);
+                border-radius: 8px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: white;
+                font-weight: bold;
+                user-select: none;
+                -webkit-tap-highlight-color: transparent;
+            }
+            
+            .piano-key:active {
+                background: rgba(0,0,0,0.8);
             }
         }
     </style>
@@ -826,29 +1002,6 @@
         </div>
     </div>
 
-   
-    <!-- 网页标签按钮 -->
-<div id="quick-links-btn" class="info-item">
-    <i class="fas fa-bookmark"></i>
-    <span>网页标签</span>
-</div>
-
-<!-- 网页标签面板 -->
-<div id="quick-links-panel" style="display: none; position: fixed; top: 100px; right: 20px; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); z-index: 1000; max-width: 300px;">
-    <h3 style="margin-top: 0; display: flex; justify-content: space-between; align-items: center;">
-        <span><i class="fas fa-bookmark"></i> 网页标签</span>
-        <button id="add-quick-link" style="background: var(--primary-color); color: white; border: none; border-radius: 4px; padding: 5px 10px; cursor: pointer; font-size: 12px;">添加</button>
-    </h3>
-    <div id="quick-links-list" style="max-height: 400px; overflow-y: auto;"></div>
-    <div id="add-link-form" style="display: none; margin-top: 10px;">
-        <input type="text" id="link-name" placeholder="名称" style="width: 100%; padding: 8px; margin-bottom: 5px; border: 1px solid #ddd; border-radius: 4px;">
-        <input type="text" id="link-url" placeholder="URL (包含http://或https://)" style="width: 100%; padding: 8px; margin-bottom: 5px; border: 1px solid #ddd; border-radius: 4px;">
-        <div style="display: flex; justify-content: flex-end; gap: 5px;">
-            <button id="cancel-add-link" style="padding: 5px 10px; background: #f0f0f0; border: none; border-radius: 4px; cursor: pointer;">取消</button>
-            <button id="save-link" style="padding: 5px 10px; background: var(--primary-color); color: white; border: none; border-radius: 4px; cursor: pointer;">保存</button>
-        </div>
-    </div>
-</div>
     <!-- 顶部导航栏 -->
     <div id="top-nav">
         <div class="nav-links">
@@ -949,6 +1102,21 @@
             <button id="restartBtn"><i class="fas fa-redo"></i> 重新开始</button>
             <button id="backBtn"><i class="fas fa-arrow-left"></i> 返回列表</button>
         </div>
+        
+        <!-- 移动端方向键控制面板 -->
+        <div class="mobile-controls">
+            <div class="dpad">
+                <button class="dpad-btn dpad-up" id="up-btn"><i class="fas fa-arrow-up"></i></button>
+                <button class="dpad-btn dpad-left" id="left-btn"><i class="fas fa-arrow-left"></i></button>
+                <div class="dpad-center"></div>
+                <button class="dpad-btn dpad-right" id="right-btn"><i class="fas fa-arrow-right"></i></button>
+                <button class="dpad-btn dpad-down" id="down-btn"><i class="fas fa-arrow-down"></i></button>
+            </div>
+            <div class="action-buttons">
+                <button class="action-btn" id="rotate-btn"><i class="fas fa-redo"></i></button>
+                <button class="action-btn" id="action-btn"><i class="fas fa-bolt"></i></button>
+            </div>
+        </div>
     </div>
     
     <!-- 排行榜模态框 -->
@@ -963,6 +1131,26 @@
     
     <!-- 排行榜按钮 -->
     <button id="leaderboard-btn"><i class="fas fa-trophy"></i> 排行榜</button>
+    
+    <!-- 网页标签按钮 -->
+    <button id="quick-links-btn"><i class="fas fa-bookmark"></i> 网页标签</button>
+    
+    <!-- 网页标签面板 -->
+    <div id="quick-links-panel">
+        <h3 style="margin-top: 0; display: flex; justify-content: space-between; align-items: center;">
+            <span><i class="fas fa-bookmark"></i> 网页标签</span>
+            <button id="add-quick-link" style="background: var(--primary-color); color: white; border: none; border-radius: 4px; padding: 5px 10px; cursor: pointer; font-size: 12px;">添加</button>
+        </h3>
+        <div id="quick-links-list"></div>
+        <div id="add-link-form" style="display: none; margin-top: 10px;">
+            <input type="text" id="link-name" placeholder="名称" style="width: 100%; padding: 8px; margin-bottom: 5px; border: 1px solid #ddd; border-radius: 4px;">
+            <input type="text" id="link-url" placeholder="URL (包含http://或https://)" style="width: 100%; padding: 8px; margin-bottom: 5px; border: 1px solid #ddd; border-radius: 4px;">
+            <div style="display: flex; justify-content: flex-end; gap: 5px;">
+                <button id="cancel-add-link" style="padding: 5px 10px; background: #f0f0f0; border: none; border-radius: 4px; cursor: pointer;">取消</button>
+                <button id="save-link" style="padding: 5px 10px; background: var(--primary-color); color: white; border: none; border-radius: 4px; cursor: pointer;">保存</button>
+            </div>
+        </div>
+    </div>
     
     <!-- 游戏脚本 -->
     <script src="games.js"></script>

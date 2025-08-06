@@ -475,7 +475,49 @@ const GameManager = {
         document.getElementById('backBtn').addEventListener('click', () => {
             this.unloadGame();
         });
-        
+        // 移动端方向键控制
+    document.getElementById('up-btn').addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        if (this.currentGame && this.currentGame.handleKeyPress) {
+            this.currentGame.handleKeyPress({key: 'ArrowUp', preventDefault: () => {}});
+        }
+    });
+    
+    document.getElementById('left-btn').addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        if (this.currentGame && this.currentGame.handleKeyPress) {
+            this.currentGame.handleKeyPress({key: 'ArrowLeft', preventDefault: () => {}});
+        }
+    });
+    
+    document.getElementById('right-btn').addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        if (this.currentGame && this.currentGame.handleKeyPress) {
+            this.currentGame.handleKeyPress({key: 'ArrowRight', preventDefault: () => {}});
+        }
+    });
+    
+    document.getElementById('down-btn').addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        if (this.currentGame && this.currentGame.handleKeyPress) {
+            this.currentGame.handleKeyPress({key: 'ArrowDown', preventDefault: () => {}});
+        }
+    });
+    
+    document.getElementById('rotate-btn').addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        if (this.currentGame && this.currentGame.handleKeyPress) {
+            this.currentGame.handleKeyPress({key: 'ArrowUp', preventDefault: () => {}});
+        }
+    });
+    
+    document.getElementById('action-btn').addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        if (this.currentGame && this.currentGame.handleKeyPress) {
+            this.currentGame.handleKeyPress({key: ' ', preventDefault: () => {}});
+        }
+    });
+    
         // 初始隐藏游戏显示区域
         document.getElementById('game-display').style.display = 'none';
     },
