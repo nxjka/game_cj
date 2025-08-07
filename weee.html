@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZJ150高压电源配置工具</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        h1, h2, h3 {
+            color: #333;
+        }
+        .container {
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .panel {
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: white;
+            border-radius: 5px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        select, input, textarea, button {
+            padding: 8px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        select {
+            width: 100%;
+        }
+        textarea {
+            width: 100%;
+            height: 100px;
+            font-family: monospace;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 10px 2px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .hex-preview {
+            font-family: monospace;
+            white-space: pre;
+            background-color: #f0f0f0;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+        .two-column {
+            display: flex;
+            gap: 20px;
+        }
+        .column {
+            flex: 1;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 10px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .info {
+            background-color: #e7f3fe;
+            border-left: 6px solid #2196F3;
+            padding: 10px;
+            margin: 10px 0;
+        }
+        .file-ops {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .param-group {
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: #f5f5f5;
+            border-radius: 5px;
+        }
+        .param-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .param-label {
+            width: 200px;
+            font-weight: bold;
+        }
+        .param-value {
+            flex: 1;
+        }
+        .tab-container {
+            display: flex;
+            margin-bottom: 10px;
+        }
+        .tab {
+            padding: 10px 20px;
+            background-color: #e0e0e0;
+            cursor: pointer;
+            border-radius: 5px 5px 0 0;
+            margin-right: 5px;
+        }
+        .tab.active {
+            background-color: #4CAF50;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <!-- 在hex-writer.html的顶部添加导航栏 -->
+<div id="top-nav" style="background: white; padding: 15px 20px; margin-bottom: 20px;">
+    <a href="index.html" style="color: #333; text-decoration: none; font-weight: bold;">
+        <i class="fas fa-arrow-left"></i> 返回游戏主页
+    </a>
+</div>
+    <div class="container">
+        <h1>ZJ150高压电源配置工具</h1>
+        
+        <div class="tab-container">
+            <div class="tab active" onclick="switchTab('pwm')">PWM配置</div>
+            <div class="tab" onclick="switchTab('switch')">开关配置</div>
+            <div class="tab" onclick="switchTab('file')">文件操作</div>
+        </div>
+        
+        <!-- PWM配置面板 -->
+        <div id="pwm-panel" class="panel">
+            <h2>PWM调制配置</h2>
+            
+            <div class="param-group">
+                <h3>频率设置</h3>
+                <div class="param-row">
+                    <div class="param-label">DA5 - 脉冲输出频率 (Hz):</div>
+                    <div class="param-value">
+                        <input type="number" id="pwm_freq" min="30" max="100" value="50" step="1">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="param-group">
+                <h3>脉冲宽度设置</h3>
+                <div class="param-row">
+                    <div class="param-label">DA6 - 脉冲宽度 (0.1ms):</div>
+                    <div class="param-value">
+                        <input type="number" id="pwm_width" min="50" max="500" value="100" step="1">
+                        <span>(实际: <span id="pwm_width_ms">10.0</span> ms)</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="param-group">
+                <h3>时间参数设置</h3>
+                <div class="param-row">
+                    <div class="param-label">DA13 - 脉冲时间 (ms):</div>
+                    <div class="param-value">
+                        <input type="number" id="pwm_on_time" min="1" max="10000" value="100" step="1">
+                    </div>
+                </div>
+                <div class="param-row">
+                    <div class="param-label">DA14 - 非脉冲时间 (ms):</div>
+                    <div class="param-value">
+                        <input type="number" id="pwm_off_time" min="1" max="10000" value="100" step="1">
+                    </div>
+                </div>
+                <div class="param-row">
+                    <div class="param-label">DA15 - 死区宽度 (ms):</div>
+                    <div class="param-value">
+                        <input type="number" id="pwm_dead_time" min="0" max="1000" value="10" step="1">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="param-group">
+                <h3>开关控制</h3>
+                <div class="param-row">
+                    <div class="param-label">DO2 - 调制开关:</div>
+                    <div class="param-value">
+                        <select id="pwm_switch">
+                            <option value="1">开启</option>
+                            <option value="0">关闭</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="param-row">
+                    <div class="param-label">DO3 - 调制复位:</div>
+                    <div class="param-value">
+                        <select id="pwm_reset">
+                            <option value="0">不复位</option>
+                            <option value="1">复位</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="param-row">
+                    <div class="param-label">DO6 - 输出模式:</div>
+                    <div class="param-value">
+                        <select id="pwm_mode">
+                            <option value="0">连续输出</option>
+                            <option value="1">断续输出</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            
+            <button onclick="generatePWMCommands()">生成PWM配置指令</button>
+            <div class="hex-preview" id="pwmCommandPreview">
+                PWM配置指令将显示在这里...
+            </div>
+        </div>
+        
+        <!-- 开关配置面板 -->
+        <div id="switch-panel" class="panel" style="display:none;">
+            <h2>开关控制配置</h2>
+            
+            <div class="param-group">
+                <h3>灯丝控制</h3>
+                <div class="param-row">
+                    <div class="param-label">DO0 - 灯丝开关:</div>
+                    <div class="param-value">
+                        <select id="filament_switch">
+                            <option value="1">开启</option>
+                            <option value="0">关闭</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="param-row">
+                    <div class="param-label">DO1 - 灯丝复位:</div>
+                    <div class="param-value">
+                        <select id="filament_reset">
+                            <option value="0">不复位</option>
+                            <option value="1">复位</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="param-group">
+                <h3>高压控制</h3>
+                <div class="param-row">
+                    <div class="param-label">DO4 - 高压开关:</div>
+                    <div class="param-value">
+                        <select id="hv_switch">
+                            <option value="1">开启</option>
+                            <option value="0">关闭</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="param-row">
+                    <div class="param-label">DO5 - 高压复位:</div>
+                    <div class="param-value">
+                        <select id="hv_reset">
+                            <option value="0">不复位</option>
+                            <option value="1">复位</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="param-group">
+                <h3>电压电流设置</h3>
+                <div class="param-row">
+                    <div class="param-label">DA0 - 灯丝电压设定 (0-7V):</div>
+                    <div class="param-value">
+                        <input type="number" id="filament_voltage" min="0" max="7" value="5" step="0.1">
+                        <span>(寄存器值: <span id="filament_voltage_reg">5000</span>)</span>
+                    </div>
+                </div>
+                <div class="param-row">
+                    <div class="param-label">DA1 - 灯丝电流设定 (0-20A):</div>
+                    <div class="param-value">
+                        <input type="number" id="filament_current" min="0" max="20" value="10" step="0.1">
+                        <span>(寄存器值: <span id="filament_current_reg">10000</span>)</span>
+                    </div>
+                </div>
+                <div class="param-row">
+                    <div class="param-label">DA3 - 高压电压设定 (0-56KV):</div>
+                    <div class="param-value">
+                        <input type="number" id="hv_voltage" min="0" max="56" value="30" step="0.1">
+                        <span>(寄存器值: <span id="hv_voltage_reg">30000</span>)</span>
+                    </div>
+                </div>
+                <div class="param-row">
+                    <div class="param-label">DA4 - 高压电流设定 (0-14mA):</div>
+                    <div class="param-value">
+                        <input type="number" id="hv_current" min="0" max="14" value="5" step="0.1">
+                        <span>(寄存器值: <span id="hv_current_reg">5</span>)</span>
+                    </div>
+                </div>
+            </div>
+            
+            <button onclick="generateSwitchCommands()">生成开关配置指令</button>
+            <div class="hex-preview" id="switchCommandPreview">
+                开关配置指令将显示在这里...
+            </div>
+        </div>
+        
+        <!-- 文件操作面板 -->
+        <div id="file-panel" class="panel" style="display:none;">
+            <h2>文件操作</h2>
+            <div class="file-ops">
+                <input type="file" id="fileInput" accept=".txt" style="display: none;">
+                <button onclick="document.getElementById('fileInput').click()">加载TXT文件</button>
+                <button onclick="saveToTxt()">保存/覆盖TXT文件</button>
+                <input type="text" id="fileName" placeholder="输入文件名(不带后缀)" value="modbus_commands">
+            </div>
+            <textarea id="fileContent" placeholder="文件内容将显示在这里，可编辑..." style="height: 200px;"></textarea>
+        </div>
+    </div>
+
+    <script>
+        // 切换标签页
+        function switchTab(tabName) {
+            document.getElementById('pwm-panel').style.display = 'none';
+            document.getElementById('switch-panel').style.display = 'none';
+            document.getElementById('file-panel').style.display = 'none';
+            
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            document.getElementById(tabName + '-panel').style.display = 'block';
+            event.currentTarget.classList.add('active');
+        }
+        
+        // 文件输入处理
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('fileContent').value = e.target.result;
+                // 尝试从文件名中提取基本名称
+                const baseName = file.name.replace('.txt', '');
+                document.getElementById('fileName').value = baseName;
+            };
+            reader.readAsText(file);
+        });
+        
+        // 计算显示值
+        document.getElementById('pwm_width').addEventListener('input', function() {
+            const value = this.value / 10;
+            document.getElementById('pwm_width_ms').textContent = value.toFixed(1);
+        });
+        
+        document.getElementById('filament_voltage').addEventListener('input', function() {
+            document.getElementById('filament_voltage_reg').textContent = Math.round(this.value * 1000);
+        });
+        
+        document.getElementById('filament_current').addEventListener('input', function() {
+            document.getElementById('filament_current_reg').textContent = Math.round(this.value * 1000);
+        });
+        
+        document.getElementById('hv_voltage').addEventListener('input', function() {
+            document.getElementById('hv_voltage_reg').textContent = Math.round(this.value * 1000);
+        });
+        
+        document.getElementById('hv_current').addEventListener('input', function() {
+            document.getElementById('hv_current_reg').textContent = Math.round(this.value);
+        });
+        
+        // 生成PWM配置指令
+        function generatePWMCommands() {
+            const slaveId = '02'; // 默认从机ID
+            let commands = [];
+            
+            // 设置DA5 - 脉冲频率 (30-100Hz)
+            const pwmFreq = parseInt(document.getElementById('pwm_freq').value);
+            commands.push(createWriteSingleRegisterCommand(slaveId, 5, pwmFreq));
+            
+            // 设置DA6 - 脉冲宽度 (50-500 = 0.5-5ms)
+            const pwmWidth = parseInt(document.getElementById('pwm_width').value);
+            commands.push(createWriteSingleRegisterCommand(slaveId, 6, pwmWidth));
+            
+            // 设置DA13 - 脉冲时间 (ms)
+            const pwmOnTime = parseInt(document.getElementById('pwm_on_time').value);
+            commands.push(createWriteSingleRegisterCommand(slaveId, 13, pwmOnTime));
+            
+            // 设置DA14 - 非脉冲时间 (ms)
+            const pwmOffTime = parseInt(document.getElementById('pwm_off_time').value);
+            commands.push(createWriteSingleRegisterCommand(slaveId, 14, pwmOffTime));
+            
+            // 设置DA15 - 死区宽度 (ms)
+            const pwmDeadTime = parseInt(document.getElementById('pwm_dead_time').value);
+            commands.push(createWriteSingleRegisterCommand(slaveId, 15, pwmDeadTime));
+            
+            // 设置DO2 - 调制开关
+            const pwmSwitch = document.getElementById('pwm_switch').value;
+            commands.push(createWriteSingleCoilCommand(slaveId, 2, pwmSwitch));
+            
+            // 设置DO3 - 调制复位
+            const pwmReset = document.getElementById('pwm_reset').value;
+            commands.push(createWriteSingleCoilCommand(slaveId, 3, pwmReset));
+            
+            // 设置DO6 - 输出模式
+            const pwmMode = document.getElementById('pwm_mode').value;
+            commands.push(createWriteSingleCoilCommand(slaveId, 6, pwmMode));
+            
+            // 显示预览
+            const preview = commands.map(cmd => cmd.match(/.{2}/g).join(' ')).join('\n');
+            document.getElementById('pwmCommandPreview').textContent = preview;
+            
+            // 添加到文件内容
+            appendCommandsToFile(commands);
+        }
+        
+        // 生成开关配置指令
+        function generateSwitchCommands() {
+            const slaveId = '02'; // 默认从机ID
+            let commands = [];
+            
+            // 设置DO0 - 灯丝开关
+            const filamentSwitch = document.getElementById('filament_switch').value;
+            commands.push(createWriteSingleCoilCommand(slaveId, 0, filamentSwitch));
+            
+            // 设置DO1 - 灯丝复位
+            const filamentReset = document.getElementById('filament_reset').value;
+            commands.push(createWriteSingleCoilCommand(slaveId, 1, filamentReset));
+            
+            // 设置DO4 - 高压开关
+            const hvSwitch = document.getElementById('hv_switch').value;
+            commands.push(createWriteSingleCoilCommand(slaveId, 4, hvSwitch));
+            
+            // 设置DO5 - 高压复位
+            const hvReset = document.getElementById('hv_reset').value;
+            commands.push(createWriteSingleCoilCommand(slaveId, 5, hvReset));
+            
+            // 设置DA0 - 灯丝电压
+            const filamentVoltage = Math.round(document.getElementById('filament_voltage').value * 1000);
+            commands.push(createWriteSingleRegisterCommand(slaveId, 0, filamentVoltage));
+            
+            // 设置DA1 - 灯丝电流
+            const filamentCurrent = Math.round(document.getElementById('filament_current').value * 1000);
+            commands.push(createWriteSingleRegisterCommand(slaveId, 1, filamentCurrent));
+            
+            // 设置DA3 - 高压电压
+            const hvVoltage = Math.round(document.getElementById('hv_voltage').value * 1000);
+            commands.push(createWriteSingleRegisterCommand(slaveId, 3, hvVoltage));
+            
+            // 设置DA4 - 高压电流
+            const hvCurrent = Math.round(document.getElementById('hv_current').value);
+            commands.push(createWriteSingleRegisterCommand(slaveId, 4, hvCurrent));
+            
+            // 显示预览
+            const preview = commands.map(cmd => cmd.match(/.{2}/g).join(' ')).join('\n');
+            document.getElementById('switchCommandPreview').textContent = preview;
+            
+            // 添加到文件内容
+            appendCommandsToFile(commands);
+        }
+        
+        // 创建写单个寄存器指令
+        function createWriteSingleRegisterCommand(slaveId, address, value) {
+            // 高字节在前格式
+            const data = 
+                address.toString(16).padStart(4, '0').match(/.{2}/g).join('') + 
+                value.toString(16).padStart(4, '0').match(/.{2}/g).join('');
+            
+            const fullCommand = slaveId + '06' + data;
+            const crc = calculateCRC(fullCommand);
+            return fullCommand + crc;
+        }
+        
+        // 创建写单个线圈指令
+        function createWriteSingleCoilCommand(slaveId, address, value) {
+            // 高字节在前格式
+            const data = 
+                address.toString(16).padStart(4, '0').match(/.{2}/g).join('') + 
+                (value === '1' ? 'FF00' : '0000');
+            
+            const fullCommand = slaveId + '05' + data;
+            const crc = calculateCRC(fullCommand);
+            return fullCommand + crc;
+        }
+        
+        // 添加指令到文件内容
+        function appendCommandsToFile(commands) {
+            const fileContent = document.getElementById('fileContent');
+            
+            commands.forEach(cmd => {
+                // 添加前导00 00
+                if (fileContent.value.length > 0 && !fileContent.value.endsWith('\n')) {
+                    fileContent.value += '\n';
+                }
+                fileContent.value += '00\n';
+                
+                // 添加指令内容，每个字节一行
+                const bytes = cmd.match(/.{2}/g);
+                fileContent.value += bytes.join('\n') + '\n';
+                
+                // 添加结尾00 00
+                fileContent.value += '00\n';
+            });
+            
+            // 滚动到文本底部
+            fileContent.scrollTop = fileContent.scrollHeight;
+            
+            // 切换到文件标签页
+            switchTab('file');
+        }
+        
+        function saveToTxt() {
+            const fileName = document.getElementById('fileName').value.trim() || 'modbus_commands';
+            const fileContent = document.getElementById('fileContent').value;
+            
+            if (!fileContent) {
+                alert('没有可保存的内容');
+                return;
+            }
+            
+            // 创建并下载文件
+            const blob = new Blob([fileContent], { type: 'text/plain' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = fileName + '.txt';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(a.href);
+        }
+        
+        // Modbus RTU CRC16计算函数
+        function calculateCRC(data) {
+            // 将16进制字符串转换为字节数组
+            let bytes = [];
+            for (let i = 0; i < data.length; i += 2) {
+                bytes.push(parseInt(data.substr(i, 2), 16));
+            }
+            
+            let crc = 0xFFFF;
+            for (let i = 0; i < bytes.length; i++) {
+                crc ^= bytes[i];
+                for (let j = 0; j < 8; j++) {
+                    if ((crc & 0x0001) === 1) {
+                        crc = (crc >> 1) ^ 0xA001;
+                    } else {
+                        crc = crc >> 1;
+                    }
+                }
+            }
+            
+            // 返回CRC16，低字节在前
+            const crcHex = crc.toString(16).padStart(4, '0');
+            return crcHex.substr(2, 2) + crcHex.substr(0, 2);
+        }
+    </script>
+</body>
+</html>

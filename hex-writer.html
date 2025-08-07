@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZJ150高压电源Modbus指令生成器(文件编辑版)</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        h1, h2 {
+            color: #333;
+        }
+        .container {
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .panel {
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: white;
+            border-radius: 5px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        select, input, textarea {
+            padding: 8px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        select {
+            width: 100%;
+        }
+        textarea {
+            width: 100%;
+            height: 100px;
+            font-family: monospace;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 10px 2px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .hex-preview {
+            font-family: monospace;
+            white-space: pre;
+            background-color: #f0f0f0;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+        .command-list {
+            margin-top: 20px;
+        }
+        .command-item {
+            margin-bottom: 10px;
+            padding: 10px;
+            background-color: #e9f7ef;
+            border-radius: 4px;
+        }
+        .del-btn {
+            background-color: #f44336;
+            float: right;
+        }
+        .del-btn:hover {
+            background-color: #d32f2f;
+        }
+        .two-column {
+            display: flex;
+            gap: 20px;
+        }
+        .column {
+            flex: 1;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 10px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .info {
+            background-color: #e7f3fe;
+            border-left: 6px solid #2196F3;
+            padding: 10px;
+            margin: 10px 0;
+        }
+        .file-ops {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="top-nav" style="background: white; padding: 15px 20px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+    <a href="index.html" style="color: #333; text-decoration: none; font-weight: bold; display: inline-flex; align-items: center; gap: 8px;">
+        <i class="fas fa-arrow-left"></i> 返回游戏主页
+    </a>
+</div>
+    <div class="container">
+        <h1>ZJ150高压电源Modbus指令生成器(文件编辑版)</h1>
+        <div class="info">
+            <strong>注意：</strong>本工具支持编辑现有TXT文件，下载时会覆盖同名文件，每行一个16进制字节
+        </div>
+        
+        <div class="panel">
+            <h2>文件操作</h2>
+            <div class="file-ops">
+                <input type="file" id="fileInput" accept=".txt" style="display: none;">
+                <button onclick="document.getElementById('fileInput').click()">加载TXT文件</button>
+                <button onclick="saveToTxt()">保存/覆盖TXT文件</button>
+                <input type="text" id="fileName" placeholder="输入文件名(不带后缀)" value="modbus_commands">
+            </div>
+            <textarea id="fileContent" placeholder="文件内容将显示在这里，可编辑..." style="height: 200px;"></textarea>
+        </div>
+        
+        <div class="two-column">
+            <div class="column">
+                <div class="panel">
+                    <h2>生成新指令</h2>
+                    
+                    <label for="slaveId">从机ID (1-247):</label>
+                    <input type="number" id="slaveId" min="1" max="247" value="1">
+                    
+                    <label for="functionCode">功能码:</label>
+                    <select id="functionCode">
+                        <option value="01">01H - 读线圈状态</option>
+                        <option value="02">02H - 读离散输入</option>
+                        <option value="03">03H - 读保持寄存器</option>
+                        <option value="04">04H - 读输入寄存器</option>
+                        <option value="05">05H - 写单个线圈</option>
+                        <option value="06">06H - 写单个寄存器</option>
+                        <option value="0F">0FH - 写多个线圈</option>
+                        <option value="10">10H - 写多个寄存器</option>
+                    </select>
+                    
+                    <div id="paramsContainer">
+                        <!-- 动态生成的参数输入区域 -->
+                    </div>
+                    
+                    <button onclick="generateCommand()">生成指令</button>
+                    
+                    <div class="hex-preview" id="commandPreview">
+                        生成的指令将显示在这里...
+                    </div>
+                </div>
+            </div>
+            
+            <div class="column">
+                <div class="panel">
+                    <h2>寄存器参考</h2>
+                    <h3>线圈寄存器 (DO)</h3>
+                    <table>
+                        <tr><th>地址</th><th>功能</th></tr>
+                        <tr><td>0</td><td>灯丝开关：1开机,0关机</td></tr>
+                        <tr><td>1</td><td>灯丝复位：1复位,0不复位</td></tr>
+                        <tr><td>2</td><td>调制开关：1开机,0关机</td></tr>
+                        <tr><td>3</td><td>调制复位：1复位,0不复位</td></tr>
+                        <tr><td>4</td><td>高压开关：1开机,0关机</td></tr>
+                        <tr><td>5</td><td>高压复位：1复位,0不复位</td></tr>
+                        <tr><td>6</td><td>脉冲输出模式：1断续,0连续</td></tr>
+                        <tr><td>7</td><td>同步信号开关：1开,0关</td></tr>
+                    </table>
+                    
+                    <h3>保持寄存器 (DA)</h3>
+                    <table>
+                        <tr><th>地址</th><th>功能</th><th>范围</th></tr>
+                        <tr><td>0</td><td>灯丝电压设定</td><td>0-7000 (0-7V)</td></tr>
+                        <tr><td>1</td><td>灯丝电流设定</td><td>0-20000 (0-20A)</td></tr>
+                        <tr><td>3</td><td>高压电压设定</td><td>0-56000 (0-56KV)</td></tr>
+                        <tr><td>4</td><td>高压电流设定</td><td>0-14 (0-14mA)</td></tr>
+                        <tr><td>5</td><td>脉冲输出频率</td><td>30-100 (30-100Hz)</td></tr>
+                        <tr><td>6</td><td>脉冲输出宽度</td><td>50-500 (500ns-5us)</td></tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 存储所有生成的指令
+        let commands = [];
+        
+        // 文件输入处理
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('fileContent').value = e.target.result;
+                // 尝试从文件名中提取基本名称
+                const baseName = file.name.replace('.txt', '');
+                document.getElementById('fileName').value = baseName;
+            };
+            reader.readAsText(file);
+        });
+        
+        // 根据选择的功能码更新参数输入区域
+        document.getElementById('functionCode').addEventListener('change', updateParamsUI);
+        
+        // 初始化参数UI
+        updateParamsUI();
+        
+        function updateParamsUI() {
+            const functionCode = document.getElementById('functionCode').value;
+            const paramsContainer = document.getElementById('paramsContainer');
+            paramsContainer.innerHTML = '';
+            
+            switch(functionCode) {
+                case '01': // 读线圈
+                case '02': // 读离散输入
+                case '03': // 读保持寄存器
+                case '04': // 读输入寄存器
+                    paramsContainer.innerHTML = `
+                        <label for="startAddr">起始地址 (0-65535):</label>
+                        <input type="number" id="startAddr" min="0" max="65535" value="0">
+                        
+                        <label for="quantity">读取数量:</label>
+                        <input type="number" id="quantity" min="1" value="1">
+                    `;
+                    break;
+                    
+                case '05': // 写单个线圈
+                    paramsContainer.innerHTML = `
+                        <label for="coilAddr">线圈地址 (0-65535):</label>
+                        <input type="number" id="coilAddr" min="0" max="65535" value="0">
+                        
+                        <label for="coilValue">线圈值:</label>
+                        <select id="coilValue">
+                            <option value="FF00">ON (FF00)</option>
+                            <option value="0000">OFF (0000)</option>
+                        </select>
+                    `;
+                    break;
+                    
+                case '06': // 写单个寄存器
+                    paramsContainer.innerHTML = `
+                        <label for="regAddr">寄存器地址 (0-65535):</label>
+                        <input type="number" id="regAddr" min="0" max="65535" value="0">
+                        
+                        <label for="regValue">寄存器值 (0-65535):</label>
+                        <input type="number" id="regValue" min="0" max="65535" value="0">
+                    `;
+                    break;
+                    
+                case '0F': // 写多个线圈
+                    paramsContainer.innerHTML = `
+                        <label for="multiCoilStart">起始地址 (0-65535):</label>
+                        <input type="number" id="multiCoilStart" min="0" max="65535" value="0">
+                        
+                        <label for="multiCoilCount">写入数量 (1-1968):</label>
+                        <input type="number" id="multiCoilCount" min="1" max="1968" value="1">
+                        
+                        <label for="multiCoilValues">线圈值 (每行一个, 1=ON, 0=OFF):</label>
+                        <textarea id="multiCoilValues" placeholder="例如:\n1\n0\n1\n1\n0"></textarea>
+                    `;
+                    break;
+                    
+                case '10': // 写多个寄存器
+                    paramsContainer.innerHTML = `
+                        <label for="multiRegStart">起始地址 (0-65535):</label>
+                        <input type="number" id="multiRegStart" min="0" max="65535" value="0">
+                        
+                        <label for="multiRegCount">写入数量 (1-123):</label>
+                        <input type="number" id="multiRegCount" min="1" max="123" value="1">
+                        
+                        <label for="multiRegValues">寄存器值 (每行一个, 0-65535):</label>
+                        <textarea id="multiRegValues" placeholder="例如:\n1000\n2000\n3000"></textarea>
+                    `;
+                    break;
+            }
+        }
+        
+        function generateCommand() {
+            const slaveId = parseInt(document.getElementById('slaveId').value).toString(16).padStart(2, '0').toUpperCase();
+            const functionCode = document.getElementById('functionCode').value;
+            
+            let data = '';
+            
+            switch(functionCode) {
+                case '01': // 读线圈
+                case '02': // 读离散输入
+                    const startAddr = parseInt(document.getElementById('startAddr').value);
+                    const quantity = parseInt(document.getElementById('quantity').value);
+                    
+                    if (quantity < 1 || quantity > 2000) {
+                        alert('读取数量必须在1-2000之间');
+                        return;
+                    }
+                    
+                    // 高字节在前格式
+                    data = 
+                        startAddr.toString(16).padStart(4, '0').match(/.{2}/g).join('') + 
+                        quantity.toString(16).padStart(4, '0').match(/.{2}/g).join('');
+                    break;
+                    
+                case '03': // 读保持寄存器
+                case '04': // 读输入寄存器
+                    const regStartAddr = parseInt(document.getElementById('startAddr').value);
+                    const regQuantity = parseInt(document.getElementById('quantity').value);
+                    
+                    if (regQuantity < 1 || regQuantity > 125) {
+                        alert('读取数量必须在1-125之间');
+                        return;
+                    }
+                    
+                    // 高字节在前格式
+                    data = 
+                        regStartAddr.toString(16).padStart(4, '0').match(/.{2}/g).join('') + 
+                        regQuantity.toString(16).padStart(4, '0').match(/.{2}/g).join('');
+                    break;
+                    
+                case '05': // 写单个线圈
+                    const coilAddr = parseInt(document.getElementById('coilAddr').value);
+                    const coilValue = document.getElementById('coilValue').value;
+                    
+                    // 高字节在前格式
+                    data = 
+                        coilAddr.toString(16).padStart(4, '0').match(/.{2}/g).join('') + 
+                        coilValue;
+                    break;
+                    
+                case '06': // 写单个寄存器
+                    const regAddr = parseInt(document.getElementById('regAddr').value);
+                    const regValue = parseInt(document.getElementById('regValue').value);
+                    
+                    // 高字节在前格式
+                    data = 
+                        regAddr.toString(16).padStart(4, '0').match(/.{2}/g).join('') + 
+                        regValue.toString(16).padStart(4, '0').match(/.{2}/g).join('');
+                    break;
+                    
+                case '0F': // 写多个线圈
+                    const multiCoilStart = parseInt(document.getElementById('multiCoilStart').value);
+                    const multiCoilCount = parseInt(document.getElementById('multiCoilCount').value);
+                    const coilValues = document.getElementById('multiCoilValues').value.split('\n')
+                        .map(v => v.trim())
+                        .filter(v => v.length > 0)
+                        .map(v => parseInt(v));
+                    
+                    if (coilValues.length !== multiCoilCount) {
+                        alert(`输入的值数量(${coilValues.length})与指定的数量(${multiCoilCount})不匹配`);
+                        return;
+                    }
+                    
+                    // 将线圈值打包为字节
+                    let byteCount = Math.ceil(multiCoilCount / 8);
+                    let bytes = [];
+                    
+                    for (let i = 0; i < byteCount; i++) {
+                        let byte = 0;
+                        for (let j = 0; j < 8; j++) {
+                            let idx = i * 8 + j;
+                            if (idx < coilValues.length && coilValues[idx] === 1) {
+                                byte |= (1 << j);
+                            }
+                        }
+                        bytes.push(byte.toString(16).padStart(2, '0'));
+                    }
+                    
+                    // 高字节在前格式
+                    data = 
+                        multiCoilStart.toString(16).padStart(4, '0').match(/.{2}/g).join('') + 
+                        multiCoilCount.toString(16).padStart(4, '0').match(/.{2}/g).join('') + 
+                        byteCount.toString(16).padStart(2, '0') + 
+                        bytes.join('');
+                    break;
+                    
+                case '10': // 写多个寄存器
+                    const multiRegStart = parseInt(document.getElementById('multiRegStart').value);
+                    const multiRegCount = parseInt(document.getElementById('multiRegCount').value);
+                    const regValues = document.getElementById('multiRegValues').value.split('\n')
+                        .map(v => v.trim())
+                        .filter(v => v.length > 0)
+                        .map(v => parseInt(v));
+                    
+                    if (regValues.length !== multiRegCount) {
+                        alert(`输入的值数量(${regValues.length})与指定的数量(${multiRegCount})不匹配`);
+                        return;
+                    }
+                    
+                    // 将寄存器值转换为16进制，高字节在前
+                    let regData = '';
+                    for (let value of regValues) {
+                        if (value < 0 || value > 65535) {
+                            alert(`寄存器值必须在0-65535之间，发现无效值: ${value}`);
+                            return;
+                        }
+                        regData += value.toString(16).padStart(4, '0').match(/.{2}/g).join('');
+                    }
+                    
+                    // 高字节在前格式
+                    data = 
+                        multiRegStart.toString(16).padStart(4, '0').match(/.{2}/g).join('') + 
+                        multiRegCount.toString(16).padStart(4, '0').match(/.{2}/g).join('') + 
+                        (multiRegCount * 2).toString(16).padStart(2, '0') + 
+                        regData;
+                    break;
+            }
+            
+            // 计算CRC16校验
+            const fullCommand = slaveId + functionCode + data;
+            const crc = calculateCRC(fullCommand);
+            
+            // 完整的Modbus RTU指令
+            const modbusCommand = fullCommand + crc;
+            
+            // 显示预览
+            document.getElementById('commandPreview').textContent = modbusCommand.match(/.{2}/g).join(' ');
+            
+            // 添加到文件内容
+            appendToFileContent(modbusCommand);
+        }
+        
+        function appendToFileContent(command) {
+            const fileContent = document.getElementById('fileContent');
+            const bytes = command.match(/.{2}/g);
+            
+            // 添加前导00 00
+            if (fileContent.value.length > 0 && !fileContent.value.endsWith('\n')) {
+                fileContent.value += '\n';
+            }
+            fileContent.value += '00\n';
+            
+            // 添加指令内容，每个字节一行
+            fileContent.value += bytes.join('\n') + '\n';
+            
+            // 添加结尾00 00
+            fileContent.value += '00\n';
+            
+            // 滚动到文本底部
+            fileContent.scrollTop = fileContent.scrollHeight;
+        }
+        
+        function saveToTxt() {
+            const fileName = document.getElementById('fileName').value.trim() || 'modbus_commands';
+            const fileContent = document.getElementById('fileContent').value;
+            
+            if (!fileContent) {
+                alert('没有可保存的内容');
+                return;
+            }
+            
+            // 创建并下载文件
+            const blob = new Blob([fileContent], { type: 'text/plain' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = fileName + '.txt';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(a.href);
+        }
+        
+        // Modbus RTU CRC16计算函数
+        function calculateCRC(data) {
+            // 将16进制字符串转换为字节数组
+            let bytes = [];
+            for (let i = 0; i < data.length; i += 2) {
+                bytes.push(parseInt(data.substr(i, 2), 16));
+            }
+            
+            let crc = 0xFFFF;
+            for (let i = 0; i < bytes.length; i++) {
+                crc ^= bytes[i];
+                for (let j = 0; j < 8; j++) {
+                    if ((crc & 0x0001) === 1) {
+                        crc = (crc >> 1) ^ 0xA001;
+                    } else {
+                        crc = crc >> 1;
+                    }
+                }
+            }
+            
+            // 返回CRC16，低字节在前
+            const crcHex = crc.toString(16).padStart(4, '0');
+            return crcHex.substr(2, 2) + crcHex.substr(0, 2);
+        }
+    </script>
+</body>
+</html>
