@@ -298,47 +298,6 @@
          setTimeout(function() {
              window.location.href = "deep.html";
            }, 6000); // 6000毫秒 = 6
-
-        // 故意制造JavaScript错误
-        console.log("开始制造错误...");
-        
-        // 未定义的变量
-        console.log(undefinedVariable);
-        
-        // 类型错误
-        var num = 10;
-        num.toUpperCase();
-        
-        // 语法错误
-        var obj = { name: "Error", age 30 }; // 缺少冒号
-        
-        // 引用错误
-        document.getElementById("nonExistentElement").innerHTML = "错误";
-        
-        // 故意错误的函数
-        function crashBrowser() {
-            alert("即将制造更多错误...");
-            
-            // 无限循环
-            while(true) {
-                console.log("制造错误中...");
-                
-                // 创建内存泄漏
-                var leak = [];
-                for (var i = 0; i < 100000; i++) {
-                    leak.push(new Array(1000));
-                }
-                
-                // 访问不存在的属性
-                try {
-                    window.nonExistentProperty.nestedProperty = "错误";
-                } catch (e) {
-                    console.error(e);
-                }
-            }
-        }
-        
-        // 未闭合的代码块
     </script>
 </body>
 </html>
