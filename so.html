@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>系统错误 - 安全锁定</title>
+    <title>系统锁定 - 安全验证</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
@@ -11,11 +11,12 @@
             padding: 0;
             box-sizing: border-box;
             user-select: none;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
-            background: #0a246a;
-            font-family: 'Courier New', monospace;
+            background: linear-gradient(135deg, #0a0f2e, #1a1a4a);
+            font-family: 'Consolas', 'Courier New', monospace;
             color: #fff;
             min-height: 100vh;
             display: flex;
@@ -24,18 +25,50 @@
             align-items: center;
             overflow: hidden;
             position: relative;
-            cursor: not-allowed;
+            cursor: default;
         }
 
-        /* 蓝屏背景 */
-        .blue-screen {
+        /* 系统锁定警告 */
+        .lock-warning {
+            position: absolute;
+            top: 20px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            z-index: 10;
+            padding: 10px;
+            background: rgba(255, 0, 0, 0.2);
+            border-bottom: 1px solid rgba(255, 0, 0, 0.5);
+            animation: pulseWarning 2s infinite;
+        }
+
+        .lock-warning i {
+            margin-right: 8px;
+            color: #ff5555;
+        }
+
+        /* 数字矩阵背景 */
+        .matrix-bg {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: #0a246a;
+            background: rgba(0, 5, 15, 0.9);
+            overflow: hidden;
             z-index: 1;
+        }
+
+        .matrix-code {
+            position: absolute;
+            top: 0;
+            left: 0;
+            color: rgba(0, 255, 100, 0.1);
+            font-size: 18px;
+            writing-mode: vertical-rl;
+            text-orientation: mixed;
+            white-space: nowrap;
+            animation: matrixFall linear infinite;
         }
 
         /* 错误信息容器 */
@@ -44,19 +77,21 @@
             z-index: 3;
             max-width: 800px;
             padding: 30px;
-            background: rgba(0, 20, 80, 0.8);
+            background: rgba(10, 15, 40, 0.85);
             border: 2px solid rgba(100, 150, 255, 0.3);
-            margin-bottom: 40px;
-            box-shadow: 0 0 30px rgba(0, 80, 255, 0.5);
+            margin-bottom: 30px;
+            box-shadow: 0 0 30px rgba(0, 100, 255, 0.4);
+            border-radius: 10px;
+            backdrop-filter: blur(5px);
+            text-align: center;
         }
 
         /* 错误标题 */
         .error-title {
-            font-size: 3.5rem;
+            font-size: 3rem;
             color: #fff;
-            text-shadow: 0 0 15px rgba(255, 255, 255, 0.7);
+            text-shadow: 0 0 15px rgba(0, 200, 255, 0.7);
             margin-bottom: 20px;
-            text-align: center;
             font-weight: bold;
             letter-spacing: 2px;
             position: relative;
@@ -80,7 +115,6 @@
             line-height: 1.8;
             margin: 20px 0;
             color: #c0d8ff;
-            text-align: center;
         }
 
         .error-details {
@@ -88,9 +122,10 @@
             padding: 20px;
             margin: 25px 0;
             border-left: 4px solid #ff5555;
-            font-family: 'Consolas', monospace;
             font-size: 0.95rem;
             line-height: 1.7;
+            text-align: left;
+            border-radius: 0 8px 8px 0;
         }
 
         .error-code {
@@ -99,6 +134,21 @@
             padding: 3px 8px;
             border-radius: 3px;
             color: #ff9999;
+            font-family: 'Courier New', monospace;
+        }
+
+        /* 解锁条件 */
+        .unlock-condition {
+            margin: 20px 0;
+            padding: 15px;
+            background: rgba(0, 30, 70, 0.5);
+            border-radius: 10px;
+            border: 1px solid rgba(0, 200, 255, 0.3);
+        }
+
+        .unlock-condition i {
+            color: #4dffb8;
+            margin-right: 8px;
         }
 
         /* 游戏容器 */
@@ -107,10 +157,10 @@
             z-index: 2;
             width: 360px;
             margin: 20px auto;
-            background: rgba(0, 10, 40, 0.8);
+            background: rgba(0, 10, 40, 0.85);
             border-radius: 10px;
             padding: 20px;
-            box-shadow: 0 0 30px rgba(0, 100, 255, 0.3);
+            box-shadow: 0 0 30px rgba(0, 100, 255, 0.4);
             border: 1px solid rgba(100, 180, 255, 0.4);
         }
 
@@ -124,18 +174,33 @@
         }
 
         .game-title {
-            font-size: 1.5rem;
+            font-size: 1.8rem;
             color: #4d9aff;
             font-weight: bold;
+            text-shadow: 0 0 10px rgba(77, 154, 255, 0.7);
         }
 
         .score-container {
             background: rgba(0, 20, 60, 0.7);
-            padding: 5px 15px;
-            border-radius: 5px;
+            padding: 8px 15px;
+            border-radius: 8px;
             font-weight: bold;
             color: #fff;
             border: 1px solid rgba(100, 180, 255, 0.3);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .score-label {
+            font-size: 0.8rem;
+            color: #a0d0ff;
+            margin-bottom: 3px;
+        }
+
+        .score-value {
+            font-size: 1.3rem;
+            color: #4dffb8;
         }
 
         /* 游戏网格 */
@@ -148,33 +213,51 @@
             padding: 10px;
             border-radius: 8px;
             border: 2px solid rgba(100, 180, 255, 0.2);
+            touch-action: none;
         }
 
         .grid-cell {
             background: rgba(20, 50, 120, 0.4);
             border-radius: 5px;
-            height: 70px;
+            height: 75px;
             display: flex;
             justify-content: center;
             align-items: center;
             font-size: 2rem;
             font-weight: bold;
             color: #fff;
-            transition: all 0.2s;
+            transition: all 0.15s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .grid-cell::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, 
+                rgba(255, 255, 255, 0.1) 0%, 
+                rgba(255, 255, 255, 0) 50%, 
+                rgba(255, 255, 255, 0.1) 100%);
+            z-index: 1;
+            pointer-events: none;
         }
 
         /* 数字块样式 */
-        .tile-2 { background: rgba(100, 150, 255, 0.6); }
-        .tile-4 { background: rgba(80, 130, 255, 0.7); }
-        .tile-8 { background: rgba(60, 110, 255, 0.8); color: #ffcc00; }
-        .tile-16 { background: rgba(40, 90, 255, 0.9); color: #ffcc00; }
-        .tile-32 { background: rgba(20, 70, 255, 0.9); color: #ffcc00; }
-        .tile-64 { background: rgba(0, 50, 255, 0.9); color: #ffcc00; }
-        .tile-128 { background: rgba(0, 150, 255, 0.9); color: #ffff00; font-size: 1.8rem; }
-        .tile-256 { background: rgba(0, 200, 255, 0.9); color: #ffff00; font-size: 1.8rem; }
-        .tile-512 { background: rgba(0, 255, 255, 0.9); color: #ffff00; font-size: 1.7rem; }
-        .tile-1024 { background: rgba(100, 255, 255, 0.9); color: #ffffff; font-size: 1.6rem; }
-        .tile-2048 { background: linear-gradient(135deg, #ffcc00, #ff9900); color: #003366; font-size: 1.5rem; }
+        .tile-2 { background: rgba(100, 150, 255, 0.6); box-shadow: 0 0 10px rgba(100, 150, 255, 0.4); }
+        .tile-4 { background: rgba(80, 130, 255, 0.7); box-shadow: 0 0 10px rgba(80, 130, 255, 0.4); }
+        .tile-8 { background: rgba(60, 110, 255, 0.8); color: #ffcc00; box-shadow: 0 0 10px rgba(60, 110, 255, 0.5); }
+        .tile-16 { background: rgba(40, 90, 255, 0.9); color: #ffcc00; box-shadow: 0 0 12px rgba(40, 90, 255, 0.6); }
+        .tile-32 { background: rgba(20, 70, 255, 0.9); color: #ffcc00; box-shadow: 0 0 12px rgba(20, 70, 255, 0.6); }
+        .tile-64 { background: rgba(0, 50, 255, 0.9); color: #ffcc00; box-shadow: 0 0 15px rgba(0, 50, 255, 0.7); }
+        .tile-128 { background: rgba(0, 150, 255, 0.9); color: #ffff00; font-size: 1.8rem; box-shadow: 0 0 15px rgba(0, 150, 255, 0.7); }
+        .tile-256 { background: rgba(0, 200, 255, 0.9); color: #ffff00; font-size: 1.8rem; box-shadow: 0 0 15px rgba(0, 200, 255, 0.7); }
+        .tile-512 { background: rgba(0, 255, 255, 0.9); color: #ffff00; font-size: 1.7rem; box-shadow: 0 0 20px rgba(0, 255, 255, 0.8); }
+        .tile-1024 { background: rgba(100, 255, 255, 0.9); color: #ffffff; font-size: 1.6rem; box-shadow: 0 0 20px rgba(100, 255, 255, 0.8); }
+        .tile-2048 { background: linear-gradient(135deg, #ffcc00, #ff9900); color: #003366; font-size: 1.5rem; box-shadow: 0 0 25px rgba(255, 204, 0, 0.8); }
 
         /* 游戏结束提示 */
         .game-message {
@@ -184,7 +267,7 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0, 20, 60, 0.9);
+            background: rgba(0, 20, 60, 0.95);
             border-radius: 10px;
             flex-direction: column;
             justify-content: center;
@@ -193,28 +276,58 @@
         }
 
         .game-message p {
-            font-size: 2rem;
+            font-size: 2.2rem;
             font-weight: bold;
             color: #ffcc00;
             margin-bottom: 20px;
             text-align: center;
+            text-shadow: 0 0 10px rgba(255, 204, 0, 0.7);
         }
 
         .retry-button {
-            background: #4d9aff;
-            color: #001a40;
+            background: linear-gradient(135deg, #4d9aff, #8e54e9);
+            color: white;
             border: none;
             padding: 12px 30px;
             font-size: 1.1rem;
             font-weight: bold;
-            border-radius: 5px;
+            border-radius: 30px;
             cursor: pointer;
             transition: all 0.3s;
+            box-shadow: 0 5px 15px rgba(77, 154, 255, 0.4);
         }
 
         .retry-button:hover {
-            background: #66aaff;
-            transform: scale(1.05);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(77, 154, 255, 0.6);
+        }
+
+        /* 解锁按钮 */
+        .unlock-button {
+            margin-top: 20px;
+            background: linear-gradient(135deg, #00c853, #1de9b6);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 5px 15px rgba(0, 200, 83, 0.4);
+            opacity: 0.7;
+            pointer-events: none;
+        }
+
+        .unlock-button.active {
+            opacity: 1;
+            pointer-events: auto;
+            animation: pulseSuccess 1.5s infinite;
+        }
+
+        .unlock-button.active:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 200, 83, 0.6);
         }
 
         /* 故障效果 */
@@ -225,7 +338,7 @@
             width: 100%;
             height: 100%;
             background: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
-            opacity: 0.1;
+            opacity: 0.08;
             z-index: 2;
             pointer-events: none;
         }
@@ -263,13 +376,21 @@
             100% { top: 100%; }
         }
 
-        @keyframes glitch {
-            0% { transform: translate(0); }
-            20% { transform: translate(-5px, 5px); }
-            40% { transform: translate(-5px, -5px); }
-            60% { transform: translate(5px, 5px); }
-            80% { transform: translate(5px, -5px); }
-            100% { transform: translate(0); }
+        @keyframes pulseWarning {
+            0% { background-color: rgba(255, 0, 0, 0.2); }
+            50% { background-color: rgba(255, 0, 0, 0.4); }
+            100% { background-color: rgba(255, 0, 0, 0.2); }
+        }
+
+        @keyframes pulseSuccess {
+            0% { box-shadow: 0 0 0 0 rgba(0, 200, 83, 0.4); }
+            70% { box-shadow: 0 0 0 15px rgba(0, 200, 83, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(0, 200, 83, 0); }
+        }
+
+        @keyframes matrixFall {
+            0% { transform: translateY(-100%); }
+            100% { transform: translateY(100vh); }
         }
 
         /* 响应式设计 */
@@ -280,7 +401,7 @@
             }
             
             .error-title {
-                font-size: 2.5rem;
+                font-size: 2.2rem;
             }
             
             .game-container {
@@ -288,15 +409,31 @@
             }
             
             .grid-cell {
-                height: 60px;
+                height: 65px;
                 font-size: 1.5rem;
+            }
+            
+            .game-title {
+                font-size: 1.5rem;
+            }
+        }
+
+        @media (max-width: 400px) {
+            .grid-cell {
+                height: 55px;
+                font-size: 1.3rem;
             }
         }
     </style>
 </head>
 <body>
-    <!-- 蓝屏背景 -->
-    <div class="blue-screen"></div>
+    <!-- 系统锁定警告 -->
+    <div class="lock-warning">
+        <i class="fas fa-shield-alt"></i> 系统安全锁定中 - 访问权限已被拒绝
+    </div>
+    
+    <!-- 数字矩阵背景 -->
+    <div class="matrix-bg" id="matrix-bg"></div>
     
     <!-- 故障效果 -->
     <div class="glitch-effect"></div>
@@ -309,8 +446,8 @@
         <h1 class="error-title">SYSTEM LOCKDOWN</h1>
         
         <div class="error-message">
-            <p><i class="fas fa-exclamation-triangle"></i> 安全协议已激活 - 访问权限被拒绝</p>
-            <p>检测到无效登录凭证，系统已锁定</p>
+            <p><i class="fas fa-exclamation-triangle"></i> 安全协议已激活 - 检测到非法登录尝试</p>
+            <p>系统已锁定，需要完成安全验证才能解除</p>
         </div>
         
         <div class="error-details">
@@ -319,11 +456,12 @@
             <p>时间戳: <span class="error-code">2025-08-11 14:36:22 UTC</span></p>
             <p>用户: <span class="error-code">zyjj</span></p>
             <p>IP: <span class="error-code">192.168.7.22</span> | 位置: <span class="error-code">未知</span></p>
-            <p>建议操作: 等待系统管理员解除锁定或联系技术支持</p>
+            <p>建议操作: 完成安全游戏验证以解除系统锁定</p>
         </div>
         
-        <div class="error-message">
-            <p>此终端已锁定，仅供娱乐使用</p>
+        <div class="unlock-condition">
+            <i class="fas fa-unlock-alt"></i>
+            <span>解锁条件：在2048游戏中获得<strong>2000分</strong>以上</span>
         </div>
     </div>
     
@@ -331,7 +469,10 @@
     <div class="game-container">
         <div class="game-header">
             <div class="game-title">2048</div>
-            <div class="score-container">分数: <span id="score">0</span></div>
+            <div class="score-container">
+                <div class="score-label">分数</div>
+                <div class="score-value" id="score">0</div>
+            </div>
         </div>
         
         <div class="game-grid" id="game-grid">
@@ -344,14 +485,39 @@
         </div>
     </div>
     
+    <!-- 解锁按钮 -->
+    <button class="unlock-button" id="unlock-button">
+        <i class="fas fa-lock-open"></i> 解除系统锁定
+    </button>
+    
     <script>
+        // 创建数字矩阵背景
+        function createMatrixBackground() {
+            const container = document.getElementById('matrix-bg');
+            const chars = "01010101010101010101";
+            const columns = Math.floor(window.innerWidth / 20);
+            
+            for (let i = 0; i < columns; i++) {
+                const code = document.createElement('div');
+                code.className = 'matrix-code';
+                code.textContent = chars;
+                code.style.left = `${i * 20}px`;
+                code.style.animationDuration = `${Math.random() * 10 + 10}s`;
+                code.style.animationDelay = `${Math.random() * 5}s`;
+                container.appendChild(code);
+            }
+        }
+
         // 2048游戏实现
         document.addEventListener('DOMContentLoaded', function() {
+            createMatrixBackground();
+            
             const gridDisplay = document.getElementById('game-grid');
             const scoreDisplay = document.getElementById('score');
             const messageDisplay = document.getElementById('game-message');
             const messageText = document.getElementById('message-text');
             const retryButton = document.getElementById('retry-button');
+            const unlockButton = document.getElementById('unlock-button');
             
             const gridSize = 4;
             let grid = [];
@@ -361,6 +527,7 @@
             // 创建游戏网格
             function createGrid() {
                 grid = Array(gridSize * gridSize).fill(0);
+                gridDisplay.innerHTML = '';
                 for (let i = 0; i < gridSize * gridSize; i++) {
                     const cell = document.createElement('div');
                     cell.classList.add('grid-cell');
@@ -369,6 +536,7 @@
                 addNumber();
                 addNumber();
                 updateGrid();
+                updateUnlockButton();
             }
             
             // 在随机空位置添加数字（2或4）
@@ -393,6 +561,16 @@
                     if (value > 0) cell.classList.add(`tile-${value}`);
                 });
                 scoreDisplay.textContent = score;
+                updateUnlockButton();
+            }
+            
+            // 更新解锁按钮状态
+            function updateUnlockButton() {
+                if (score >= 2000) {
+                    unlockButton.classList.add('active');
+                } else {
+                    unlockButton.classList.remove('active');
+                }
             }
             
             // 滑动操作
@@ -462,9 +640,11 @@
                 
                 // 如果有移动，添加新数字并更新
                 if (moved) {
-                    addNumber();
-                    updateGrid();
-                    checkGameOver();
+                    setTimeout(() => {
+                        addNumber();
+                        updateGrid();
+                        checkGameOver();
+                    }, 150);
                 }
             }
             
@@ -509,7 +689,7 @@
             
             // 键盘控制
             document.addEventListener('keydown', function(e) {
-                e.preventDefault(); // 阻止默认键盘行为
+                e.preventDefault();
                 
                 switch(e.key) {
                     case 'ArrowUp':
@@ -527,15 +707,63 @@
                 }
             });
             
+            // 触摸滑动控制
+            let touchStartX, touchStartY;
+            
+            gridDisplay.addEventListener('touchstart', function(e) {
+                touchStartX = e.touches[0].clientX;
+                touchStartY = e.touches[0].clientY;
+                e.preventDefault();
+            }, { passive: false });
+            
+            gridDisplay.addEventListener('touchmove', function(e) {
+                e.preventDefault();
+            }, { passive: false });
+            
+            gridDisplay.addEventListener('touchend', function(e) {
+                if (!touchStartX || !touchStartY) return;
+                
+                const touchEndX = e.changedTouches[0].clientX;
+                const touchEndY = e.changedTouches[0].clientY;
+                
+                const dx = touchEndX - touchStartX;
+                const dy = touchEndY - touchStartY;
+                
+                // 确定滑动方向
+                if (Math.abs(dx) > Math.abs(dy)) {
+                    // 水平滑动
+                    if (dx > 50) move('right');
+                    else if (dx < -50) move('left');
+                } else {
+                    // 垂直滑动
+                    if (dy > 50) move('down');
+                    else if (dy < -50) move('up');
+                }
+                
+                touchStartX = null;
+                touchStartY = null;
+            });
+            
             // 重新开始按钮
             retryButton.addEventListener('click', resetGame);
+            
+            // 解锁按钮
+            unlockButton.addEventListener('click', function() {
+                if (score >= 2000) {
+                    // 解锁系统，返回登录页面
+                    window.location.href = 'index.html';
+                }
+            });
             
             // 初始化游戏
             createGrid();
             
             // 锁定页面其他交互
             document.addEventListener('click', function(e) {
-                if (!e.target.closest('.game-container') && !e.target.closest('.retry-button')) {
+                if (!e.target.closest('.game-container') && 
+                    !e.target.closest('.retry-button') && 
+                    !e.target.closest('.unlock-button') && 
+                    !e.target.closest('#unlock-button')) {
                     e.preventDefault();
                     e.stopPropagation();
                 }
@@ -548,7 +776,7 @@
             document.addEventListener('keydown', function(e) {
                 // 允许方向键和游戏相关按键
                 const allowedKeys = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'];
-                if (!allowedKeys.includes(e.key)) {
+                if (!allowedKeys.includes(e.key) && e.key !== 'r' && e.key !== 'R') {
                     e.preventDefault();
                 }
             });
