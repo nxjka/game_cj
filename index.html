@@ -78,23 +78,47 @@
         
         .nav-links {
             display: flex;
-            gap: 10px;
+            gap: 30px;
         }
         
-        .nav-links a {
+        .nav-group {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 4px;
+        }
+        
+        .nav-expand-btn {
+            background: none;
+            border: none;
+            font-size: 16px;
+            font-weight: bold;
+            color: var(--primary-color);
+            cursor: pointer;
+            padding: 4px 0;
+            margin-bottom: 2px;
+        }
+        
+        .nav-group-list {
+            flex-direction: column;
+            gap: 6px;
+            margin-left: 18px;
+            display: none;
+        }
+        
+        .nav-group-list a {
             color: var(--dark-color);
             text-decoration: none;
             font-size: 15px;
-            padding: 8px 15px;
+            padding: 4px 0;
             border-radius: 6px;
             transition: all 0.3s ease;
             font-weight: 500;
         }
         
-        .nav-links a:hover {
+        .nav-group-list a:hover {
             background: var(--light-color);
             color: var(--primary-color);
-            transform: translateY(-2px);
         }
         
         /* 搜索区域 */
@@ -1005,20 +1029,38 @@
     <!-- 顶部导航栏 -->
     <div id="top-nav">
         <div class="nav-links">
-            <!-- 在index.html的导航栏部分添加 -->
-            <a href="hex-writer.html"><i class="fas fa-bolt"></i> 高压电源工具</a>
-            <!-- 在index.html的导航栏部分添加 -->
-            <a href="weee.html"><i class="fas fa-bolt"></i> PWM配置和电源配置面板</a>
-            <!-- 在index.html的导航栏部分添加 -->
-            <a href="set.html"><i class="fas fa-bolt"></i> 计算结构</a>
-            <a href="https://www.youku.com/ku/webhome"><i class="fas fa-bolt"></i>优酷</a>
-            <a href="https://www.iqiyi.com/"><i class="fas fa-bolt"></i>爱奇艺</a>
-            <a href="https://v.qq.com/"><i class="fas fa-bolt"></i>腾讯视频</a>
-            <a href="https://www.bilibili.com/"><i class="fas fa-bolt"></i>B站</a>
-            <a href="https://chat.deepseek.com/"><i class="fas fa-bolt"></i>deepseek</a>
-            <a href="https://www.baidu.com" target="_blank"><i class="fas fa-search"></i> 百度</a>
-            <a href="https://www.bing.com" target="_blank"><i class="fas fa-globe"></i> Bing</a>
-            <a href="https://github.com/nxjka/game_cj" target="_blank"><i class="fab fa-github"></i> GitHub</a>
+            <div class="nav-group">
+                <button class="nav-expand-btn" onclick="toggleNavGroup('tools')"><i class="fas fa-tools"></i> 工具类</button>
+                <div class="nav-group-list" id="nav-group-tools" style="display:none;">
+                    <a href="hex-writer.html">高压电源工具</a>
+                    <a href="weee.html">PWM配置和电源配置面板</a>
+                    <a href="set.html">计算结构</a>
+                    <a href="huitu.html">绘图结构</a>
+                </div>
+            </div>
+            <div class="nav-group">
+                <button class="nav-expand-btn" onclick="toggleNavGroup('video')"><i class="fas fa-film"></i> 视频类</button>
+                <div class="nav-group-list" id="nav-group-video" style="display:none;">
+                    <a href="https://www.youku.com/ku/webhome">优酷</a>
+                    <a href="https://www.iqiyi.com/">爱奇艺</a>
+                    <a href="https://v.qq.com/">腾讯视频</a>
+                    <a href="https://www.bilibili.com/">B站</a>
+                </div>
+            </div>
+            <div class="nav-group">
+                <button class="nav-expand-btn" onclick="toggleNavGroup('ai')"><i class="fas fa-robot"></i> AI/搜索</button>
+                <div class="nav-group-list" id="nav-group-ai" style="display:none;">
+                    <a href="https://chat.deepseek.com/">deepseek</a>
+                    <a href="https://www.baidu.com" target="_blank">百度</a>
+                    <a href="https://www.bing.com" target="_blank">Bing</a>
+                </div>
+            </div>
+            <div class="nav-group">
+                <button class="nav-expand-btn" onclick="toggleNavGroup('resource')"><i class="fab fa-github"></i> 资源</button>
+                <div class="nav-group-list" id="nav-group-resource" style="display:none;">
+                    <a href="https://github.com/nxjka/game_cj" target="_blank">GitHub</a>
+                </div>
+            </div>
         </div>
         
         <div id="search-box">
@@ -1161,6 +1203,36 @@
         </div>
     </div>
     
+    <!-- 游戏卡片弹窗预览 -->
+    <div id="game-preview-modal" class="modal" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.4);z-index:999;justify-content:center;align-items:center;">
+        <div class="modal-content" style="background:#fff;padding:32px 24px;border-radius:16px;max-width:400px;box-shadow:0 8px 32px rgba(0,0,0,0.2);position:relative;">
+            <span class="close" onclick="closeGamePreview()" style="position:absolute;top:12px;right:18px;font-size:24px;cursor:pointer;">&times;</span>
+            <div id="game-preview-content"></div>
+        </div>
+    </div>
+    <script>
+        function toggleNavGroup(group) {
+            document.querySelectorAll('.nav-group-list').forEach(e => e.style.display = 'none');
+            var el = document.getElementById('nav-group-' + group);
+            if (el) el.style.display = (el.style.display === 'none' ? 'flex' : 'none');
+        }
+        
+        function showGamePreview(title, desc, color) {
+            document.getElementById('game-preview-content').innerHTML = `<h2 style='color:${color};margin-bottom:12px;'>${title}</h2><p>${desc}</p>`;
+            document.getElementById('game-preview-modal').style.display = 'flex';
+        }
+        function closeGamePreview() {
+            document.getElementById('game-preview-modal').style.display = 'none';
+        }
+        document.querySelectorAll('.game-card').forEach(card => {
+            card.addEventListener('click', function() {
+                const title = card.querySelector('h3').innerText;
+                const desc = card.querySelector('p').innerText;
+                const color = card.querySelector('.game-thumbnail').style.background.split(',')[1] || '#2196F3';
+                showGamePreview(title, desc, color);
+            });
+        });
+    </script>
     <!-- 游戏脚本 -->
     <script src="games.js"></script>
 </body>

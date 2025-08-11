@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>多功能函数绘图工具</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.8.0/math.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #1a2a6c);
+            color: #fff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            padding: 20px 0;
+            margin-bottom: 20px;
+        }
+        
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .content {
+            display: flex;
+            gap: 20px;
+            height: calc(100vh - 200px);
+        }
+        
+        .control-panel {
+            background: rgba(25, 25, 60, 0.85);
+            border-radius: 15px;
+            padding: 20px;
+            width: 320px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            overflow-y: auto;
+        }
+        
+        .plot-container {
+            flex: 1;
+            background: rgba(15, 15, 40, 0.85);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            padding: 15px;
+        }
+        
+        #plot {
+            width: 100%;
+            height: 100%;
+            background: white;
+            border-radius: 8px;
+        }
+        
+        .panel-section {
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        h2 {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            color: #4fc3f7;
+        }
+        
+        .coord-selector {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .coord-btn {
+            padding: 12px;
+            background: rgba(70, 130, 180, 0.3);
+            border: 1px solid rgba(100, 150, 255, 0.3);
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.9rem;
+            text-align: center;
+        }
+        
+        .coord-btn:hover {
+            background: rgba(70, 130, 180, 0.5);
+            transform: translateY(-2px);
+        }
+        
+        .coord-btn.active {
+            background: #4a86e8;
+            border-color: #6aa2ff;
+            box-shadow: 0 0 15px rgba(74, 134, 232, 0.6);
+        }
+        
+        .function-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        button {
+            padding: 10px 15px;
+            background: #4a86e8;
+            border: none;
+            border-radius: 6px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+        
+        button:hover {
+            background: #3a76d8;
+            transform: translateY(-2px);
+        }
+        
+        .function-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .function-item {
+            background: rgba(40, 40, 80, 0.6);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 10px;
+        }
+        
+        .function-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        
+        .function-title {
+            font-weight: bold;
+            color: #4fc3f7;
+        }
+        
+        .remove-btn {
+            background: #e53935;
+            padding: 3px 8px;
+            font-size: 0.8rem;
+        }
+        
+        .function-inputs {
+            display: grid;
+            gap: 8px;
+        }
+        
+        input, select {
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid rgba(100, 150, 255, 0.3);
+            background: rgba(30, 30, 60, 0.8);
+            color: white;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: #4a86e8;
+        }
+        
+        .color-picker {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .color-preview {
+            width: 25px;
+            height: 25px;
+            border-radius: 4px;
+        }
+        
+        .custom-coord-settings {
+            background: rgba(40, 40, 80, 0.6);
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 10px;
+        }
+        
+        .setting-row {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 10px;
+            margin-bottom: 10px;
+            align-items: center;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 20px;
+            margin-top: 20px;
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        
+        @media (max-width: 1000px) {
+            .content {
+                flex-direction: column;
+                height: auto;
+            }
+            
+            .control-panel {
+                width: 100%;
+            }
+            
+            .plot-container {
+                height: 500px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="top-nav" style="background: white; padding: 15px 20px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+    <a href="index.html" style="color: #333; text-decoration: none; font-weight: bold; display: inline-flex; align-items: center; gap: 8px;">
+        <i class="fas fa-arrow-left"></i> 返回游戏主页
+    </a>
+    <div class="container">
+        <header>
+            <h1>多功能函数绘图工具</h1>
+            <div class="subtitle">支持多种坐标系与自定义函数绘图</div>
+        </header>
+        
+        <div class="content">
+            <div class="control-panel">
+                <div class="panel-section">
+                    <h2>坐标系类型</h2>
+                    <div class="coord-selector">
+                        <div class="coord-btn active" data-coord="2d-cartesian">平面直角坐标系</div>
+                        <div class="coord-btn" data-coord="polar">极坐标系</div>
+                        <div class="coord-btn" data-coord="3d-cartesian">三维直角坐标系</div>
+                        <div class="coord-btn" data-coord="spherical">球坐标系</div>
+                        <div class="coord-btn" data-coord="custom-x">X自定义坐标系</div>
+                        <div class="coord-btn" data-coord="custom-y">Y自定义坐标系</div>
+                    </div>
+                    
+                    <div class="custom-coord-settings">
+                        <h3>自定义坐标系设置</h3>
+                        <div class="setting-row">
+                            <label>X轴变换函数：</label>
+                            <input type="text" id="x-scale-fn" value="x" placeholder="例如：Math.sin(x)">
+                        </div>
+                        <div class="setting-row">
+                            <label>Y轴变换函数：</label>
+                            <input type="text" id="y-scale-fn" value="y" placeholder="例如：Math.log(y)">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="panel-section">
+                    <h2>函数管理</h2>
+                    <div class="function-controls">
+                        <button id="add-function">添加函数</button>
+                        <button id="plot-button">绘图</button>
+                    </div>
+                    <div class="function-keypad" style="margin-bottom:12px;display:flex;flex-wrap:wrap;gap:8px;">
+                        <button type="button" class="fn-key">sin(x)</button>
+                        <button type="button" class="fn-key">cos(x)</button>
+                        <button type="button" class="fn-key">tan(x)</button>
+                        <button type="button" class="fn-key">cot(x)</button>
+                        <button type="button" class="fn-key">sec(x)</button>
+                        <button type="button" class="fn-key">csc(x)</button>
+                        <button type="button" class="fn-key">asin(x)</button>
+                        <button type="button" class="fn-key">acos(x)</button>
+                        <button type="button" class="fn-key">atan(x)</button>
+                        <button type="button" class="fn-key">sinh(x)</button>
+                        <button type="button" class="fn-key">cosh(x)</button>
+                        <button type="button" class="fn-key">tanh(x)</button>
+                        <button type="button" class="fn-key">exp(x)</button>
+                        <button type="button" class="fn-key">log(x)</button>
+                        <button type="button" class="fn-key">sqrt(x)</button>
+                        <button type="button" class="fn-key">abs(x)</button>
+                        <button type="button" class="fn-key">floor(x)</button>
+                        <button type="button" class="fn-key">ceil(x)</button>
+                        <button type="button" class="fn-key">round(x)</button>
+                        <button type="button" class="fn-key">sign(x)</button>
+                        <button type="button" class="fn-key">max(a,b)</button>
+                        <button type="button" class="fn-key">min(a,b)</button>
+                        <button type="button" class="fn-key">x^2</button>
+                        <button type="button" class="fn-key">y^2</button>
+                        <button type="button" class="fn-key">t</button>
+                        <button type="button" class="fn-key">pi</button>
+                        <button type="button" class="fn-key">e</button>
+                    </div>
+                    <div class="function-list" id="functions-container">
+                        <div class="function-item">
+                            <div class="function-header">
+                                <div class="function-title">函数 #1</div>
+                                <button class="remove-btn">删除</button>
+                            </div>
+                            <div class="function-inputs">
+                                <input type="text" class="function-expression" placeholder="函数表达式，例如：sin(x)" value="sin(x)">
+                                <div class="color-picker">
+                                    <div class="color-preview" style="background-color: #ff5252;"></div>
+                                    <input type="color" class="function-color" value="#ff5252">
+                                </div>
+                                <select class="function-type">
+                                    <option value="explicit">显式函数 (y=f(x))</option>
+                                    <option value="parametric">参数方程</option>
+                                    <option value="polar">极坐标函数</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="plot-container">
+                <div id="plot"></div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>多功能函数绘图工具 | 支持平面直角坐标系、极坐标系、三维坐标系、球坐标系和自定义坐标系</p>
+        </footer>
+    </div>
+    
+    <script>
+        // 当前坐标系
+        let currentCoordSystem = '2d-cartesian';
+        let lastFocusedInput = null;
+
+        // 初始化函数
+        document.addEventListener('DOMContentLoaded', function() {
+            // 坐标系选择
+            document.querySelectorAll('.coord-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.coord-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    currentCoordSystem = this.dataset.coord;
+                    // 显示/隐藏自定义坐标系设置
+                    const customSettings = document.querySelector('.custom-coord-settings');
+                    if (currentCoordSystem === 'custom-x' || currentCoordSystem === 'custom-y') {
+                        customSettings.style.display = 'block';
+                    } else {
+                        customSettings.style.display = 'none';
+                    }
+                });
+            });
+
+            // 常用函数按键插入逻辑
+            document.querySelectorAll('.fn-key').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    let targetInput = lastFocusedInput || document.querySelector('.function-expression');
+                    if (targetInput) {
+                        // 插入到光标处
+                        const val = targetInput.value;
+                        const start = targetInput.selectionStart || 0;
+                        const end = targetInput.selectionEnd || 0;
+                        const insertText = this.textContent;
+                        targetInput.value = val.slice(0, start) + insertText + val.slice(end);
+                        // 移动光标到插入后
+                        targetInput.focus();
+                        targetInput.selectionStart = targetInput.selectionEnd = start + insertText.length;
+                    }
+                });
+            });
+
+            // 记录最后聚焦的输入框
+            document.addEventListener('focusin', function(e) {
+                if (e.target.classList.contains('function-expression')) {
+                    lastFocusedInput = e.target;
+                }
+            });
+
+            // 添加函数
+            document.getElementById('add-function').addEventListener('click', function() {
+                const container = document.getElementById('functions-container');
+                const count = container.children.length + 1;
+                const funcItem = document.createElement('div');
+                funcItem.className = 'function-item';
+                funcItem.innerHTML = `
+                    <div class="function-header">
+                        <div class="function-title">函数 #${count}</div>
+                        <button class="remove-btn">删除</button>
+                    </div>
+                    <div class="function-inputs">
+                        <input type="text" class="function-expression" placeholder="函数表达式，例如：sin(x)" value="sin(x)*${count}">
+                        <div class="color-picker">
+                            <div class="color-preview"></div>
+                            <input type="color" class="function-color" value="${getRandomColor()}">
+                        </div>
+                        <select class="function-type">
+                            <option value="explicit">显式函数 (y=f(x))</option>
+                            <option value="parametric">参数方程</option>
+                            <option value="polar">极坐标函数</option>
+                        </select>
+                    </div>
+                `;
+                // 设置颜色预览
+                const colorInput = funcItem.querySelector('.function-color');
+                const preview = funcItem.querySelector('.color-preview');
+                preview.style.backgroundColor = colorInput.value;
+                colorInput.addEventListener('input', function() {
+                    preview.style.backgroundColor = this.value;
+                });
+                // 删除函数
+                funcItem.querySelector('.remove-btn').addEventListener('click', function() {
+                    funcItem.remove();
+                });
+                // 记录新输入框聚焦
+                funcItem.querySelector('.function-expression').addEventListener('focus', function() {
+                    lastFocusedInput = this;
+                });
+                container.appendChild(funcItem);
+            });
+
+            // 为初始函数设置颜色预览
+            const initialColor = document.querySelector('.function-color');
+            const initialPreview = document.querySelector('.color-preview');
+            initialPreview.style.backgroundColor = initialColor.value;
+            initialColor.addEventListener('input', function() {
+                initialPreview.style.backgroundColor = this.value;
+            });
+            // 删除初始函数
+            document.querySelector('.remove-btn').addEventListener('click', function() {
+                this.closest('.function-item').remove();
+            });
+            // 记录初始输入框聚焦
+            document.querySelector('.function-expression').addEventListener('focus', function() {
+                lastFocusedInput = this;
+            });
+
+            // 绘图按钮
+            document.getElementById('plot-button').addEventListener('click', plotFunctions);
+            // 初始绘图
+            plotFunctions();
+        });
+        
+        // 生成随机颜色
+        function getRandomColor() {
+            const letters = '0123456789ABCDEF';
+            let color = '#';
+            for (let i = 0; i < 6; i++) {
+                color += letters[Math.floor(Math.random() * 16)];
+            }
+            return color;
+        }
+        
+        // 绘图主函数
+        function plotFunctions() {
+            const functionItems = document.querySelectorAll('.function-item');
+            if (functionItems.length === 0) {
+                alert('请添加至少一个函数');
+                return;
+            }
+            
+            try {
+                switch(currentCoordSystem) {
+                    case '2d-cartesian':
+                        plot2DCartesian(functionItems);
+                        break;
+                    case 'polar':
+                        plotPolar(functionItems);
+                        break;
+                    case '3d-cartesian':
+                        plot3DCartesian(functionItems);
+                        break;
+                    case 'spherical':
+                        plotSpherical(functionItems);
+                        break;
+                    case 'custom-x':
+                    case 'custom-y':
+                        plotCustom2D(functionItems);
+                        break;
+                }
+            } catch (error) {
+                console.error('绘图错误:', error);
+                alert(`绘图错误: ${error.message}`);
+            }
+        }
+        
+        // 平面直角坐标系绘图
+        function plot2DCartesian(functionItems) {
+            const traces = [];
+            const xRange = {start: -10, end: 10, step: 0.1};
+            
+            functionItems.forEach((item, index) => {
+                const expr = item.querySelector('.function-expression').value;
+                const color = item.querySelector('.function-color').value;
+                const funcType = item.querySelector('.function-type').value;
+                
+                const xValues = [];
+                const yValues = [];
+                
+                try {
+                    if (funcType === 'explicit') {
+                        // 显式函数 y = f(x)
+                        const fn = math.compile(expr);
+                        for (let x = xRange.start; x <= xRange.end; x += xRange.step) {
+                            const y = fn.evaluate({x: x});
+                            xValues.push(x);
+                            yValues.push(y);
+                        }
+                    } else if (funcType === 'parametric') {
+                        // 参数方程
+                        const params = expr.split(';');
+                        if (params.length !== 2) throw new Error('参数方程格式: x=t^2; y=sin(t)');
+                        
+                        const xFn = math.compile(params[0].trim());
+                        const yFn = math.compile(params[1].trim());
+                        
+                        for (let t = 0; t <= 4 * Math.PI; t += 0.1) {
+                            const x = xFn.evaluate({t: t});
+                            const y = yFn.evaluate({t: t});
+                            xValues.push(x);
+                            yValues.push(y);
+                        }
+                    } else {
+                        // 极坐标函数
+                        const fn = math.compile(expr);
+                        for (let theta = 0; theta <= 2 * Math.PI; theta += 0.05) {
+                            const r = fn.evaluate({theta: theta});
+                            const x = r * Math.cos(theta);
+                            const y = r * Math.sin(theta);
+                            xValues.push(x);
+                            yValues.push(y);
+                        }
+                    }
+                    
+                    traces.push({
+                        x: xValues,
+                        y: yValues,
+                        type: 'scatter',
+                        mode: 'lines',
+                        line: {color: color, width: 2},
+                        name: `f${index+1}(x)`
+                    });
+                } catch (error) {
+                    console.error(`函数 #${index+1} 错误:`, error);
+                }
+            });
+            
+            const layout = {
+                title: '平面直角坐标系',
+                autosize: true,
+                hovermode: 'closest',
+                showlegend: true,
+                xaxis: {title: 'X轴'},
+                yaxis: {title: 'Y轴'},
+                margin: {l: 50, r: 50, b: 50, t: 50, pad: 4},
+                plot_bgcolor: '#f8f9fa',
+                paper_bgcolor: '#f8f9fa'
+            };
+            
+            Plotly.newPlot('plot', traces, layout);
+        }
+        
+        // 极坐标系绘图
+        function plotPolar(functionItems) {
+            const traces = [];
+            
+            functionItems.forEach((item, index) => {
+                const expr = item.querySelector('.function-expression').value;
+                const color = item.querySelector('.function-color').value;
+                
+                const thetaValues = [];
+                const rValues = [];
+                
+                try {
+                    const fn = math.compile(expr);
+                    for (let theta = 0; theta <= 2 * Math.PI; theta += 0.05) {
+                        const r = fn.evaluate({theta: theta});
+                        thetaValues.push(theta);
+                        rValues.push(r);
+                    }
+                    
+                    traces.push({
+                        theta: thetaValues,
+                        r: rValues,
+                        type: 'scatterpolar',
+                        mode: 'lines',
+                        line: {color: color, width: 2},
+                        name: `f${index+1}(θ)`
+                    });
+                } catch (error) {
+                    console.error(`函数 #${index+1} 错误:`, error);
+                }
+            });
+            
+            const layout = {
+                title: '极坐标系',
+                polar: {
+                    radialaxis: {
+                        visible: true,
+                        range: [0, Math.max(10, ...traces.flatMap(t => t.r))]
+                    }
+                },
+                showlegend: true,
+                margin: {l: 50, r: 50, b: 50, t: 50, pad: 4}
+            };
+            
+            Plotly.newPlot('plot', traces, layout);
+        }
+        
+        // 三维直角坐标系绘图
+        function plot3DCartesian(functionItems) {
+            const traces = [];
+            const xRange = {start: -5, end: 5, step: 0.5};
+            const yRange = {start: -5, end: 5, step: 0.5};
+            
+            functionItems.forEach((item, index) => {
+                const expr = item.querySelector('.function-expression').value;
+                const color = item.querySelector('.function-color').value;
+                
+                const xValues = [];
+                const yValues = [];
+                const zValues = [];
+                
+                try {
+                    const fn = math.compile(expr);
+                    
+                    for (let x = xRange.start; x <= xRange.end; x += xRange.step) {
+                        for (let y = yRange.start; y <= yRange.end; y += yRange.step) {
+                            const z = fn.evaluate({x: x, y: y});
+                            xValues.push(x);
+                            yValues.push(y);
+                            zValues.push(z);
+                        }
+                    }
+                    
+                    traces.push({
+                        x: xValues,
+                        y: yValues,
+                        z: zValues,
+                        type: 'surface',
+                        colorscale: [[0, color], [1, color]],
+                        opacity: 0.8,
+                        name: `f${index+1}(x,y)`,
+                        showscale: false
+                    });
+                } catch (error) {
+                    console.error(`函数 #${index+1} 错误:`, error);
+                }
+            });
+            
+            const layout = {
+                title: '三维直角坐标系',
+                autosize: true,
+                scene: {
+                    xaxis: {title: 'X轴'},
+                    yaxis: {title: 'Y轴'},
+                    zaxis: {title: 'Z轴'}
+                },
+                margin: {l: 50, r: 50, b: 50, t: 50, pad: 4}
+            };
+            
+            Plotly.newPlot('plot', traces, layout);
+        }
+        
+        // 球坐标系绘图
+        function plotSpherical(functionItems) {
+            const traces = [];
+            const thetaRange = {start: 0, end: Math.PI, step: Math.PI/15};
+            const phiRange = {start: 0, end: 2*Math.PI, step: Math.PI/15};
+            
+            functionItems.forEach((item, index) => {
+                const expr = item.querySelector('.function-expression').value;
+                const color = item.querySelector('.function-color').value;
+                
+                const xValues = [];
+                const yValues = [];
+                const zValues = [];
+                
+                try {
+                    const fn = math.compile(expr);
+                    
+                    for (let theta = thetaRange.start; theta <= thetaRange.end; theta += thetaRange.step) {
+                        for (let phi = phiRange.start; phi <= phiRange.end; phi += phiRange.step) {
+                            const rho = fn.evaluate({theta: theta, phi: phi});
+                            const x = rho * Math.sin(theta) * Math.cos(phi);
+                            const y = rho * Math.sin(theta) * Math.sin(phi);
+                            const z = rho * Math.cos(theta);
+                            
+                            xValues.push(x);
+                            yValues.push(y);
+                            zValues.push(z);
+                        }
+                    }
+                    
+                    // 重新组织为网格
+                    const thetaSteps = Math.round((thetaRange.end - thetaRange.start) / thetaRange.step) + 1;
+                    const phiSteps = Math.round((phiRange.end - phiRange.start) / phiRange.step) + 1;
+                    
+                    const xGrid = [];
+                    const yGrid = [];
+                    const zGrid = [];
+                    
+                    for (let i = 0; i < thetaSteps; i++) {
+                        const xRow = [];
+                        const yRow = [];
+                        const zRow = [];
+                        
+                        for (let j = 0; j < phiSteps; j++) {
+                            const idx = i * phiSteps + j;
+                            xRow.push(xValues[idx]);
+                            yRow.push(yValues[idx]);
+                            zRow.push(zValues[idx]);
+                        }
+                        
+                        xGrid.push(xRow);
+                        yGrid.push(yRow);
+                        zGrid.push(zRow);
+                    }
+                    
+                    traces.push({
+                        x: xGrid,
+                        y: yGrid,
+                        z: zGrid,
+                        type: 'surface',
+                        colorscale: [[0, color], [1, color]],
+                        opacity: 0.8,
+                        name: `f${index+1}(θ,φ)`,
+                        showscale: false
+                    });
+                } catch (error) {
+                    console.error(`函数 #${index+1} 错误:`, error);
+                }
+            });
+            
+            const layout = {
+                title: '球坐标系',
+                autosize: true,
+                scene: {
+                    xaxis: {title: 'X轴'},
+                    yaxis: {title: 'Y轴'},
+                    zaxis: {title: 'Z轴'}
+                },
+                margin: {l: 50, r: 50, b: 50, t: 50, pad: 4}
+            };
+            
+            Plotly.newPlot('plot', traces, layout);
+        }
+        
+        // 自定义坐标系绘图
+        function plotCustom2D(functionItems) {
+            const traces = [];
+            const xRange = {start: -10, end: 10, step: 0.1};
+            
+            // 获取自定义变换函数
+            const xScaleFnStr = document.getElementById('x-scale-fn').value;
+            const yScaleFnStr = document.getElementById('y-scale-fn').value;
+            
+            // 创建自定义变换函数
+            const xScaleFn = new Function('x', `return ${xScaleFnStr}`);
+            const yScaleFn = new Function('y', `return ${yScaleFnStr}`);
+            
+            functionItems.forEach((item, index) => {
+                const expr = item.querySelector('.function-expression').value;
+                const color = item.querySelector('.function-color').value;
+                
+                const xValues = [];
+                const yValues = [];
+                
+                try {
+                    const fn = math.compile(expr);
+                    
+                    for (let x = xRange.start; x <= xRange.end; x += xRange.step) {
+                        const y = fn.evaluate({x: x});
+                        
+                        // 应用自定义变换
+                        let transformedX = x;
+                        let transformedY = y;
+                        
+                        if (currentCoordSystem === 'custom-x') {
+                            transformedX = xScaleFn(x);
+                        } else if (currentCoordSystem === 'custom-y') {
+                            transformedY = yScaleFn(y);
+                        }
+                        
+                        xValues.push(transformedX);
+                        yValues.push(transformedY);
+                    }
+                    
+                    traces.push({
+                        x: xValues,
+                        y: yValues,
+                        type: 'scatter',
+                        mode: 'lines',
+                        line: {color: color, width: 2},
+                        name: `f${index+1}(x)`
+                    });
+                } catch (error) {
+                    console.error(`函数 #${index+1} 错误:`, error);
+                }
+            });
+            
+            const layout = {
+                title: '自定义坐标系',
+                autosize: true,
+                hovermode: 'closest',
+                showlegend: true,
+                xaxis: {title: 'X轴'},
+                yaxis: {title: 'Y轴'},
+                margin: {l: 50, r: 50, b: 50, t: 50, pad: 4},
+                plot_bgcolor: '#f8f9fa',
+                paper_bgcolor: '#f8f9fa'
+            };
+            
+            Plotly.newPlot('plot', traces, layout);
+        }
+    </script>
+</body>
+</html>
