@@ -1,0 +1,1070 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>完整功能网页计算器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .calculator-container {
+            width: 100%;
+            max-width: 900px;
+            background-color: #1a1a1a;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+        }
+        
+        .header {
+            background-color: #0d0d0d;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #333;
+        }
+        
+        .calculator-title {
+            color: #f0f0f0;
+            font-size: 1.4rem;
+            font-weight: 500;
+        }
+        
+        .mode-selector {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .mode-btn {
+            background: #333;
+            color: #ccc;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 12px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+        }
+        
+        .mode-btn.active {
+            background: #0066cc;
+            color: white;
+        }
+        
+        .mode-btn:hover {
+            background: #444;
+        }
+        
+        .calculator-body {
+            display: flex;
+            height: 500px;
+        }
+        
+        .display-area {
+            flex: 1;
+            background-color: #0d0d0d;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid #333;
+        }
+        
+        .history-display {
+            height: 100px;
+            color: #888;
+            font-size: 0.9rem;
+            overflow-y: auto;
+            padding: 5px;
+            text-align: right;
+        }
+        
+        .main-display {
+            text-align: right;
+            color: white;
+            padding: 20px 10px;
+            font-size: 3.5rem;
+            min-height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+        }
+        
+        .memory-indicators {
+            display: flex;
+            gap: 15px;
+            padding: 10px;
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .memory-indicator.active {
+            color: #4da6ff;
+        }
+        
+        .keypad-container {
+            width: 70%;
+            background-color: #1a1a1a;
+        }
+        
+        .calculator-tabs {
+            display: flex;
+            background-color: #151515;
+            border-bottom: 1px solid #333;
+        }
+        
+        .tab-btn {
+            flex: 1;
+            padding: 12px;
+            background: none;
+            border: none;
+            color: #aaa;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+        
+        .tab-btn.active {
+            color: white;
+            border-bottom: 2px solid #0066cc;
+        }
+        
+        .keypad {
+            padding: 15px;
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 8px;
+        }
+        
+        .calc-btn {
+            background-color: #333;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 12px 5px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .calc-btn:hover {
+            background-color: #444;
+        }
+        
+        .calc-btn:active {
+            transform: scale(0.95);
+        }
+        
+        .number-btn {
+            background-color: #2a2a2a;
+        }
+        
+        .operator-btn {
+            background-color: #004080;
+        }
+        
+        .special-btn {
+            background-color: #0059b3;
+        }
+        
+        .equals-btn {
+            background-color: #0066cc;
+        }
+        
+        .memory-btn {
+            background-color: #660066;
+        }
+        
+        .scientific-btn {
+            background-color: #006600;
+        }
+        
+        .programmer-btn {
+            background-color: #663300;
+        }
+        
+        .date-btn {
+            background-color: #660033;
+        }
+        
+        .history-btn {
+            background-color: #333366;
+        }
+        
+        .settings-btn {
+            background-color: #444444;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .date-calculator {
+            padding: 20px;
+            color: white;
+        }
+        
+        .date-inputs {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .date-input-group {
+            flex: 1;
+        }
+        
+        .date-input-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #aaa;
+        }
+        
+        .date-input-group input {
+            width: 100%;
+            padding: 10px;
+            background: #333;
+            border: 1px solid #444;
+            border-radius: 4px;
+            color: white;
+        }
+        
+        .date-result {
+            background: #222;
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 20px;
+        }
+        
+        .history-container {
+            padding: 20px;
+            color: white;
+            max-height: 350px;
+            overflow-y: auto;
+        }
+        
+        .history-item {
+            padding: 10px;
+            border-bottom: 1px solid #333;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .history-expression {
+            color: #aaa;
+        }
+        
+        .history-result {
+            color: #4da6ff;
+            font-weight: bold;
+        }
+        
+        .settings-container {
+            padding: 20px;
+            color: white;
+        }
+        
+        .setting-group {
+            margin-bottom: 20px;
+        }
+        
+        .setting-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #aaa;
+        }
+        
+        .setting-group select {
+            width: 100%;
+            padding: 10px;
+            background: #333;
+            border: 1px solid #444;
+            border-radius: 4px;
+            color: white;
+        }
+        
+        @media (max-width: 768px) {
+            .calculator-body {
+                flex-direction: column;
+                height: auto;
+            }
+            
+            .display-area {
+                border-right: none;
+                border-bottom: 1px solid #333;
+            }
+            
+            .keypad-container {
+                width: 100%;
+            }
+            
+            .keypad {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="top-nav" style="background: white; padding: 15px 20px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+    <a href="index.html" style="color: #333; text-decoration: none; font-weight: bold; display: inline-flex; align-items: center; gap: 8px;">
+        <i class="fas fa-arrow-left"></i> 返回游戏主页
+    </a>
+    
+    <div class="calculator-container">
+        <div class="header">
+            <div class="calculator-title">完整功能计算器</div>
+            <div class="mode-selector">
+                <button class="mode-btn active">标准</button>
+                <button class="mode-btn">科学</button>
+                <button class="mode-btn">程序员</button>
+                <button class="mode-btn">日期计算</button>
+            </div>
+        </div>
+        
+        <div class="calculator-body">
+            <div class="display-area">
+                <div class="history-display" id="historyDisplay">
+                    <!-- 历史记录将显示在这里 -->
+                </div>
+                <div class="main-display" id="mainDisplay">0</div>
+                <div class="memory-indicators">
+                    <div class="memory-indicator" id="memIndicator">M: 0</div>
+                    <div class="memory-indicator" id="degRadIndicator">DEG</div>
+                    <div class="memory-indicator" id="bitIndicator">QWORD</div>
+                </div>
+            </div>
+            
+            <div class="keypad-container">
+                <div class="calculator-tabs">
+                    <button class="tab-btn active" data-tab="standard">标准</button>
+                    <button class="tab-btn" data-tab="scientific">科学</button>
+                    <button class="tab-btn" data-tab="programmer">程序员</button>
+                    <button class="tab-btn" data-tab="date">日期计算</button>
+                    <button class="tab-btn" data-tab="history">历史</button>
+                    <button class="tab-btn" data-tab="settings">设置</button>
+                </div>
+                
+                <div class="tab-content">
+                    <!-- 标准计算器 -->
+                    <div class="keypad standard-tab">
+                        <button class="calc-btn memory-btn">MC</button>
+                        <button class="calc-btn memory-btn">MR</button>
+                        <button class="calc-btn memory-btn">M+</button>
+                        <button class="calc-btn memory-btn">M-</button>
+                        <button class="calc-btn memory-btn">MS</button>
+                        <button class="calc-btn special-btn">%</button>
+                        
+                        <button class="calc-btn special-btn">CE</button>
+                        <button class="calc-btn special-btn">C</button>
+                        <button class="calc-btn special-btn">⌫</button>
+                        <button class="calc-btn operator-btn">÷</button>
+                        <button class="calc-btn scientific-btn">x²</button>
+                        <button class="calc-btn scientific-btn">√</button>
+                        
+                        <button class="calc-btn number-btn">7</button>
+                        <button class="calc-btn number-btn">8</button>
+                        <button class="calc-btn number-btn">9</button>
+                        <button class="calc-btn operator-btn">×</button>
+                        <button class="calc-btn scientific-btn">1/x</button>
+                        <button class="calc-btn history-btn">HIST</button>
+                        
+                        <button class="calc-btn number-btn">4</button>
+                        <button class="calc-btn number-btn">5</button>
+                        <button class="calc-btn number-btn">6</button>
+                        <button class="calc-btn operator-btn">-</button>
+                        <button class="calc-btn scientific-btn">x!</button>
+                        <button class="calc-btn settings-btn">SET</button>
+                        
+                        <button class="calc-btn number-btn">1</button>
+                        <button class="calc-btn number-btn">2</button>
+                        <button class="calc-btn number-btn">3</button>
+                        <button class="calc-btn operator-btn">+</button>
+                        <button class="calc-btn scientific-btn">xʸ</button>
+                        <button class="calc-btn scientific-btn">log</button>
+                        
+                        <button class="calc-btn number-btn">±</button>
+                        <button class="calc-btn number-btn">0</button>
+                        <button class="calc-btn number-btn">.</button>
+                        <button class="calc-btn equals-btn">=</button>
+                        <button class="calc-btn scientific-btn">ln</button>
+                        <button class="calc-btn scientific-btn">eˣ</button>
+                    </div>
+                    
+                    <!-- 科学计算器 -->
+                    <div class="keypad scientific-tab hidden">
+                        <button class="calc-btn scientific-btn">sin</button>
+                        <button class="calc-btn scientific-btn">cos</button>
+                        <button class="calc-btn scientific-btn">tan</button>
+                        <button class="calc-btn scientific-btn">sinh</button>
+                        <button class="calc-btn scientific-btn">cosh</button>
+                        <button class="calc-btn scientific-btn">tanh</button>
+                        
+                        <button class="calc-btn scientific-btn">asin</button>
+                        <button class="calc-btn scientific-btn">acos</button>
+                        <button class="calc-btn scientific-btn">atan</button>
+                        <button class="calc-btn scientific-btn">asinh</button>
+                        <button class="calc-btn scientific-btn">acosh</button>
+                        <button class="calc-btn scientific-btn">atanh</button>
+                        
+                        <button class="calc-btn scientific-btn">π</button>
+                        <button class="calc-btn scientific-btn">e</button>
+                        <button class="calc-btn scientific-btn">Rand</button>
+                        <button class="calc-btn scientific-btn">Mod</button>
+                        <button class="calc-btn scientific-btn">Exp</button>
+                        <button class="calc-btn scientific-btn">10ˣ</button>
+                        
+                        <button class="calc-btn scientific-btn">(</button>
+                        <button class="calc-btn scientific-btn">)</button>
+                        <button class="calc-btn scientific-btn">xʸ</button>
+                        <button class="calc-btn scientific-btn">x²</button>
+                        <button class="calc-btn scientific-btn">log₂</button>
+                        <button class="calc-btn scientific-btn">log</button>
+                        
+                        <button class="calc-btn scientific-btn">n!</button>
+                        <button class="calc-btn scientific-btn">√</button>
+                        <button class="calc-btn scientific-btn">∛</button>
+                        <button class="calc-btn scientific-btn">1/x</button>
+                        <button class="calc-btn scientific-btn">ln</button>
+                        <button class="calc-btn scientific-btn">eˣ</button>
+                        
+                        <button class="calc-btn scientific-btn">DEG</button>
+                        <button class="calc-btn scientific-btn">RAD</button>
+                        <button class="calc-btn scientific-btn">GRAD</button>
+                        <button class="calc-btn scientific-btn">Hyp</button>
+                        <button class="calc-btn scientific-btn">F-E</button>
+                        <button class="calc-btn equals-btn">=</button>
+                    </div>
+                    
+                    <!-- 程序员计算器 -->
+                    <div class="keypad programmer-tab hidden">
+                        <button class="calc-btn programmer-btn">HEX</button>
+                        <button class="calc-btn programmer-btn">DEC</button>
+                        <button class="calc-btn programmer-btn">OCT</button>
+                        <button class="calc-btn programmer-btn">BIN</button>
+                        <button class="calc-btn programmer-btn">QWORD</button>
+                        <button class="calc-btn programmer-btn">DWORD</button>
+                        
+                        <button class="calc-btn programmer-btn">WORD</button>
+                        <button class="calc-btn programmer-btn">BYTE</button>
+                        <button class="calc-btn programmer-btn">AND</button>
+                        <button class="calc-btn programmer-btn">OR</button>
+                        <button class="calc-btn programmer-btn">XOR</button>
+                        <button class="calc-btn programmer-btn">NOT</button>
+                        
+                        <button class="calc-btn programmer-btn">A</button>
+                        <button class="calc-btn programmer-btn">B</button>
+                        <button class="calc-btn programmer-btn">C</button>
+                        <button class="calc-btn programmer-btn">D</button>
+                        <button class="calc-btn programmer-btn">E</button>
+                        <button class="calc-btn programmer-btn">F</button>
+                        
+                        <button class="calc-btn programmer-btn">Lsh</button>
+                        <button class="calc-btn programmer-btn">Rsh</button>
+                        <button class="calc-btn programmer-btn">RoL</button>
+                        <button class="calc-btn programmer-btn">RoR</button>
+                        <button class="calc-btn programmer-btn">Mod</button>
+                        <button class="calc-btn equals-btn">=</button>
+                        
+                        <button class="calc-btn number-btn">7</button>
+                        <button class="calc-btn number-btn">8</button>
+                        <button class="calc-btn number-btn">9</button>
+                        <button class="calc-btn operator-btn">/</button>
+                        <button class="calc-btn operator-btn">*</button>
+                        <button class="calc-btn operator-btn">-</button>
+                        
+                        <button class="calc-btn number-btn">4</button>
+                        <button class="calc-btn number-btn">5</button>
+                        <button class="calc-btn number-btn">6</button>
+                        <button class="calc-btn operator-btn">+</button>
+                        <button class="calc-btn special-btn">%</button>
+                        <button class="calc-btn special-btn">⌫</button>
+                        
+                        <button class="calc-btn number-btn">1</button>
+                        <button class="calc-btn number-btn">2</button>
+                        <button class="calc-btn number-btn">3</button>
+                        <button class="calc-btn number-btn">0</button>
+                        <button class="calc-btn special-btn">C</button>
+                        <button class="calc-btn special-btn">CE</button>
+                    </div>
+                    
+                    <!-- 日期计算器 -->
+                    <div class="date-calculator hidden">
+                        <h3>日期计算</h3>
+                        <div class="date-inputs">
+                            <div class="date-input-group">
+                                <label>起始日期</label>
+                                <input type="date" id="startDate" value="2023-01-01">
+                            </div>
+                            <div class="date-input-group">
+                                <label>结束日期</label>
+                                <input type="date" id="endDate" value="2023-12-31">
+                            </div>
+                        </div>
+                        <button class="calc-btn equals-btn" style="width:100%;padding:15px;margin-top:10px;">计算</button>
+                        <div class="date-result" id="dateResult">
+                            结果将显示在这里...
+                        </div>
+                    </div>
+                    
+                    <!-- 历史记录 -->
+                    <div class="history-container hidden">
+                        <h3>计算历史</h3>
+                        <div id="historyList">
+                            <!-- 历史记录项目将在这里显示 -->
+                        </div>
+                        <button class="calc-btn special-btn" style="width:100%;padding:15px;margin-top:20px;">清除历史</button>
+                    </div>
+                    
+                    <!-- 设置 -->
+                    <div class="settings-container hidden">
+                        <h3>设置</h3>
+                        <div class="setting-group">
+                            <label>角度单位</label>
+                            <select id="angleUnit">
+                                <option value="deg">度数 (DEG)</option>
+                                <option value="rad">弧度 (RAD)</option>
+                                <option value="grad">百分度 (GRAD)</option>
+                            </select>
+                        </div>
+                        <div class="setting-group">
+                            <label>数字格式</label>
+                            <select id="numberFormat">
+                                <option value="auto">自动</option>
+                                <option value="fixed2">固定2位小数</option>
+                                <option value="fixed4">固定4位小数</option>
+                                <option value="scientific">科学计数法</option>
+                            </select>
+                        </div>
+                        <div class="setting-group">
+                            <label>历史记录保存</label>
+                            <select id="historySave">
+                                <option value="10">10条记录</option>
+                                <option value="20">20条记录</option>
+                                <option value="50">50条记录</option>
+                                <option value="unlimited">无限制</option>
+                            </select>
+                        </div>
+                        <button class="calc-btn equals-btn" style="width:100%;padding:15px;margin-top:20px;">保存设置</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 计算器状态
+        const state = {
+            currentValue: '0',
+            previousValue: '',
+            operation: null,
+            memory: 0,
+            history: [],
+            isRadians: false,
+            currentMode: 'standard',
+            bitMode: 'qword',
+            historyLimit: 10
+        };
+
+        // DOM 元素
+        const mainDisplay = document.getElementById('mainDisplay');
+        const historyDisplay = document.getElementById('historyDisplay');
+        const memIndicator = document.getElementById('memIndicator');
+        const degRadIndicator = document.getElementById('degRadIndicator');
+        const bitIndicator = document.getElementById('bitIndicator');
+        const dateResult = document.getElementById('dateResult');
+        const historyList = document.getElementById('historyList');
+
+        // 初始化计算器
+        function initCalculator() {
+            // 模式切换
+            document.querySelectorAll('.mode-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    state.currentMode = this.textContent.toLowerCase();
+                });
+            });
+
+            // 标签页切换
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const tab = this.getAttribute('data-tab');
+                    
+                    // 隐藏所有标签内容
+                    document.querySelectorAll('.keypad').forEach(k => k.classList.add('hidden'));
+                    document.querySelector('.date-calculator').classList.add('hidden');
+                    document.querySelector('.history-container').classList.add('hidden');
+                    document.querySelector('.settings-container').classList.add('hidden');
+                    
+                    // 显示选中的标签
+                    if (tab === 'date') {
+                        document.querySelector('.date-calculator').classList.remove('hidden');
+                    } else if (tab === 'history') {
+                        document.querySelector('.history-container').classList.remove('hidden');
+                        updateHistoryList();
+                    } else if (tab === 'settings') {
+                        document.querySelector('.settings-container').classList.remove('hidden');
+                    } else {
+                        document.querySelector(`.${tab}-tab`).classList.remove('hidden');
+                    }
+                    
+                    // 更新标签按钮状态
+                    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+
+            // 为所有计算器按钮添加事件监听器
+            document.querySelectorAll('.calc-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const btnText = this.textContent;
+                    handleButtonPress(btnText);
+                });
+            });
+
+            // 日期计算器
+            document.querySelector('.date-calculator .equals-btn').addEventListener('click', calculateDateDifference);
+            
+            // 初始化显示
+            updateDisplay();
+        }
+
+        // 处理按钮点击
+        function handleButtonPress(btn) {
+            switch(btn) {
+                case '0': case '1': case '2': case '3': case '4':
+                case '5': case '6': case '7': case '8': case '9':
+                    appendNumber(btn); break;
+                case '.': appendDecimal(); break;
+                case '+': case '-': case '×': case '÷': setOperation(btn); break;
+                case '=': calculate(); break;
+                case 'C': case 'CE': clearDisplay(); break;
+                case '⌫': backspace(); break;
+                case '±': changeSign(); break;
+                case '%': calculatePercentage(); break;
+                case 'MC': case 'MR': case 'M+': case 'M-': case 'MS': handleMemory(btn); break;
+                case 'x²': square(); break;
+                case '√': squareRoot(); break;
+                case '1/x': reciprocal(); break;
+                case 'x!': factorial(); break;
+                case 'DEG': case 'RAD': case 'GRAD': toggleAngleMode(btn); break;
+                case 'sin': case 'cos': case 'tan': trigFunction(btn); break;
+                case 'sinh': case 'cosh': case 'tanh': hyperbolicFunction(btn); break;
+                case 'asin': case 'acos': case 'atan': arcTrigFunction(btn); break;
+                case 'asinh': case 'acosh': case 'atanh': arcHyperbolicFunction(btn); break;
+                case 'π': appendPi(); break;
+                case 'e': appendE(); break;
+                case 'Rand': randomNumber(); break;
+                case 'Mod': modOperation(); break;
+                case 'Exp': expFunction(); break;
+                case '10ˣ': tenPower(); break;
+                case '(': appendBracket('('); break;
+                case ')': appendBracket(')'); break;
+                case 'xʸ': power(); break;
+                case 'log₂': log2(); break;
+                case 'log': logarithm(); break;
+                case 'ln': naturalLog(); break;
+                case 'n!': factorial(); break;
+                case '∛': cubicRoot(); break;
+                case 'HEX': case 'DEC': case 'OCT': case 'BIN': switchRadix(btn); break;
+                case 'QWORD': case 'DWORD': case 'WORD': case 'BYTE': switchBitMode(btn); break;
+                case 'AND': case 'OR': case 'XOR': case 'NOT': bitwiseOperation(btn); break;
+                case 'Lsh': case 'Rsh': case 'RoL': case 'RoR': shiftOperation(btn); break;
+                case 'A': case 'B': case 'C': case 'D': case 'E': case 'F': appendHex(btn); break;
+                case 'HIST': showHistoryTab(); break;
+                case 'SET': showSettingsTab(); break;
+            }
+            updateDisplay();
+        }
+
+        // 数字处理
+        function appendNumber(num) {
+            if (state.currentValue === '0') {
+                state.currentValue = num;
+            } else {
+                state.currentValue += num;
+            }
+        }
+
+        // 小数点处理
+        function appendDecimal() {
+            if (!state.currentValue.includes('.')) {
+                state.currentValue += '.';
+            }
+        }
+
+        // 设置运算操作
+        function setOperation(op) {
+            if (state.currentValue === '') return;
+            
+            if (state.previousValue !== '') {
+                calculate();
+            }
+            
+            state.operation = op;
+            state.previousValue = state.currentValue;
+            state.currentValue = '';
+        }
+
+        // 执行计算
+        function calculate() {
+            if (state.operation === null || state.previousValue === '') return;
+            let result;
+            const prev = parseFloat(state.previousValue);
+            const current = parseFloat(state.currentValue);
+            switch (state.operation) {
+                case '+': result = prev + current; break;
+                case '-': result = prev - current; break;
+                case '×': result = prev * current; break;
+                case '÷': result = prev / current; break;
+                case '^': result = Math.pow(prev, current); break;
+                case 'Mod': result = prev % current; break;
+                case 'AND': result = prev & current; break;
+                case 'OR': result = prev | current; break;
+                case 'XOR': result = prev ^ current; break;
+                case 'Lsh': result = prev << current; break;
+                case 'Rsh': result = prev >> current; break;
+            }
+            const historyEntry = {
+                expression: `${state.previousValue} ${state.operation} ${state.currentValue}`,
+                result: result.toString(),
+                timestamp: new Date()
+            };
+            state.history.push(historyEntry);
+            if (state.history.length > state.historyLimit) state.history.shift();
+            state.currentValue = result.toString();
+            state.operation = null;
+            state.previousValue = '';
+        }
+
+        // 清除显示
+        function clearDisplay() {
+            state.currentValue = '0';
+            state.previousValue = '';
+            state.operation = null;
+        }
+
+        // 退格
+        function backspace() {
+            state.currentValue = state.currentValue.slice(0, -1);
+            if (state.currentValue === '') {
+                state.currentValue = '0';
+            }
+        }
+
+        // 改变符号
+        function changeSign() {
+            if (state.currentValue !== '0') {
+                state.currentValue = state.currentValue.startsWith('-') ? 
+                    state.currentValue.slice(1) : 
+                    '-' + state.currentValue;
+            }
+        }
+
+        // 百分比计算
+        function calculatePercentage() {
+            const value = parseFloat(state.currentValue);
+            state.currentValue = (value / 100).toString();
+        }
+
+        // 内存功能
+        function handleMemory(op) {
+            const current = parseFloat(state.currentValue) || 0;
+            
+            switch(op) {
+                case 'MC':
+                    state.memory = 0;
+                    break;
+                case 'MR':
+                    state.currentValue = state.memory.toString();
+                    break;
+                case 'M+':
+                    state.memory += current;
+                    break;
+                case 'M-':
+                    state.memory -= current;
+                    break;
+                case 'MS':
+                    state.memory = current;
+                    break;
+            }
+        }
+
+        // 平方
+        function square() {
+            const num = parseFloat(state.currentValue);
+            state.currentValue = (num * num).toString();
+        }
+
+        // 平方根
+        function squareRoot() {
+            const num = parseFloat(state.currentValue);
+            state.currentValue = Math.sqrt(num).toString();
+        }
+
+        // 倒数
+        function reciprocal() {
+            const num = parseFloat(state.currentValue);
+            state.currentValue = (1 / num).toString();
+        }
+
+        // 阶乘
+        function factorial() {
+            let num = parseInt(state.currentValue);
+            let result = 1;
+            for (let i = 2; i <= num; i++) {
+                result *= i;
+            }
+            state.currentValue = result.toString();
+        }
+
+        // 切换角度模式
+        function toggleAngleMode() {
+            // 按钮切换 DEG/RAD/GRAD
+            if (arguments.length && typeof arguments[0] === 'string') {
+                switch(arguments[0]) {
+                    case 'DEG': state.isRadians = false; break;
+                    case 'RAD': state.isRadians = true; break;
+                    case 'GRAD': state.isRadians = 'grad'; break;
+                }
+            } else {
+                state.isRadians = !state.isRadians;
+            }
+        }
+
+        // 三角函数
+        function trigFunction(func) {
+            let num = parseFloat(state.currentValue);
+            if (state.isRadians === 'grad') num = num * Math.PI / 200;
+            else if (!state.isRadians) num = num * Math.PI / 180;
+            switch(func) {
+                case 'sin': state.currentValue = Math.sin(num).toString(); break;
+                case 'cos': state.currentValue = Math.cos(num).toString(); break;
+                case 'tan': state.currentValue = Math.tan(num).toString(); break;
+            }
+        }
+
+        // π
+        function appendPi() {
+            state.currentValue = Math.PI.toString();
+        }
+
+        // e
+        function appendE() {
+            state.currentValue = Math.E.toString();
+        }
+
+        // 对数
+        function logarithm() {
+            const num = parseFloat(state.currentValue);
+            state.currentValue = Math.log10(num).toString();
+        }
+
+        // 自然对数
+        function naturalLog() {
+            const num = parseFloat(state.currentValue);
+            state.currentValue = Math.log(num).toString();
+        }
+
+        // 指数函数
+        function expFunction() {
+            const num = parseFloat(state.currentValue);
+            state.currentValue = Math.exp(num).toString();
+        }
+
+        // 幂运算
+        function power() {
+            // 需要两个操作数
+            state.operation = '^';
+            state.previousValue = state.currentValue;
+            state.currentValue = '';
+        }
+
+        // 日期计算
+        function calculateDateDifference() {
+            const startDate = new Date(document.getElementById('startDate').value);
+            const endDate = new Date(document.getElementById('endDate').value);
+            
+            const diffTime = Math.abs(endDate - startDate);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+            
+            dateResult.innerHTML = `
+                <p>总天数: <strong>${diffDays}</strong></p>
+                <p>周数: <strong>${(diffDays / 7).toFixed(2)}</strong></p>
+                <p>月数: <strong>${(diffDays / 30.44).toFixed(2)}</strong></p>
+                <p>年数: <strong>${(diffDays / 365.25).toFixed(2)}</strong></p>
+            `;
+        }
+
+        // 更新历史记录列表
+        function updateHistoryList() {
+            historyList.innerHTML = '';
+            state.history.slice().reverse().forEach(item => {
+                const historyItem = document.createElement('div');
+                historyItem.className = 'history-item';
+                historyItem.innerHTML = `
+                    <div class="history-expression">${item.expression}</div>
+                    <div class="history-result">= ${item.result}</div>
+                `;
+                historyList.appendChild(historyItem);
+            });
+            // 清除历史按钮
+            const clearBtn = document.querySelector('.history-container .special-btn');
+            if (clearBtn) {
+                clearBtn.onclick = function() {
+                    state.history = [];
+                    updateHistoryList();
+                };
+            }
+        }
+
+        // 更新显示
+        function updateDisplay() {
+            mainDisplay.textContent = state.currentValue;
+            
+            // 更新内存指示器
+            memIndicator.textContent = `M: ${state.memory}`;
+            memIndicator.classList.toggle('active', state.memory !== 0);
+            
+            // 更新角度模式指示器
+            degRadIndicator.textContent = state.isRadians ? 'RAD' : 'DEG';
+            
+            // 更新位模式指示器
+            bitIndicator.textContent = state.bitMode.toUpperCase();
+        }
+
+        // 初始化计算器
+        window.onload = initCalculator;
+        // 科学计算器补全
+        function hyperbolicFunction(func) {
+            let num = parseFloat(state.currentValue);
+            switch(func) {
+                case 'sinh': state.currentValue = Math.sinh(num).toString(); break;
+                case 'cosh': state.currentValue = Math.cosh(num).toString(); break;
+                case 'tanh': state.currentValue = Math.tanh(num).toString(); break;
+            }
+        }
+        function arcTrigFunction(func) {
+            let num = parseFloat(state.currentValue);
+            let val;
+            switch(func) {
+                case 'asin': val = Math.asin(num); break;
+                case 'acos': val = Math.acos(num); break;
+                case 'atan': val = Math.atan(num); break;
+            }
+            if (!state.isRadians) val = val * 180 / Math.PI;
+            state.currentValue = val.toString();
+        }
+        function arcHyperbolicFunction(func) {
+            let num = parseFloat(state.currentValue);
+            let val;
+            switch(func) {
+                case 'asinh': val = Math.asinh(num); break;
+                case 'acosh': val = Math.acosh(num); break;
+                case 'atanh': val = Math.atanh(num); break;
+            }
+            state.currentValue = val.toString();
+        }
+        function log2() {
+            const num = parseFloat(state.currentValue);
+            state.currentValue = Math.log2(num).toString();
+        }
+        function cubicRoot() {
+            const num = parseFloat(state.currentValue);
+            state.currentValue = Math.cbrt(num).toString();
+        }
+        function tenPower() {
+            const num = parseFloat(state.currentValue);
+            state.currentValue = Math.pow(10, num).toString();
+        }
+        function randomNumber() {
+            state.currentValue = Math.random().toString();
+        }
+        function modOperation() {
+            state.operation = 'Mod';
+            state.previousValue = state.currentValue;
+            state.currentValue = '';
+        }
+        function appendBracket(b) {
+            // 简单处理，直接拼接
+            if (state.currentValue === '0') state.currentValue = b;
+            else state.currentValue += b;
+        }
+        // 程序员计算器补全
+        function switchRadix(radix) {
+            let num = parseInt(state.currentValue);
+            switch(radix) {
+                case 'HEX': state.currentValue = num.toString(16).toUpperCase(); break;
+                case 'DEC': state.currentValue = num.toString(10); break;
+                case 'OCT': state.currentValue = num.toString(8); break;
+                case 'BIN': state.currentValue = num.toString(2); break;
+            }
+        }
+        function switchBitMode(mode) {
+            state.bitMode = mode.toLowerCase();
+        }
+        function bitwiseOperation(op) {
+            state.operation = op;
+            state.previousValue = state.currentValue;
+            state.currentValue = '';
+        }
+        function shiftOperation(op) {
+            state.operation = op;
+            state.previousValue = state.currentValue;
+            state.currentValue = '';
+        }
+        function appendHex(h) {
+            if (state.currentValue === '0') state.currentValue = h;
+            else state.currentValue += h;
+        }
+        // 标签快捷切换
+        function showHistoryTab() {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelector('.tab-btn[data-tab="history"]').classList.add('active');
+            document.querySelectorAll('.keypad').forEach(k => k.classList.add('hidden'));
+            document.querySelector('.date-calculator').classList.add('hidden');
+            document.querySelector('.settings-container').classList.add('hidden');
+            document.querySelector('.history-container').classList.remove('hidden');
+            updateHistoryList();
+        }
+        function showSettingsTab() {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelector('.tab-btn[data-tab="settings"]').classList.add('active');
+            document.querySelectorAll('.keypad').forEach(k => k.classList.add('hidden'));
+            document.querySelector('.date-calculator').classList.add('hidden');
+            document.querySelector('.history-container').classList.add('hidden');
+            document.querySelector('.settings-container').classList.remove('hidden');
+        }
+        // 设置保存
+        document.querySelector('.settings-container .equals-btn').onclick = function() {
+            const angleUnit = document.getElementById('angleUnit').value;
+            const numberFormat = document.getElementById('numberFormat').value;
+            const historySave = document.getElementById('historySave').value;
+            // 角度单位
+            switch(angleUnit) {
+                case 'deg': state.isRadians = false; break;
+                case 'rad': state.isRadians = true; break;
+                case 'grad': state.isRadians = 'grad'; break;
+            }
+            // 数字格式
+            state.numberFormat = numberFormat;
+            // 历史保存条数
+            state.historyLimit = historySave === 'unlimited' ? 9999 : parseInt(historySave);
+            alert('设置已保存！');
+        };
+    </script>
+</body>
+</html>
