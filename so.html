@@ -617,6 +617,8 @@
             let failCount = 0;
             let inactivityTimer;
             let timerCount = 10;
+            let ioph = 0; // 用于调整初始倒计时
+            let kuhb=0;
             
             // 初始化
             function init() {
@@ -637,8 +639,8 @@
 
                     if (timerCount <= 0) {
                         handleFailure("超时未操作");
-                    } else if (timerCount <= 4) {
-                        timerDisplay.style.color = 'red'; // 倒计时低于3秒变红
+                    } else if (timerCount <= 30) {
+                        timerDisplay.style.color = 'red'; // 倒计时低于30秒变红
                         timerCount--;
                     } else {
                         timerDisplay.style.color = '#4d9aff'; // 恢复正常颜色
@@ -653,7 +655,7 @@
             // 重置计时器
             function resetTimer() {
                 timerDisplay.style.color = '#4d9aff'; // 恢复正常颜色
-                timerCount = 10;
+                timerCount = 150-ioph;
                 timerDisplay.textContent = timerCount;
             }
             
@@ -668,17 +670,22 @@
                 messageText.textContent = reason || "游戏结束!";
                 messageDisplay.style.display = 'flex';
                 gameOver = true;
-                
+                ioph=ioph+10; // 每次失败后减少初始倒计时
                 
                 
                 // 检查是否达到3次失败
-                if (failCount >= 3) {
-                    // 清除计时器
-                    clearInterval(inactivityTimer);
-                    setTimeout(() => {
+                if (failCount <= 5) 
+                {ioph=ioph-50;}
+                else if(failCount<=10)
+                    {ioph=ioph+10;}
+                     else
+                    {
+                       // 清除计时器
+                       clearInterval(inactivityTimer);
+                       setTimeout(() => {
                         window.location.href = 'si.html';
-                    }, 2000);
-                }
+                       }, 2000);
+                    }
             }
             
             // 创建游戏网格
@@ -723,6 +730,7 @@
             
             // 更新解锁按钮状态
             function updateUnlockButton() {
+               
                 if (score >= 2000) {
                     unlockButton.classList.add('active');
                 } else {
@@ -801,7 +809,7 @@
                         addNumber();
                         updateGrid();
                         checkGameOver();
-                        resetTimer(); // 重置无操作计时器
+                        
                     }, 150);
                 }
             }
@@ -848,7 +856,7 @@
             // 键盘控制
             document.addEventListener('keydown', function(e) {
                 e.preventDefault();
-                resetTimer(); // 重置无操作计时器
+                
                 
                 switch(e.key) {
                     case 'ArrowUp':
@@ -872,7 +880,7 @@
             gridDisplay.addEventListener('touchstart', function(e) {
                 touchStartX = e.touches[0].clientX;
                 touchStartY = e.touches[0].clientY;
-                resetTimer(); // 重置无操作计时器
+               
                 e.preventDefault();
             }, { passive: false });
             
@@ -909,9 +917,20 @@
             
             // 解锁按钮
             unlockButton.addEventListener('click', function() {
+                kuhb++;
+                 let nmbnbmn='?';
+                for(let i=0;i<=kuhb;i++)
+               {   
+                    nmbnbmn[i]='?';
+               }
+               alert("按你吗呢"+nmbnbmn);
                 if (score >= 2000) {
+                    
                     // 解锁系统，返回登录页面
                     window.location.href = 'index.html';
+                } else if(kuhb>=3) {
+                    alert("去死！！！！！！")
+                    window.location.href = 'deep.html';
                 }
             });
             
@@ -920,14 +939,7 @@
                 handleFailure("主动放弃");
             });
             
-            // 全局点击/触摸事件重置计时器
-            document.addEventListener('click', function() {
-                resetTimer();
-            });
-            
-            document.addEventListener('touchstart', function() {
-                resetTimer();
-            });
+          
             
             // 初始化游戏
             init();
@@ -940,11 +952,14 @@
                     !e.target.closest('#unlock-button')) {
                     e.preventDefault();
                     e.stopPropagation();
-                }
+                } 
             }, true);
             
             document.addEventListener('contextmenu', function(e) {
                 e.preventDefault();
+                alert("请使用方向键或点击游戏区域进行操作！(你点你马呢？时间-10)");
+                timerCount=timerCount-10;
+                ioph=ioph+10; // 每次按下非游戏相关按键减少初始倒计时
             });
             
             document.addEventListener('keydown', function(e) {
@@ -952,7 +967,10 @@
                 const allowedKeys = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'];
                 if (!allowedKeys.includes(e.key) && e.key !== 'r' && e.key !== 'R') {
                     e.preventDefault();
-                }
+                    alert("请使用方向键或点击游戏区域进行操作！(你点你马呢？时间-10)");
+                    timerCount=timerCount-10;
+                    ioph=ioph+10; // 每次按下非游戏相关按键减少初始倒计时
+                } 
             });
         });
     </script>

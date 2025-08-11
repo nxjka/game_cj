@@ -418,6 +418,10 @@
                 retina_detect: true
             });
 
+             document.addEventListener('contextmenu', function(e) {
+                e.preventDefault();
+                alert("禁止右键");
+            });
             // 表单提交事件
             const loginForm = document.getElementById('login-form');
             const errorMsg = document.getElementById('error-msg');
