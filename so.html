@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>系统错误 - 安全锁定</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        body {
+            background: #0a246a;
+            font-family: 'Courier New', monospace;
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            position: relative;
+            cursor: not-allowed;
+        }
+
+        /* 蓝屏背景 */
+        .blue-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #0a246a;
+            z-index: 1;
+        }
+
+        /* 错误信息容器 */
+        .error-container {
+            position: relative;
+            z-index: 3;
+            max-width: 800px;
+            padding: 30px;
+            background: rgba(0, 20, 80, 0.8);
+            border: 2px solid rgba(100, 150, 255, 0.3);
+            margin-bottom: 40px;
+            box-shadow: 0 0 30px rgba(0, 80, 255, 0.5);
+        }
+
+        /* 错误标题 */
+        .error-title {
+            font-size: 3.5rem;
+            color: #fff;
+            text-shadow: 0 0 15px rgba(255, 255, 255, 0.7);
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: bold;
+            letter-spacing: 2px;
+            position: relative;
+            animation: flicker 4s infinite;
+        }
+
+        .error-title::after {
+            content: "";
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200px;
+            height: 4px;
+            background: linear-gradient(90deg, transparent, #4d9aff, transparent);
+        }
+
+        /* 错误消息 */
+        .error-message {
+            font-size: 1.2rem;
+            line-height: 1.8;
+            margin: 20px 0;
+            color: #c0d8ff;
+            text-align: center;
+        }
+
+        .error-details {
+            background: rgba(0, 10, 40, 0.7);
+            padding: 20px;
+            margin: 25px 0;
+            border-left: 4px solid #ff5555;
+            font-family: 'Consolas', monospace;
+            font-size: 0.95rem;
+            line-height: 1.7;
+        }
+
+        .error-code {
+            display: inline-block;
+            background: rgba(255, 85, 85, 0.2);
+            padding: 3px 8px;
+            border-radius: 3px;
+            color: #ff9999;
+        }
+
+        /* 游戏容器 */
+        .game-container {
+            position: relative;
+            z-index: 2;
+            width: 360px;
+            margin: 20px auto;
+            background: rgba(0, 10, 40, 0.8);
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 0 30px rgba(0, 100, 255, 0.3);
+            border: 1px solid rgba(100, 180, 255, 0.4);
+        }
+
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(100, 180, 255, 0.3);
+        }
+
+        .game-title {
+            font-size: 1.5rem;
+            color: #4d9aff;
+            font-weight: bold;
+        }
+
+        .score-container {
+            background: rgba(0, 20, 60, 0.7);
+            padding: 5px 15px;
+            border-radius: 5px;
+            font-weight: bold;
+            color: #fff;
+            border: 1px solid rgba(100, 180, 255, 0.3);
+        }
+
+        /* 游戏网格 */
+        .game-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: repeat(4, 1fr);
+            gap: 10px;
+            background: rgba(0, 30, 70, 0.5);
+            padding: 10px;
+            border-radius: 8px;
+            border: 2px solid rgba(100, 180, 255, 0.2);
+        }
+
+        .grid-cell {
+            background: rgba(20, 50, 120, 0.4);
+            border-radius: 5px;
+            height: 70px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2rem;
+            font-weight: bold;
+            color: #fff;
+            transition: all 0.2s;
+        }
+
+        /* 数字块样式 */
+        .tile-2 { background: rgba(100, 150, 255, 0.6); }
+        .tile-4 { background: rgba(80, 130, 255, 0.7); }
+        .tile-8 { background: rgba(60, 110, 255, 0.8); color: #ffcc00; }
+        .tile-16 { background: rgba(40, 90, 255, 0.9); color: #ffcc00; }
+        .tile-32 { background: rgba(20, 70, 255, 0.9); color: #ffcc00; }
+        .tile-64 { background: rgba(0, 50, 255, 0.9); color: #ffcc00; }
+        .tile-128 { background: rgba(0, 150, 255, 0.9); color: #ffff00; font-size: 1.8rem; }
+        .tile-256 { background: rgba(0, 200, 255, 0.9); color: #ffff00; font-size: 1.8rem; }
+        .tile-512 { background: rgba(0, 255, 255, 0.9); color: #ffff00; font-size: 1.7rem; }
+        .tile-1024 { background: rgba(100, 255, 255, 0.9); color: #ffffff; font-size: 1.6rem; }
+        .tile-2048 { background: linear-gradient(135deg, #ffcc00, #ff9900); color: #003366; font-size: 1.5rem; }
+
+        /* 游戏结束提示 */
+        .game-message {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 20, 60, 0.9);
+            border-radius: 10px;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+        }
+
+        .game-message p {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #ffcc00;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .retry-button {
+            background: #4d9aff;
+            color: #001a40;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .retry-button:hover {
+            background: #66aaff;
+            transform: scale(1.05);
+        }
+
+        /* 故障效果 */
+        .glitch-effect {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+            opacity: 0.1;
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        .scan-line {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(180deg, rgba(0, 200, 255, 0.8), transparent);
+            animation: scan 4s linear infinite;
+            z-index: 4;
+            pointer-events: none;
+        }
+
+        /* 动画效果 */
+        @keyframes flicker {
+            0% { opacity: 1; }
+            5% { opacity: 0.8; }
+            10% { opacity: 1; }
+            15% { opacity: 0.7; }
+            20% { opacity: 1; }
+            70% { opacity: 1; }
+            75% { opacity: 0.6; }
+            80% { opacity: 1; }
+            85% { opacity: 0.4; }
+            90% { opacity: 1; }
+            95% { opacity: 0.2; }
+            100% { opacity: 1; }
+        }
+
+        @keyframes scan {
+            0% { top: 0; }
+            100% { top: 100%; }
+        }
+
+        @keyframes glitch {
+            0% { transform: translate(0); }
+            20% { transform: translate(-5px, 5px); }
+            40% { transform: translate(-5px, -5px); }
+            60% { transform: translate(5px, 5px); }
+            80% { transform: translate(5px, -5px); }
+            100% { transform: translate(0); }
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 600px) {
+            .error-container {
+                width: 95%;
+                padding: 20px;
+            }
+            
+            .error-title {
+                font-size: 2.5rem;
+            }
+            
+            .game-container {
+                width: 95%;
+            }
+            
+            .grid-cell {
+                height: 60px;
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 蓝屏背景 -->
+    <div class="blue-screen"></div>
+    
+    <!-- 故障效果 -->
+    <div class="glitch-effect"></div>
+    
+    <!-- 扫描线效果 -->
+    <div class="scan-line"></div>
+    
+    <!-- 错误信息 -->
+    <div class="error-container">
+        <h1 class="error-title">SYSTEM LOCKDOWN</h1>
+        
+        <div class="error-message">
+            <p><i class="fas fa-exclamation-triangle"></i> 安全协议已激活 - 访问权限被拒绝</p>
+            <p>检测到无效登录凭证，系统已锁定</p>
+        </div>
+        
+        <div class="error-details">
+            <p>错误代码: <span class="error-code">0xE3A7B2F</span> - 安全令牌验证失败</p>
+            <p>错误类型: <span class="error-code">SECURITY_BREACH</span></p>
+            <p>时间戳: <span class="error-code">2025-08-11 14:36:22 UTC</span></p>
+            <p>用户: <span class="error-code">zyjj</span></p>
+            <p>IP: <span class="error-code">192.168.7.22</span> | 位置: <span class="error-code">未知</span></p>
+            <p>建议操作: 等待系统管理员解除锁定或联系技术支持</p>
+        </div>
+        
+        <div class="error-message">
+            <p>此终端已锁定，仅供娱乐使用</p>
+        </div>
+    </div>
+    
+    <!-- 2048小游戏 -->
+    <div class="game-container">
+        <div class="game-header">
+            <div class="game-title">2048</div>
+            <div class="score-container">分数: <span id="score">0</span></div>
+        </div>
+        
+        <div class="game-grid" id="game-grid">
+            <!-- 游戏格子由JS生成 -->
+        </div>
+        
+        <div class="game-message" id="game-message">
+            <p id="message-text">游戏结束!</p>
+            <button class="retry-button" id="retry-button">重新开始</button>
+        </div>
+    </div>
+    
+    <script>
+        // 2048游戏实现
+        document.addEventListener('DOMContentLoaded', function() {
+            const gridDisplay = document.getElementById('game-grid');
+            const scoreDisplay = document.getElementById('score');
+            const messageDisplay = document.getElementById('game-message');
+            const messageText = document.getElementById('message-text');
+            const retryButton = document.getElementById('retry-button');
+            
+            const gridSize = 4;
+            let grid = [];
+            let score = 0;
+            let gameOver = false;
+            
+            // 创建游戏网格
+            function createGrid() {
+                grid = Array(gridSize * gridSize).fill(0);
+                for (let i = 0; i < gridSize * gridSize; i++) {
+                    const cell = document.createElement('div');
+                    cell.classList.add('grid-cell');
+                    gridDisplay.appendChild(cell);
+                }
+                addNumber();
+                addNumber();
+                updateGrid();
+            }
+            
+            // 在随机空位置添加数字（2或4）
+            function addNumber() {
+                const emptyCells = [];
+                grid.forEach((cell, index) => {
+                    if (cell === 0) emptyCells.push(index);
+                });
+                
+                if (emptyCells.length > 0) {
+                    const randomIndex = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+                    grid[randomIndex] = Math.random() > 0.8 ? 4 : 2;
+                }
+            }
+            
+            // 更新网格显示
+            function updateGrid() {
+                grid.forEach((value, index) => {
+                    const cell = gridDisplay.children[index];
+                    cell.textContent = value === 0 ? '' : value;
+                    cell.className = 'grid-cell';
+                    if (value > 0) cell.classList.add(`tile-${value}`);
+                });
+                scoreDisplay.textContent = score;
+            }
+            
+            // 滑动操作
+            function slide(row) {
+                let arr = row.filter(val => val !== 0);
+                const missing = gridSize - arr.length;
+                arr = [...Array(missing).fill(0), ...arr];
+                return arr;
+            }
+            
+            // 合并相同数字
+            function combine(row) {
+                for (let i = gridSize - 1; i >= 1; i--) {
+                    if (row[i] === row[i - 1]) {
+                        row[i] *= 2;
+                        row[i - 1] = 0;
+                        score += row[i];
+                    }
+                }
+                return row;
+            }
+            
+            // 旋转网格（用于简化移动逻辑）
+            function rotateGrid() {
+                const newGrid = [];
+                for (let i = 0; i < gridSize; i++) {
+                    newGrid.push([]);
+                    for (let j = 0; j < gridSize; j++) {
+                        newGrid[i].push(grid[j * gridSize + (gridSize - 1 - i)]);
+                    }
+                }
+                grid = newGrid.flat();
+            }
+            
+            // 移动操作
+            function move(direction) {
+                if (gameOver) return;
+                
+                let moved = false;
+                const originalGrid = [...grid];
+                
+                // 根据方向旋转网格
+                if (direction === 'up') rotateGrid();
+                if (direction === 'right') { rotateGrid(); rotateGrid(); }
+                if (direction === 'down') { rotateGrid(); rotateGrid(); rotateGrid(); }
+                
+                // 处理每一行
+                for (let i = 0; i < gridSize; i++) {
+                    let row = grid.slice(i * gridSize, (i + 1) * gridSize);
+                    
+                    // 滑动、合并、再滑动
+                    row = slide(row);
+                    row = combine(row);
+                    row = slide(row);
+                    
+                    // 更新网格
+                    for (let j = 0; j < gridSize; j++) {
+                        if (row[j] !== originalGrid[i * gridSize + j]) moved = true;
+                        grid[i * gridSize + j] = row[j];
+                    }
+                }
+                
+                // 旋转回原方向
+                if (direction === 'down') rotateGrid();
+                if (direction === 'right') { rotateGrid(); rotateGrid(); }
+                if (direction === 'up') { rotateGrid(); rotateGrid(); rotateGrid(); }
+                
+                // 如果有移动，添加新数字并更新
+                if (moved) {
+                    addNumber();
+                    updateGrid();
+                    checkGameOver();
+                }
+            }
+            
+            // 检查游戏是否结束
+            function checkGameOver() {
+                // 检查是否有空格
+                if (grid.some(cell => cell === 0)) return;
+                
+                // 检查水平方向是否有可合并的
+                for (let i = 0; i < gridSize; i++) {
+                    for (let j = 0; j < gridSize - 1; j++) {
+                        if (grid[i * gridSize + j] === grid[i * gridSize + j + 1]) {
+                            return;
+                        }
+                    }
+                }
+                
+                // 检查垂直方向是否有可合并的
+                for (let j = 0; j < gridSize; j++) {
+                    for (let i = 0; i < gridSize - 1; i++) {
+                        if (grid[i * gridSize + j] === grid[(i + 1) * gridSize + j]) {
+                            return;
+                        }
+                    }
+                }
+                
+                // 游戏结束
+                gameOver = true;
+                messageText.textContent = '游戏结束!';
+                messageDisplay.style.display = 'flex';
+            }
+            
+            // 重置游戏
+            function resetGame() {
+                gridDisplay.innerHTML = '';
+                grid = [];
+                score = 0;
+                gameOver = false;
+                messageDisplay.style.display = 'none';
+                createGrid();
+            }
+            
+            // 键盘控制
+            document.addEventListener('keydown', function(e) {
+                e.preventDefault(); // 阻止默认键盘行为
+                
+                switch(e.key) {
+                    case 'ArrowUp':
+                        move('up');
+                        break;
+                    case 'ArrowDown':
+                        move('down');
+                        break;
+                    case 'ArrowLeft':
+                        move('left');
+                        break;
+                    case 'ArrowRight':
+                        move('right');
+                        break;
+                }
+            });
+            
+            // 重新开始按钮
+            retryButton.addEventListener('click', resetGame);
+            
+            // 初始化游戏
+            createGrid();
+            
+            // 锁定页面其他交互
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.game-container') && !e.target.closest('.retry-button')) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
+            }, true);
+            
+            document.addEventListener('contextmenu', function(e) {
+                e.preventDefault();
+            });
+            
+            document.addEventListener('keydown', function(e) {
+                // 允许方向键和游戏相关按键
+                const allowedKeys = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'];
+                if (!allowedKeys.includes(e.key)) {
+                    e.preventDefault();
+                }
+            });
+        });
+    </script>
+</body>
+</html>

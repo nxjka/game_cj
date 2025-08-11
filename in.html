@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>量子安全认证系统</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700&family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            font-family: 'Exo 2', sans-serif;
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* 粒子背景效果 */
+        #particles-js {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+
+        /* 主登录容器 */
+        .login-container {
+            position: relative;
+            z-index: 2;
+            width: 420px;
+            padding: 40px 30px;
+            background: rgba(10, 15, 35, 0.7);
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(92, 107, 192, 0.2);
+            transform: translateY(0);
+            transition: transform 0.4s, box-shadow 0.4s;
+        }
+
+        .login-container:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 25px 45px rgba(92, 107, 192, 0.3);
+        }
+
+        /* 头部样式 */
+        .login-header {
+            text-align: center;
+            margin-bottom: 35px;
+        }
+
+        .login-header h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2.2rem;
+            font-weight: 700;
+            background: linear-gradient(90deg, #00dbde, #fc00ff, #00dbde);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            background-size: 300% 300%;
+            animation: gradient 4s ease infinite;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+        }
+
+        .login-header p {
+            margin-top: 10px;
+            color: #a0a7d8;
+            font-weight: 300;
+            font-size: 0.9rem;
+        }
+
+        .security-level {
+            display: flex;
+            justify-content: center;
+            margin-top: 15px;
+        }
+
+        .security-level span {
+            background: rgba(142, 84, 233, 0.2);
+            padding: 3px 10px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            color: #8e54e9;
+            border: 1px solid rgba(142, 84, 233, 0.5);
+        }
+
+        /* 输入框组 */
+        .input-group {
+            position: relative;
+            margin-bottom: 30px;
+        }
+
+        .input-group i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #5c6bc0;
+            font-size: 1.1rem;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 15px 20px 15px 45px;
+            background: rgba(20, 25, 45, 0.7);
+            border: 1px solid rgba(92, 107, 192, 0.3);
+            border-radius: 10px;
+            outline: none;
+            color: #fff;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+
+        .input-group input:focus {
+            border-color: #5c6bc0;
+            box-shadow: 0 0 15px rgba(92, 107, 192, 0.5);
+            background: rgba(30, 35, 55, 0.7);
+        }
+
+        .input-group input::placeholder {
+            color: #6c75a7;
+        }
+
+        /* 记住我 */
+        .remember {
+            display: flex;
+            align-items: center;
+            margin-bottom: 25px;
+            font-size: 0.9rem;
+        }
+
+        .remember input {
+            margin-right: 10px;
+            accent-color: #5c6bc0;
+        }
+
+        /* 登录按钮 */
+        .login-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(90deg, #4776E6, #8E54E9);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+            letter-spacing: 1px;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(142, 84, 233, 0.4);
+        }
+
+        .login-btn:active {
+            transform: translateY(1px);
+        }
+
+        .login-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: 0.5s;
+        }
+
+        .login-btn:hover::before {
+            left: 100%;
+        }
+
+        /* 底部链接 */
+        .login-footer {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+            font-size: 0.85rem;
+        }
+
+        .login-footer a {
+            color: #5c6bc0;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .login-footer a:hover {
+            color: #8e54e9;
+            text-decoration: underline;
+        }
+
+        /* 错误提示 */
+        .error-message {
+            color: #ff4d7d;
+            text-align: center;
+            margin-top: 15px;
+            font-size: 0.9rem;
+            height: 20px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .error-message.show {
+            opacity: 1;
+        }
+
+        /* 装饰元素 */
+        .decoration {
+            position: absolute;
+            z-index: 1;
+        }
+
+        .circle {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(92, 107, 192, 0.2), transparent 70%);
+            position: absolute;
+            top: -100px;
+            right: -100px;
+        }
+
+        .circle-2 {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(142, 84, 233, 0.15), transparent 70%);
+            position: absolute;
+            bottom: -80px;
+            left: -70px;
+        }
+
+        /* 扫描线效果 */
+        .scan-line {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(90deg, transparent, rgba(0, 219, 222, 0.7), transparent);
+            animation: scan 5s linear infinite;
+            z-index: 3;
+        }
+
+        /* 登录状态 */
+        .status-indicator {
+            display: flex;
+            justify-content: center;
+            margin-top: 15px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #4CAF50;
+            margin: 0 3px;
+            animation: pulse 1.5s infinite;
+        }
+
+        .status-dot:nth-child(2) {
+            animation-delay: 0.5s;
+            background: #FF9800;
+        }
+
+        .status-dot:nth-child(3) {
+            animation-delay: 1s;
+            background: #F44336;
+        }
+
+        /* 动画效果 */
+        @keyframes gradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        @keyframes scan {
+            0% { top: 0; }
+            100% { top: 100%; }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.3; transform: scale(0.8); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 480px) {
+            .login-container {
+                width: 90%;
+                padding: 30px 20px;
+            }
+            
+            .login-header h1 {
+                font-size: 1.8rem;
+            }
+            
+            .login-footer {
+                flex-direction: column;
+                align-items: center;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 粒子背景 -->
+    <div id="particles-js"></div>
+    
+    <!-- 装饰元素 -->
+    <div class="decoration circle"></div>
+    <div class="decoration circle-2"></div>
+    
+    <!-- 主登录框 -->
+    <div class="login-container">
+        <!-- 扫描线效果 -->
+        <div class="scan-line"></div>
+        
+        <div class="login-header">
+            <h1><i class="fas fa-atom"></i> QUANTUM ACCESS</h1>
+            <p>安全身份验证系统 | 第7代量子加密协议</p>
+            <div class="security-level">
+                <span><i class="fas fa-shield-alt"></i> 最高安全级别</span>
+            </div>
+        </div>
+        
+        <form id="login-form">
+            <div class="input-group">
+                <i class="fas fa-user-astronaut"></i>
+                <input type="text" id="username" placeholder="用户ID / 量子签名" required>
+            </div>
+            
+            <div class="input-group">
+                <i class="fas fa-lock"></i>
+                <input type="password" id="password" placeholder="动态安全密钥" required>
+            </div>
+            
+            <div class="remember">
+                <input type="checkbox" id="remember">
+                <label for="remember">保持量子连接</label>
+            </div>
+            
+            <button type="submit" class="login-btn">量子验证 <i class="fas fa-fingerprint"></i></button>
+            
+            <div class="error-message" id="error-msg"></div>
+            
+            <div class="status-indicator">
+                <div class="status-dot"></div>
+                <div class="status-dot"></div>
+                <div class="status-dot"></div>
+            </div>
+        </form>
+        
+        <div class="login-footer">
+            <a href="#"><i class="fas fa-key"></i> 密钥恢复</a>
+            <a href="#"><i class="fas fa-user-plus"></i> 创建量子身份</a>
+            <a href="#"><i class="fas fa-shield-alt"></i> 安全协议</a>
+        </div>
+    </div>
+
+    <!-- 粒子效果库 -->
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    
+    <script>
+        // 初始化粒子背景
+        document.addEventListener('DOMContentLoaded', function() {
+            particlesJS('particles-js', {
+                particles: {
+                    number: { value: 80, density: { enable: true, value_area: 800 } },
+                    color: { value: "#5c6bc0" },
+                    shape: { type: "circle" },
+                    opacity: { value: 0.5, random: true },
+                    size: { value: 3, random: true },
+                    line_linked: {
+                        enable: true,
+                        distance: 150,
+                        color: "#5c6bc0",
+                        opacity: 0.3,
+                        width: 1
+                    },
+                    move: {
+                        enable: true,
+                        speed: 2,
+                        direction: "none",
+                        random: true,
+                        straight: false,
+                        out_mode: "out",
+                        bounce: false
+                    }
+                },
+                interactivity: {
+                    detect_on: "canvas",
+                    events: {
+                        onhover: { enable: true, mode: "grab" },
+                        onclick: { enable: true, mode: "push" },
+                        resize: true
+                    }
+                },
+                retina_detect: true
+            });
+
+            // 表单提交事件
+            const loginForm = document.getElementById('login-form');
+            const errorMsg = document.getElementById('error-msg');
+            
+            loginForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const username = document.getElementById('username').value;
+                const password = document.getElementById('password').value;
+                const btn = document.querySelector('.login-btn');
+                
+                // 清除错误消息
+                errorMsg.classList.remove('show');
+                errorMsg.textContent = '';
+                
+                // 显示加载状态
+                btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> 量子验证中...';
+                btn.disabled = true;
+                
+                // 模拟网络延迟
+                setTimeout(() => {
+                    // 验证账号密码
+                    if (username === 'zyjj' && password === '++01ab++') {
+                        // 登录成功
+                        btn.innerHTML = '<i class="fas fa-check"></i> 验证成功';
+                        btn.style.background = 'linear-gradient(90deg, #00C853, #1DE9B6)';
+                        
+                        // 跳转到index.html
+                        setTimeout(() => {
+                            window.location.href = 'index.html';
+                        }, 1500);
+                    } else {
+                        // 登录失败
+                        btn.innerHTML = '<i class="fas fa-exclamation-triangle"></i> 验证失败';
+                        btn.style.background = 'linear-gradient(90deg, #ff4d7d, #ff6b6b)';
+                        
+                        // 显示错误信息
+                        errorMsg.textContent = '错误：用户凭证无效，请重试';
+                        errorMsg.classList.add('show');
+                        
+                        // 恢复按钮状态
+                        setTimeout(() => {
+                            btn.innerHTML = '量子验证 <i class="fas fa-fingerprint"></i>';
+                            btn.disabled = false;
+                            btn.style.background = 'linear-gradient(90deg, #4776E6, #8E54E9)';
+                        }, 2000);
+                        
+                        // 跳转到so.html
+                        setTimeout(() => {
+                            window.location.href = 'so.html';
+                        }, 3000);
+                    }
+                }, 1500);
+            });
+        });
+    </script>
+</body>
+</html>
