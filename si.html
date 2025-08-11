@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>完全错误的网页</title>
+    <style>
+        /* 全局样式 - 故意制造混乱 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Comic Sans MS', 'Papyrus', cursive !important;
+        }
+        
+        body {
+            background-color: #ff0000;
+            color: #00ff00;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><rect width="100" height="100" fill="yellow" opacity="0.3"/></svg>');
+            line-height: 1.2em;
+        }
+        
+        /* 故意制造CSS错误 */
+        .container {
+            width: 95%; /* 缺少闭合分号 */
+            margin: 20px auto;
+            border: 5px dashed #0000ff;
+            padding: 30px 10px 50px;
+            background: linear-gradient(to bottom, red, yellow, blue, green);
+            transform: rotate(1deg);
+            box-shadow: 10px 10px 0 #000, -10px -10px 0 #fff;
+        }
+        
+        h1 {
+            font-size: 4rem;
+            text-align: center;
+            color: #ffff00;
+            text-shadow: 3px 3px 0 #ff00ff, -3px -3px 0 #00ffff;
+            margin-bottom: 5px;
+            font-weight: 900;
+            letter-spacing: -3px;
+            transform: skewX(-15deg);
+        }
+        
+        /* 不存在的CSS属性 */
+        .error-banner {
+            background-color: #ff0000;
+            color: #ffffff;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 0;
+            text-align: center;
+            font-size: 1.8rem;
+            text-transform: uppercase;
+            animation: blink 0.5s infinite;
+            error-property: definitely-not-valid;
+        }
+        
+        /* 关键帧动画 - 故意错误 */
+        @keyframes blink {
+            50% { opacity: 0.5; }
+            100% { color: #000; background-color: #fff; }
+        }
+        
+        .content {
+            display: flex;
+            flex-direction: row-reverse;
+            justify-content: space-between;
+            align-items: stretch;
+            margin: 40px 10px;
+            gap: 20px;
+        }
+        
+        /* 错误的浮动使用 */
+        .error-column {
+            width: 45%;
+            float: left;
+            padding: 20px;
+            background-color: rgba(255, 255, 0, 0.3);
+            border: 3px double #ff00ff;
+            min-height: 400px;
+            overflow: visible;
+        }
+        
+        /* 未定义的类 */
+        .error-column.right {
+            float: right;
+            background-color: rgba(0, 255, 255, 0.3);
+        }
+        
+        h2 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            color: #ff00ff;
+            border-bottom: 5px dotted #00ff00;
+            padding-bottom: 5px;
+            text-align: right;
+        }
+        
+        ul {
+            list-style-type: none;
+            margin-left: 50px;
+        }
+        
+        li {
+            margin: 25px 0;
+            font-size: 1.4rem;
+            position: relative;
+            padding-left: 40px;
+        }
+        
+        li::before {
+            content: "✗";
+            position: absolute;
+            left: 0;
+            top: -5px;
+            font-size: 2rem;
+            color: #ff0000;
+        }
+        
+        /* 悬停效果错误 */
+        li:hover {
+            background-color: #000;
+            color: #fff;
+            transform: scale(1.5);
+            z-index: 1000;
+        }
+        
+        .error-demo {
+            background-color: #000;
+            color: #0f0;
+            padding: 20px;
+            margin: 30px 0;
+            border: 2px solid #f0f;
+            font-family: monospace;
+            font-size: 1.2rem;
+            height: 200px;
+            overflow: scroll;
+        }
+        
+        /* 未闭合的CSS规则 */
+        .broken-element {
+            width: 100px;
+            height: 100px;
+            background-color: #00f;
+            margin: 20px auto;
+            transform: rotate(45deg) scale(0.8);
+            border-radius: 50% 0 50% 0;
+        
+        button {
+            display: block;
+            margin: 30px auto;
+            padding: 15px 40px;
+            background: #ff0;
+            color: #f00;
+            border: 3px groove #0f0;
+            font-size: 1.5rem;
+            cursor: not-allowed;
+            border-radius: 50px 0 50px 0;
+            font-weight: bold;
+        }
+        
+        button:hover {
+            background: #f0f;
+            color: #0ff;
+            transform: rotate(180deg);
+        }
+        
+        footer {
+            text-align: center;
+            padding: 20px;
+            background-color: #000;
+            color: #ff0;
+            margin-top: 40px;
+            border-top: 5px ridge #f00;
+        }
+        
+        /* 媒体查询错误 */
+        @media screen and (max-width: 768px) {
+            .content {
+                flex-direction: column;
+            }
+            
+            .error-column {
+                width: 100%;
+                float: none;
+            }
+            
+            h1 {
+                font-size: 3rem;
+            }
+            
+            /* 故意引入无效属性 */
+            body {
+                background-color: #0f0;
+                invalid-property: oh-no;
+            }
+        }
+        
+        /* 缺少闭合大括号 */
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>完全错误的网页</h1> <!-- 故意未闭合标签 -->
+        <div class="error-banner">警告：此页面包含故意设计的错误！</div>
+        
+        <div class="content">
+            <div class="error-column">
+                <h2>HTML 错误</h2>
+                <ul>
+                    <li>未闭合的标签</li>
+                    <li>无效的嵌套结构</li>
+                    <li>缺少必要的属性</li>
+                    <li>使用废弃标签如 &lt;blink&gt; 和 &lt;marquee&gt;</li>
+                    <li>重复的ID属性</li>
+                    <li>大小写混合的标签</li>
+                    <li>无效的自定义标签</li>
+                </ul>
+                
+                <div class="error-demo">
+                    <!-- 故意错误的HTML -->
+                    &lt;div id="header"&gt;
+                      &lt;h3&gt;欢迎来到错误页面&lt;/H3&gt;
+                      &lt;marquee&gt;过时的标签&lt;/marquee&gt;
+                      &lt;blink&gt;闪烁文本&lt;/blink&gt;
+                      &lt;customtag&gt;无效标签&lt;/customtag&gt;
+                    &lt;!-- 缺少闭合div标签 --&gt;
+                </div>
+            </div>
+            
+            <div class="error-column right"> <!-- 错误的类名 -->
+                <h2>CSS 错误</h2>
+                <ul>
+                    <li>未闭合的规则</li>
+                    <li>无效的属性值</li>
+                    <li>语法错误</li>
+                    <li>不存在的属性</li>
+                    <li>选择器错误</li>
+                    <li>滥用!important</li>
+                    <li>冲突的样式规则</li>
+                    <li>不支持的CSS特性</li>
+                </ul>
+                
+                <div class="error-demo">
+                    /* CSS错误示例 */
+                    .broken-element {
+                      width: 100px;
+                      height: 100px;
+                      background-color: blue;
+                      transform: rotate(45deg) scale(0.8;
+                      /* 缺少闭合括号 */
+                    
+                    .another-class {
+                      color: red
+                      font-size: 18px /* 缺少分号 */
+                      background: url('nonexistent.jpg')
+                    }
+                </div>
+            </div>
+        </div>
+        
+        <div class="broken-element"></div>
+        
+        <button onclick="crashBrowser()">点击制造更多错误</button>
+        
+        <h2>JavaScript 错误</h2>
+        <div class="error-demo">
+            // JavaScript错误示例
+            function undefinedFunction() {
+              var x = 10;
+              var y = 20;
+              console.log(x + y; // 缺少闭合括号
+            
+            document.getElementById('nonExistent').innerHTML = "错误!";
+            
+            // 未声明的变量
+            for (i = 0; i < 5; i++ {
+              setTimeout(function() {
+                console.log(i);
+              }, 1000);
+            }
+            
+            // 尝试访问null属性
+            var obj = null;
+            console.log(obj.property);
+        </div>
+    </div>
+    
+    <footer>
+        <p>本页面包含超过50处故意设计的错误 - 请勿模仿！</p>
+        <p>最后更新：永远不会 &copy; 错误公司</p>
+    </footer>
+    
+    <script>
+        // 故意制造JavaScript错误
+        console.log("开始制造错误...");
+        
+        // 未定义的变量
+        console.log(undefinedVariable);
+        
+        // 类型错误
+        var num = 10;
+        num.toUpperCase();
+        
+        // 语法错误
+        var obj = { name: "Error", age 30 }; // 缺少冒号
+        
+        // 引用错误
+        document.getElementById("nonExistentElement").innerHTML = "错误";
+        
+        // 故意错误的函数
+        function crashBrowser() {
+            alert("即将制造更多错误...");
+            
+            // 无限循环
+            while(true) {
+                console.log("制造错误中...");
+                
+                // 创建内存泄漏
+                var leak = [];
+                for (var i = 0; i < 100000; i++) {
+                    leak.push(new Array(1000));
+                }
+                
+                // 访问不存在的属性
+                try {
+                    window.nonExistentProperty.nestedProperty = "错误";
+                } catch (e) {
+                    console.error(e);
+                }
+            }
+        }
+        
+        // 未闭合的代码块
+    </script>
+</body>
+</html>

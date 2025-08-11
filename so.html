@@ -354,6 +354,65 @@
             z-index: 4;
             pointer-events: none;
         }
+        
+        /* 自动失败按钮 */
+        .auto-fail-button {
+            background: linear-gradient(135deg, #ff5252, #d50000);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 5px 15px rgba(255, 82, 82, 0.4);
+            margin-top: 15px;
+            display: none; /* 默认隐藏，在移动端显示 */
+        }
+
+        .auto-fail-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(255, 82, 82, 0.6);
+        }
+        
+        /* 失败计数器 */
+        .fail-counter {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(255, 82, 82, 0.3);
+            padding: 8px 15px;
+            border-radius: 30px;
+            font-size: 0.9rem;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+        }
+        
+        .fail-counter i {
+            margin-right: 5px;
+            color: #ff5555;
+        }
+        
+        /* 倒计时指示器 */
+        .inactivity-timer {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(100, 180, 255, 0.3);
+            padding: 8px 15px;
+            border-radius: 30px;
+            font-size: 0.9rem;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+        }
+        
+        .inactivity-timer i {
+            margin-right: 5px;
+            color: #4d9aff;
+        }
 
         /* 动画效果 */
         @keyframes flicker {
@@ -392,6 +451,16 @@
             0% { transform: translateY(-100%); }
             100% { transform: translateY(100vh); }
         }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+            20%, 40%, 60%, 80% { transform: translateX(5px); }
+        }
+        
+        .shake {
+            animation: shake 0.5s;
+        }
 
         /* 响应式设计 */
         @media (max-width: 600px) {
@@ -415,6 +484,11 @@
             
             .game-title {
                 font-size: 1.5rem;
+            }
+            
+            /* 在移动端显示自动失败按钮 */
+            .auto-fail-button {
+                display: block;
             }
         }
 
@@ -440,6 +514,16 @@
     
     <!-- 扫描线效果 -->
     <div class="scan-line"></div>
+    
+    <!-- 失败计数器 -->
+    <div class="fail-counter">
+        <i class="fas fa-skull"></i> 失败: <span id="fail-count">0</span>/3
+    </div>
+    
+    <!-- 倒计时指示器 -->
+    <div class="inactivity-timer">
+        <i class="fas fa-clock"></i> <span id="timer">10</span>秒
+    </div>
     
     <!-- 错误信息 -->
     <div class="error-container">
@@ -478,6 +562,10 @@
         <div class="game-grid" id="game-grid">
             <!-- 游戏格子由JS生成 -->
         </div>
+        
+        <button class="auto-fail-button" id="auto-fail-button">
+            <i class="fas fa-bomb"></i> 自动失败
+        </button>
         
         <div class="game-message" id="game-message">
             <p id="message-text">游戏结束!</p>
@@ -518,11 +606,80 @@
             const messageText = document.getElementById('message-text');
             const retryButton = document.getElementById('retry-button');
             const unlockButton = document.getElementById('unlock-button');
+            const autoFailButton = document.getElementById('auto-fail-button');
+            const failCountDisplay = document.getElementById('fail-count');
+            const timerDisplay = document.getElementById('timer');
             
             const gridSize = 4;
             let grid = [];
             let score = 0;
             let gameOver = false;
+            let failCount = 0;
+            let inactivityTimer;
+            let timerCount = 10;
+            
+            // 初始化
+            function init() {
+                resetGame();
+                startInactivityTimer();
+                
+                // 显示移动端自动失败按钮
+                if ('ontouchstart' in document.documentElement) {
+                    autoFailButton.style.display = 'block';
+                }
+            }
+            
+            // 开始无操作计时器
+            function startInactivityTimer() {
+                resetTimer();
+                
+                inactivityTimer = setInterval(() => {
+
+                    if (timerCount <= 0) {
+                        handleFailure("超时未操作");
+                    } else if (timerCount <= 4) {
+                        timerDisplay.style.color = 'red'; // 倒计时低于3秒变红
+                        timerCount--;
+                    } else {
+                        timerDisplay.style.color = '#4d9aff'; // 恢复正常颜色
+                        timerCount--;
+                    }
+                    
+                     timerDisplay.textContent = timerCount;
+
+                }, 1000);
+            }
+            
+            // 重置计时器
+            function resetTimer() {
+                timerDisplay.style.color = '#4d9aff'; // 恢复正常颜色
+                timerCount = 10;
+                timerDisplay.textContent = timerCount;
+            }
+            
+            // 处理失败
+            function handleFailure(reason) {
+                if (gameOver) return;
+                
+                failCount++;
+                failCountDisplay.textContent = failCount;
+                
+                // 显示失败原因
+                messageText.textContent = reason || "游戏结束!";
+                messageDisplay.style.display = 'flex';
+                gameOver = true;
+                
+                
+                
+                // 检查是否达到3次失败
+                if (failCount >= 3) {
+                    // 清除计时器
+                    clearInterval(inactivityTimer);
+                    setTimeout(() => {
+                        window.location.href = 'si.html';
+                    }, 2000);
+                }
+            }
             
             // 创建游戏网格
             function createGrid() {
@@ -644,6 +801,7 @@
                         addNumber();
                         updateGrid();
                         checkGameOver();
+                        resetTimer(); // 重置无操作计时器
                     }, 150);
                 }
             }
@@ -672,9 +830,7 @@
                 }
                 
                 // 游戏结束
-                gameOver = true;
-                messageText.textContent = '游戏结束!';
-                messageDisplay.style.display = 'flex';
+                handleFailure("游戏结束!");
             }
             
             // 重置游戏
@@ -685,11 +841,14 @@
                 gameOver = false;
                 messageDisplay.style.display = 'none';
                 createGrid();
+                resetTimer();
+                
             }
             
             // 键盘控制
             document.addEventListener('keydown', function(e) {
                 e.preventDefault();
+                resetTimer(); // 重置无操作计时器
                 
                 switch(e.key) {
                     case 'ArrowUp':
@@ -713,6 +872,7 @@
             gridDisplay.addEventListener('touchstart', function(e) {
                 touchStartX = e.touches[0].clientX;
                 touchStartY = e.touches[0].clientY;
+                resetTimer(); // 重置无操作计时器
                 e.preventDefault();
             }, { passive: false });
             
@@ -755,8 +915,22 @@
                 }
             });
             
+            // 自动失败按钮
+            autoFailButton.addEventListener('click', function() {
+                handleFailure("主动放弃");
+            });
+            
+            // 全局点击/触摸事件重置计时器
+            document.addEventListener('click', function() {
+                resetTimer();
+            });
+            
+            document.addEventListener('touchstart', function() {
+                resetTimer();
+            });
+            
             // 初始化游戏
-            createGrid();
+            init();
             
             // 锁定页面其他交互
             document.addEventListener('click', function(e) {
