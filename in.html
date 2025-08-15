@@ -1037,6 +1037,7 @@
                     <a href="weee.html">PWM配置和电源配置面板</a>
                     <a href="set.html">计算结构</a>
                     <a href="huitu.html">绘图结构</a>
+                    <a href="zhuan.html">单位换算</a>
                 </div>
             </div>
             <div class="nav-group">
@@ -1236,5 +1237,41 @@
     </script>
     <!-- 游戏脚本 -->
     <script src="games.js"></script>
+
+
+    <!-- 在in.html的</body>标签前添加以下代码 -->
+<script>
+// 登录时效管理 (10分钟)
+let idleTimeout;
+
+function resetIdleTimer() {
+    clearTimeout(idleTimeout);
+    idleTimeout = setTimeout(logout, 6000); // 1分钟 = 600,00毫秒
+}
+
+function logout() {
+    alert("登录会话已过期，请重新登录");
+    window.location.href = "index.html";
+}
+
+// 监听用户活动
+document.addEventListener("mousemove", resetIdleTimer);
+document.addEventListener("keydown", resetIdleTimer);
+document.addEventListener("click", resetIdleTimer);
+document.addEventListener("scroll", resetIdleTimer);
+document.addEventListener("touchstart", resetIdleTimer);
+
+// 页面加载时启动计时器
+window.onload = resetIdleTimer;
+
+// 添加可见性检测 - 当页面不可见时暂停计时
+document.addEventListener("visibilitychange", function() {
+    if (document.hidden) {
+        clearTimeout(idleTimeout);
+    } else {
+        resetIdleTimer();
+    }
+});
+</script>
 </body>
 </html>

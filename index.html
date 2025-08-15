@@ -379,7 +379,8 @@
 
     <!-- 粒子效果库 -->
     <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
-    
+    <!-- 游戏脚本 -->
+    <script src="games.js"></script>
     <script>
         // 初始化粒子背景
         document.addEventListener('DOMContentLoaded', function() {
@@ -448,7 +449,8 @@
                         // 登录成功
                         btn.innerHTML = '<i class="fas fa-check"></i> 验证成功';
                         btn.style.background = 'linear-gradient(90deg, #00C853, #1DE9B6)';
-                        
+                        // 设置登录时间标记
+                        localStorage.setItem('loginTime', new Date().getTime());
                         // 跳转到index.html
                         setTimeout(() => {
                             window.location.href = 'in.html';

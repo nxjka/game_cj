@@ -1,0 +1,1342 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UNITX - 全能单位转换器 | 实时汇率</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #00f0ff;
+            --secondary: #6e00ff;
+            --dark: #0a0a1a;
+            --darker: #050510;
+            --light: #e0e0ff;
+            --gray: #444466;
+            --positive: #00ff55;
+            --negative: #ff5555;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--dark);
+            color: var(--light);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            flex: 1;
+        }
+        
+        /* 导航栏样式 */
+        .navbar {
+            background: linear-gradient(90deg, var(--darker), var(--dark));
+            padding: 15px 0;
+            border-bottom: 1px solid var(--gray);
+        }
+        
+        .navbar .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 28px;
+            margin: 0;
+            color: var(--primary);
+        }
+        
+        .logo h1 span {
+            color: var(--secondary);
+        }
+        
+        .logo p {
+            margin: 0;
+            font-size: 12px;
+            opacity: 0.8;
+        }
+        
+        nav ul {
+            display: flex;
+            list-style: none;
+            gap: 25px;
+        }
+        
+        nav a {
+            color: var(--light);
+            text-decoration: none;
+            font-size: 15px;
+            transition: color 0.2s;
+            position: relative;
+        }
+        
+        nav a:hover {
+            color: var(--primary);
+        }
+        
+        nav a.active {
+            color: var(--primary);
+        }
+        
+        nav a.active:after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: var(--primary);
+        }
+        
+        .user-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn-login, .btn-register {
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .btn-login {
+            background: transparent;
+            border: 1px solid var(--gray);
+            color: var(--light);
+        }
+        
+        .btn-login:hover {
+            background: rgba(0, 240, 255, 0.1);
+            border-color: var(--primary);
+        }
+        
+        .btn-register {
+            background: var(--secondary);
+            border: 1px solid var(--secondary);
+            color: white;
+        }
+        
+        .btn-register:hover {
+            background: #5a00d4;
+            border-color: #5a00d4;
+        }
+        
+        /* 转换卡片样式 */
+        .converter-card {
+            background: rgba(10, 10, 30, 0.8);
+            border-radius: 12px;
+            border: 1px solid var(--gray);
+            box-shadow: 0 10px 30px rgba(0, 240, 255, 0.1);
+            margin: 30px 0;
+            overflow: hidden;
+        }
+        
+        .card-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--gray);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .card-header h2 {
+            margin: 0;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .last-updated {
+            font-size: 12px;
+            opacity: 0.7;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .sync-icon {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: var(--primary);
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.3; }
+            100% { opacity: 1; }
+        }
+        
+        /* 输入区域样式 */
+        .card-body {
+            padding: 30px;
+        }
+        
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .amount-input {
+            position: relative;
+        }
+        
+        .amount-input input {
+            width: 100%;
+            padding: 15px 20px;
+            font-size: 24px;
+            background: rgba(20, 20, 40, 0.8);
+            border: 1px solid var(--gray);
+            border-radius: 8px;
+            color: var(--light);
+            font-family: 'Orbitron', sans-serif;
+            border: none;
+            outline: none;
+        }
+        
+        .input-decoration {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            opacity: 0.5;
+        }
+        
+        .pulse-animation {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 20px;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, var(--primary), transparent);
+            animation: slide 3s infinite;
+            opacity: 0.7;
+        }
+        
+        @keyframes slide {
+            0% { left: -20px; }
+            100% { left: calc(100% + 20px); }
+        }
+        
+        /* 单位选择器样式 */
+        .unit-selectors {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .unit-select {
+            flex: 1;
+            padding: 12px 15px;
+            background: rgba(20, 20, 40, 0.8);
+            border: 1px solid var(--gray);
+            border-radius: 8px;
+            color: var(--light);
+            font-size: 16px;
+            cursor: pointer;
+            outline: none;
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23e0e0ff'%3e%3cpath d='M7 10l5 5 5-5z'/%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            background-size: 15px;
+        }
+        
+        .swap-units {
+            background: var(--gray);
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: var(--light);
+        }
+        
+        .swap-units:hover {
+            background: var(--secondary);
+            transform: rotate(180deg);
+        }
+        
+        /* 结果展示样式 */
+        .result-display {
+            padding: 20px;
+            background: rgba(30, 30, 60, 0.5);
+            border-radius: 8px;
+            margin-top: 20px;
+            text-align: center;
+        }
+        
+        .result-value {
+            font-size: 48px;
+            font-family: 'Orbitron', sans-serif;
+            color: var(--primary);
+            margin-bottom: 5px;
+        }
+        
+        .result-unit {
+            font-size: 18px;
+            opacity: 0.8;
+            margin-bottom: 15px;
+        }
+        
+        .result-details {
+            display: flex;
+            justify-content: space-around;
+            font-size: 14px;
+            opacity: 0.7;
+        }
+        
+        /* 标签页样式 */
+        .category-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 30px;
+        }
+        
+        .tab-btn {
+            padding: 8px 15px;
+            background: rgba(30, 30, 60, 0.5);
+            border: 1px solid var(--gray);
+            border-radius: 20px;
+            color: var(--light);
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+            border: none;
+        }
+        
+        .tab-btn:hover {
+            background: rgba(110, 0, 255, 0.2);
+            border-color: var(--secondary);
+        }
+        
+        .tab-btn.active {
+            background: var(--secondary);
+            border-color: var(--secondary);
+            font-weight: 500;
+        }
+        
+        /* 卡片底部按钮 */
+        .card-footer {
+            padding: 15px 20px;
+            border-top: 1px solid var(--gray);
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn-favorite, .btn-history, .btn-share {
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            background: rgba(30, 30, 60, 0.5);
+            border: 1px solid var(--gray);
+            color: var(--light);
+        }
+        
+        .btn-favorite:hover, .btn-history:hover, .btn-share:hover {
+            background: rgba(0, 240, 255, 0.1);
+            border-color: var(--primary);
+        }
+        
+        /* 实时汇率样式 */
+        .live-rates {
+            background: rgba(10, 10, 30, 0.8);
+            border-radius: 12px;
+            border: 1px solid var(--gray);
+            margin: 30px 0;
+            overflow: hidden;
+        }
+        
+        .rates-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--gray);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .rates-header h3 {
+            margin: 0;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 500;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .refresh-controls {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .rate-status {
+            font-size: 12px;
+            opacity: 0.7;
+        }
+        
+        .rate-status:before {
+            content: "";
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--positive);
+            margin-right: 5px;
+            animation: pulse 2s infinite;
+        }
+        
+        .btn-refresh {
+            background: transparent;
+            border: 1px solid var(--gray);
+            color: var(--light);
+            padding: 5px 15px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+        }
+        
+        .btn-refresh:hover {
+            background: rgba(0, 240, 255, 0.1);
+            border-color: var(--primary);
+        }
+        
+        /* 汇率卡片网格 */
+        .rates-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            padding: 20px;
+        }
+        
+        .rate-card {
+            background: rgba(20, 20, 40, 0.8);
+            border: 1px solid var(--gray);
+            border-radius: 8px;
+            padding: 15px;
+            transition: all 0.2s;
+        }
+        
+        .rate-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+        }
+        
+        .rate-card.crypto {
+            border-left: 3px solid #f7931a;
+        }
+        
+        .currency-pair {
+            font-weight: 500;
+            margin-bottom: 10px;
+        }
+        
+        .rate-value {
+            font-size: 20px;
+            font-family: 'Orbitron', sans-serif;
+            margin-bottom: 5px;
+        }
+        
+        .rate-change {
+            font-size: 14px;
+        }
+        
+        .rate-change.positive {
+            color: var(--positive);
+        }
+        
+        .rate-change.negative {
+            color: var(--negative);
+        }
+        
+        .rate-chart {
+            height: 30px;
+            margin-top: 10px;
+        }
+        
+        .mini-chart {
+            width: 100%;
+            height: 100%;
+        }
+        
+        /* 显示全部按钮 */
+        .rates-footer {
+            padding: 15px;
+            border-top: 1px solid var(--gray);
+            text-align: center;
+        }
+        
+        .btn-show-all {
+            background: transparent;
+            border: none;
+            color: var(--primary);
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        
+        .btn-show-all:hover {
+            text-decoration: underline;
+        }
+        
+        /* 单位类别卡片 */
+        .unit-categories {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+        
+        .category-card {
+            background: rgba(20, 20, 40, 0.8);
+            border: 1px solid var(--gray);
+            border-radius: 8px;
+            padding: 20px;
+            transition: all 0.2s;
+        }
+        
+        .category-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-5px);
+        }
+        
+        .category-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+        
+        .category-icon.length {
+            background: rgba(0, 240, 255, 0.1);
+            color: var(--primary);
+        }
+        
+        .category-icon.currency {
+            background: rgba(110, 0, 255, 0.1);
+            color: var(--secondary);
+        }
+        
+        .category-icon.crypto {
+            background: rgba(247, 147, 26, 0.1);
+            color: #f7931a;
+        }
+        
+        .category-card h4 {
+            margin-bottom: 15px;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 500;
+            font-size: 18px;
+        }
+        
+        .category-card ul {
+            list-style: none;
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        .category-card li {
+            margin-bottom: 8px;
+            position: relative;
+            padding-left: 15px;
+        }
+        
+        .category-card li:before {
+            content: '•';
+            position: absolute;
+            left: 0;
+            color: var(--primary);
+        }
+        
+        /* 页脚样式 */
+        .footer {
+            background: var(--darker);
+            padding: 40px 0 20px;
+            margin-top: 50px;
+        }
+        
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .footer-section h3 {
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 500;
+            font-size: 18px;
+            margin-bottom: 15px;
+            color: var(--primary);
+        }
+        
+        .footer-section p {
+            margin-bottom: 10px;
+            font-size: 14px;
+            opacity: 0.8;
+        }
+        
+        .footer-section ul {
+            list-style: none;
+            font-size: 14px;
+            opacity: 0.8;
+        }
+        
+        .footer-section li {
+            margin-bottom: 8px;
+        }
+        
+        .copyright {
+            text-align: center;
+            font-size: 13px;
+            opacity: 0.6;
+            padding-top: 20px;
+            border-top: 1px solid var(--gray);
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .navbar .container {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            nav ul {
+                gap: 15px;
+            }
+            
+            .rates-grid {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            }
+            
+            .unit-selectors {
+                flex-direction: column;
+            }
+            
+            .swap-units {
+                transform: rotate(90deg);
+            }
+            
+            .swap-units:hover {
+                transform: rotate(270deg);
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .card-body {
+                padding: 20px;
+            }
+            
+            .result-value {
+                font-size: 36px;
+            }
+            
+            .rates-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+ <div id="top-nav" style="background: white; padding: 15px 20px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+    <a href="in.html" style="color: #333; text-decoration: none; font-weight: bold; display: inline-flex; align-items: center; gap: 8px;">
+        <i class="fas fa-arrow-left"></i> 返回游戏主页
+    </a>
+    <div class="container">
+
+
+
+    <!-- 导航栏 -->
+    <header class="navbar">
+        <div class="container">
+            <div class="logo">
+                <h1>UNIT<span>X</span></h1>
+                <p>全能单位转换系统</p>
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="#" class="active">转换器</a></li>
+                    <li><a href="#">汇率</a></li>
+                    <li><a href="#">加密货币</a></li>
+                    <li><a href="#">API</a></li>
+                </ul>
+            </nav>
+            <div class="user-actions">
+                <button class="btn-login">登录</button>
+                <button class="btn-register">注册</button>
+            </div>
+        </div>
+    </header>
+    
+    <!-- 主内容区 -->
+    <main class="main-content">
+        <div class="container">
+            <!-- 单位转换卡片 -->
+            <div class="converter-card">
+                <div class="card-header">
+                    <h2><i class="fas fa-exchange-alt"></i> 单位转换</h2>
+                    <div class="last-updated">
+                        <span class="sync-icon"></span>
+                        <span>最后更新: <span id="update-time">刚刚</span></span>
+                    </div>
+                </div>
+                
+                <div class="card-body">
+                    <div class="input-group">
+                        <div class="amount-input">
+                            <input type="number" id="from-amount" value="1" min="0" step="any">
+                            <div class="input-decoration">
+                                <div class="pulse-animation"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="unit-selectors">
+                            <select id="from-unit" class="unit-select">
+                                <option value="meter">米 (m)</option>
+                                <option value="kilometer">千米 (km)</option>
+                                <option value="centimeter">厘米 (cm)</option>
+                                <option value="millimeter">毫米 (mm)</option>
+                                <option value="mile">英里 (mi)</option>
+                                <option value="yard">码 (yd)</option>
+                                <option value="foot">英尺 (ft)</option>
+                                <option value="inch">英寸 (in)</option>
+                                <option value="nautical-mile">海里 (nmi)</option>
+                            </select>
+                            
+                            <button class="swap-units" title="交换单位">
+                                <i class="fas fa-exchange-alt"></i>
+                            </button>
+                            
+                            <select id="to-unit" class="unit-select">
+                                <option value="foot">英尺 (ft)</option>
+                                <option value="meter">米 (m)</option>
+                                <option value="kilometer">千米 (km)</option>
+                                <option value="centimeter">厘米 (cm)</option>
+                                <option value="millimeter">毫米 (mm)</option>
+                                <option value="mile">英里 (mi)</option>
+                                <option value="yard">码 (yd)</option>
+                                <option value="inch">英寸 (in)</option>
+                                <option value="nautical-mile">海里 (nmi)</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="result-display">
+                        <div class="result-value" id="result-value">3.28084</div>
+                        <div class="result-unit" id="result-unit">英尺 (ft)</div>
+                        <div class="result-details">
+                            <span>1 米 = 3.28084 英尺</span>
+                            <span>1 英尺 = 0.3048 米</span>
+                        </div>
+                    </div>
+                    
+                    <div class="category-tabs">
+                        <button class="tab-btn active" data-category="length">长度</button>
+                        <button class="tab-btn" data-category="area">面积</button>
+                        <button class="tab-btn" data-category="volume">体积</button>
+                        <button class="tab-btn" data-category="weight">重量</button>
+                        <button class="tab-btn" data-category="temperature">温度</button>
+                        <button class="tab-btn" data-category="currency">货币</button>
+                        <button class="tab-btn" data-category="crypto">加密货币</button>
+                        <button class="tab-btn" data-category="digital">数字存储</button>
+                        <button class="tab-btn" data-category="time">时间</button>
+                        <button class="tab-btn" data-category="energy">能量</button>
+                        <button class="tab-btn" data-category="speed">速度</button>
+                        <button class="tab-btn" data-category="more">更多...</button>
+                    </div>
+                </div>
+                
+                <div class="card-footer">
+                    <button class="btn-favorite">
+                        <i class="far fa-star"></i> 收藏此转换
+                    </button>
+                    <button class="btn-history">
+                        <i class="fas fa-history"></i> 查看历史
+                    </button>
+                    <button class="btn-share">
+                        <i class="fas fa-share-alt"></i> 分享
+                    </button>
+                </div>
+            </div>
+            
+            <!-- 实时汇率展示 -->
+            <div class="live-rates">
+                <div class="rates-header">
+                    <h3><i class="fas fa-chart-line"></i> 实时货币汇率</h3>
+                    <div class="refresh-controls">
+                        <span class="rate-status">实时更新中</span>
+                        <button class="btn-refresh">
+                            <i class="fas fa-sync-alt"></i> 刷新
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="rates-grid" id="rates-grid">
+                    <!-- 汇率卡片将通过JS动态加载 -->
+                </div>
+                
+                <div class="rates-footer">
+                    <button class="btn-show-all">显示全部货币对 (128+)</button>
+                </div>
+            </div>
+            
+            <!-- 单位类别选择 -->
+            <div class="unit-categories">
+                <div class="category-card">
+                    <div class="category-icon length">
+                        <i class="fas fa-ruler"></i>
+                    </div>
+                    <h4>长度</h4>
+                    <ul>
+                        <li>米</li>
+                        <li>千米</li>
+                        <li>厘米</li>
+                        <li>毫米</li>
+                        <li>英里</li>
+                        <li>英尺</li>
+                        <li>英寸</li>
+                        <li>海里</li>
+                        <li>光年</li>
+                    </ul>
+                </div>
+                
+                <div class="category-card">
+                    <div class="category-icon currency">
+                        <i class="fas fa-money-bill-wave"></i>
+                    </div>
+                    <h4>货币</h4>
+                    <ul>
+                        <li>人民币 (CNY)</li>
+                        <li>美元 (USD)</li>
+                        <li>欧元 (EUR)</li>
+                        <li>英镑 (GBP)</li>
+                        <li>日元 (JPY)</li>
+                        <li>支持180+种货币</li>
+                    </ul>
+                </div>
+                
+                <div class="category-card">
+                    <div class="category-icon crypto">
+                        <i class="fab fa-bitcoin"></i>
+                    </div>
+                    <h4>加密货币</h4>
+                    <ul>
+                        <li>比特币 (BTC)</li>
+                        <li>以太坊 (ETH)</li>
+                        <li>泰达币 (USDT)</li>
+                        <li>币安币 (BNB)</li>
+                        <li>瑞波币 (XRP)</li>
+                        <li>支持5000+种加密货币</li>
+                    </ul>
+                </div>
+                
+                <div class="category-card">
+                    <div class="category-icon">
+                        <i class="fas fa-weight-hanging"></i>
+                    </div>
+                    <h4>重量</h4>
+                    <ul>
+                        <li>克</li>
+                        <li>千克</li>
+                        <li>吨</li>
+                        <li>磅</li>
+                        <li>盎司</li>
+                        <li>克拉</li>
+                    </ul>
+                </div>
+                
+                <div class="category-card">
+                    <div class="category-icon">
+                        <i class="fas fa-temperature-high"></i>
+                    </div>
+                    <h4>温度</h4>
+                    <ul>
+                        <li>摄氏度 (°C)</li>
+                        <li>华氏度 (°F)</li>
+                        <li>开尔文 (K)</li>
+                    </ul>
+                </div>
+                
+                <div class="category-card">
+                    <div class="category-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <h4>时间</h4>
+                    <ul>
+                        <li>秒</li>
+                        <li>分钟</li>
+                        <li>小时</li>
+                        <li>天</li>
+                        <li>周</li>
+                        <li>年</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <!-- 页脚 -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>关于UNITX</h3>
+                    <p>全球最全面的单位转换平台，整合实时金融数据，为专业人士和普通用户提供精准转换服务。</p>
+                </div>
+                <div class="footer-section">
+                    <h3>数据来源</h3>
+                    <ul>
+                        <li>汇率数据: 国际清算银行</li>
+                        <li>加密货币: CoinMarketCap</li>
+                        <li>计量标准: 国际计量局</li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>联系我们</h3>
+                    <p>support@unitx.converter</p>
+                    <p>+1 (555) 123-4567</p>
+                </div>
+            </div>
+            <div class="copyright">
+                <p>© 2023 UNITX Converter. 保留所有权利。</p>
+            </div>
+        </div>
+    </footer>
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // 单位转换数据
+        const unitData = {
+            length: {
+                meter: { name: '米 (m)', factor: 1 },
+                kilometer: { name: '千米 (km)', factor: 1000 },
+                centimeter: { name: '厘米 (cm)', factor: 0.01 },
+                millimeter: { name: '毫米 (mm)', factor: 0.001 },
+                mile: { name: '英里 (mi)', factor: 1609.344 },
+                yard: { name: '码 (yd)', factor: 0.9144 },
+                foot: { name: '英尺 (ft)', factor: 0.3048 },
+                inch: { name: '英寸 (in)', factor: 0.0254 },
+                'nautical-mile': { name: '海里 (nmi)', factor: 1852 }
+            },
+            area: {
+                'square-meter': { name: '平方米 (m²)', factor: 1 },
+                'square-kilometer': { name: '平方千米 (km²)', factor: 1000000 },
+                'square-centimeter': { name: '平方厘米 (cm²)', factor: 0.0001 },
+                'square-millimeter': { name: '平方毫米 (mm²)', factor: 0.000001 },
+                'square-mile': { name: '平方英里 (mi²)', factor: 2589988.11 },
+                'square-yard': { name: '平方码 (yd²)', factor: 0.83612736 },
+                'square-foot': { name: '平方英尺 (ft²)', factor: 0.09290304 },
+                'square-inch': { name: '平方英寸 (in²)', factor: 0.00064516 },
+                acre: { name: '英亩 (ac)', factor: 4046.8564224 },
+                hectare: { name: '公顷 (ha)', factor: 10000 }
+            },
+            volume: {
+                liter: { name: '升 (L)', factor: 1 },
+                'cubic-meter': { name: '立方米 (m³)', factor: 1000 },
+                'cubic-centimeter': { name: '立方厘米 (cm³)', factor: 0.001 },
+                milliliter: { name: '毫升 (mL)', factor: 0.001 },
+                gallon: { name: '加仑 (gal)', factor: 3.785411784 },
+                quart: { name: '夸脱 (qt)', factor: 0.946352946 },
+                pint: { name: '品脱 (pt)', factor: 0.473176473 },
+                cup: { name: '杯 (cup)', factor: 0.2365882365 },
+                'fluid-ounce': { name: '液量盎司 (fl oz)', factor: 0.0295735295625 },
+                tablespoon: { name: '汤匙 (tbsp)', factor: 0.01478676478125 },
+                teaspoon: { name: '茶匙 (tsp)', factor: 0.00492892159375 }
+            },
+            weight: {
+                gram: { name: '克 (g)', factor: 1 },
+                kilogram: { name: '千克 (kg)', factor: 1000 },
+                ton: { name: '吨 (t)', factor: 1000000 },
+                milligram: { name: '毫克 (mg)', factor: 0.001 },
+                pound: { name: '磅 (lb)', factor: 453.59237 },
+                ounce: { name: '盎司 (oz)', factor: 28.349523125 },
+                carat: { name: '克拉 (ct)', factor: 0.2 }
+            },
+            temperature: {
+                celsius: { name: '摄氏度 (°C)', factor: 1, offset: 0 },
+                fahrenheit: { name: '华氏度 (°F)', factor: 5/9, offset: -32 },
+                kelvin: { name: '开尔文 (K)', factor: 1, offset: -273.15 }
+            },
+            currency: {
+                USD: { name: '美元 (USD)', factor: 1 },
+                CNY: { name: '人民币 (CNY)', factor: 0.14 }, // 示例汇率，实际应从API获取
+                EUR: { name: '欧元 (EUR)', factor: 1.08 },
+                GBP: { name: '英镑 (GBP)', factor: 1.25 },
+                JPY: { name: '日元 (JPY)', factor: 0.007 },
+                // 更多货币...
+            },
+            crypto: {
+                BTC: { name: '比特币 (BTC)', factor: 42356.78 }, // 示例汇率
+                ETH: { name: '以太坊 (ETH)', factor: 2234.56 },
+                USDT: { name: '泰达币 (USDT)', factor: 1 },
+                BNB: { name: '币安币 (BNB)', factor: 245.67 },
+                XRP: { name: '瑞波币 (XRP)', factor: 0.56 },
+                // 更多加密货币...
+            },
+            digital: {
+                bit: { name: '比特 (bit)', factor: 1 },
+                byte: { name: '字节 (B)', factor: 8 },
+                kilobyte: { name: '千字节 (KB)', factor: 8 * 1024 },
+                megabyte: { name: '兆字节 (MB)', factor: 8 * 1024 * 1024 },
+                gigabyte: { name: '吉字节 (GB)', factor: 8 * 1024 * 1024 * 1024 },
+                terabyte: { name: '太字节 (TB)', factor: 8 * 1024 * 1024 * 1024 * 1024 },
+                petabyte: { name: '拍字节 (PB)', factor: 8 * 1024 * 1024 * 1024 * 1024 * 1024 }
+            },
+            time: {
+                second: { name: '秒 (s)', factor: 1 },
+                millisecond: { name: '毫秒 (ms)', factor: 0.001 },
+                microsecond: { name: '微秒 (μs)', factor: 0.000001 },
+                nanosecond: { name: '纳秒 (ns)', factor: 0.000000001 },
+                minute: { name: '分钟 (min)', factor: 60 },
+                hour: { name: '小时 (h)', factor: 3600 },
+                day: { name: '天 (d)', factor: 86400 },
+                week: { name: '周 (wk)', factor: 604800 },
+                month: { name: '月 (mo)', factor: 2628000 }, // 近似值
+                year: { name: '年 (yr)', factor: 31536000 } // 近似值
+            }
+            // 可以继续添加更多单位类别...
+        };
+        
+        // 实时汇率数据
+        const exchangeRates = [
+            { pair: 'USD/CNY', rate: 7.1985, change: 0.12, trend: 'up' },
+            { pair: 'EUR/USD', rate: 1.0924, change: -0.05, trend: 'down' },
+            { pair: 'GBP/USD', rate: 1.2743, change: 0.08, trend: 'up' },
+            { pair: 'USD/JPY', rate: 143.56, change: -0.23, trend: 'down' },
+            { pair: 'AUD/USD', rate: 0.6721, change: 0.15, trend: 'up' },
+            { pair: 'USD/CAD', rate: 1.3245, change: -0.07, trend: 'down' },
+            { pair: 'BTC/USD', rate: 42356.78, change: 2.34, trend: 'up', crypto: true },
+            { pair: 'ETH/USD', rate: 2234.56, change: 1.78, trend: 'up', crypto: true },
+            { pair: 'BNB/USD', rate: 245.67, change: -0.45, trend: 'down', crypto: true },
+            { pair: 'XRP/USD', rate: 0.56, change: 3.12, trend: 'up', crypto: true },
+        ];
+        
+        // 初始化页面
+        document.addEventListener('DOMContentLoaded', function() {
+            // 初始化单位转换器
+            initConverter();
+            
+            // 加载实时汇率
+            loadExchangeRates();
+            
+            // 设置自动刷新
+            setInterval(updateExchangeRates, 60000); // 每分钟更新一次
+            
+            // 添加事件监听器
+            document.getElementById('from-amount').addEventListener('input', convertUnits);
+            document.getElementById('from-unit').addEventListener('change', convertUnits);
+            document.getElementById('to-unit').addEventListener('change', convertUnits);
+            document.querySelector('.swap-units').addEventListener('click', swapUnits);
+            document.querySelector('.btn-refresh').addEventListener('click', loadExchangeRates);
+            
+            // 标签页切换
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    changeCategory(this.dataset.category);
+                });
+            });
+        });
+        
+        // 初始化单位转换器
+        function initConverter() {
+            // 默认加载长度单位
+            loadUnits('length');
+            convertUnits();
+        }
+        
+        // 加载单位到选择框
+        function loadUnits(category) {
+            const fromUnit = document.getElementById('from-unit');
+            const toUnit = document.getElementById('to-unit');
+            
+            // 清空现有选项
+            fromUnit.innerHTML = '';
+            toUnit.innerHTML = '';
+            
+            // 添加新选项
+            if (unitData[category]) {
+                for (const [key, unit] of Object.entries(unitData[category])) {
+                    const option1 = document.createElement('option');
+                    option1.value = key;
+                    option1.textContent = unit.name;
+                    fromUnit.appendChild(option1);
+                    
+                    const option2 = document.createElement('option');
+                    option2.value = key;
+                    option2.textContent = unit.name;
+                    toUnit.appendChild(option2);
+                }
+                
+                // 设置默认选项
+                if (category === 'length') {
+                    fromUnit.value = 'meter';
+                    toUnit.value = 'foot';
+                } else if (category === 'currency') {
+                    fromUnit.value = 'USD';
+                    toUnit.value = 'CNY';
+                } else if (category === 'crypto') {
+                    fromUnit.value = 'BTC';
+                    toUnit.value = 'USD';
+                } else if (category === 'temperature') {
+                    fromUnit.value = 'celsius';
+                    toUnit.value = 'fahrenheit';
+                }
+            }
+        }
+        
+        // 转换单位
+        function convertUnits() {
+            const fromAmount = parseFloat(document.getElementById('from-amount').value) || 0;
+            const fromUnit = document.getElementById('from-unit').value;
+            const toUnit = document.getElementById('to-unit').value;
+            const category = document.querySelector('.tab-btn.active').dataset.category;
+            
+            // 获取转换因子
+            let fromFactor, toFactor, fromOffset = 0, toOffset = 0;
+            
+            if (unitData[category]) {
+                fromFactor = unitData[category][fromUnit]?.factor || 1;
+                toFactor = unitData[category][toUnit]?.factor || 1;
+                fromOffset = unitData[category][fromUnit]?.offset || 0;
+                toOffset = unitData[category][toUnit]?.offset || 0;
+                
+                // 特殊处理温度转换
+                let result;
+                if (category === 'temperature') {
+                    // 先将输入值转换为基准单位(摄氏度)
+                    const baseValue = (fromAmount + fromOffset) * fromFactor;
+                    // 再从基准单位转换为目标单位
+                    result = (baseValue / toFactor) - toOffset;
+                } else {
+                    // 常规单位转换
+                    result = (fromAmount * fromFactor) / toFactor;
+                }
+                
+                // 显示结果
+                const resultElement = document.getElementById('result-value');
+                const formattedResult = formatResult(result);
+                resultElement.textContent = formattedResult;
+                
+                document.getElementById('result-unit').textContent = unitData[category][toUnit].name;
+                
+                // 显示转换详情
+                const details = document.querySelector('.result-details');
+                if (category === 'temperature') {
+                    // 温度转换的特殊处理
+                    const fromName = unitData[category][fromUnit].name;
+                    const toName = unitData[category][toUnit].name;
+                    
+                    // 计算1单位from到to的转换
+                    const baseFrom = (1 + fromOffset) * fromFactor;
+                    const oneToResult = (baseFrom / toFactor) - toOffset;
+                    
+                    // 计算1单位to到from的转换
+                    const baseTo = (1 + toOffset) * toFactor;
+                    const oneFromResult = (baseTo / fromFactor) - fromOffset;
+                    
+                    details.innerHTML = `
+                        <span>1 ${fromName} = ${formatResult(oneToResult)} ${toName}</span>
+                        <span>1 ${toName} = ${formatResult(oneFromResult)} ${fromName}</span>
+                    `;
+                } else {
+                    details.innerHTML = `
+                        <span>1 ${unitData[category][fromUnit].name} = ${formatResult(fromFactor / toFactor)} ${unitData[category][toUnit].name}</span>
+                        <span>1 ${unitData[category][toUnit].name} = ${formatResult(toFactor / fromFactor)} ${unitData[category][fromUnit].name}</span>
+                    `;
+                }
+                
+                // 更新最后更新时间
+                updateLastUpdatedTime();
+            }
+        }
+        
+        // 格式化结果，去除不必要的零
+        function formatResult(value) {
+            // 对于非常大的数字或非常小的数字，使用科学计数法
+            if (Math.abs(value) >= 1e6 || (Math.abs(value) > 0 && Math.abs(value) < 1e-6)) {
+                return value.toExponential(4);
+            }
+            
+            // 对于普通数字，去除末尾的零
+            const str = value.toFixed(8);
+            return str.replace(/(\.\d*?[1-9])0+$/, '$1').replace(/\.$/, '');
+        }
+        
+        // 交换单位
+        function swapUnits() {
+            const fromUnit = document.getElementById('from-unit');
+            const toUnit = document.getElementById('to-unit');
+            const temp = fromUnit.value;
+            fromUnit.value = toUnit.value;
+            toUnit.value = temp;
+            convertUnits();
+        }
+        
+        // 切换单位类别
+        function changeCategory(category) {
+            loadUnits(category);
+            convertUnits();
+        }
+        
+        // 更新最后更新时间
+        function updateLastUpdatedTime() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('zh-CN', {
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+            document.getElementById('update-time').textContent = timeString;
+        }
+        
+        // 加载实时汇率
+        function loadExchangeRates() {
+            const ratesGrid = document.getElementById('rates-grid');
+            ratesGrid.innerHTML = '';
+            
+            exchangeRates.forEach(rate => {
+                const rateCard = document.createElement('div');
+                rateCard.className = `rate-card ${rate.crypto ? 'crypto' : ''}`;
+                
+                const changeClass = rate.change >= 0 ? 'positive' : 'negative';
+                const changeSymbol = rate.change >= 0 ? '↑' : '↓';
+                
+                // 生成随机图表数据
+                const chartData = generateRandomChartData(7, rate.trend === 'up');
+                
+                rateCard.innerHTML = `
+                    <div class="currency-pair">${rate.pair}</div>
+                    <div class="rate-value">${rate.rate.toFixed(rate.rate < 1 ? 6 : 2)}</div>
+                    <div class="rate-change ${changeClass}">
+                        ${changeSymbol} ${Math.abs(rate.change)}%
+                    </div>
+                    <div class="rate-chart">
+                        <canvas class="mini-chart" width="200" height="30"></canvas>
+                    </div>
+                `;
+                
+                ratesGrid.appendChild(rateCard);
+                
+                // 初始化迷你图表
+                const canvas = rateCard.querySelector('.mini-chart');
+                if (canvas) {
+                    initMiniChart(canvas, chartData, changeClass);
+                }
+            });
+            
+            // 更新最后更新时间
+            updateLastUpdatedTime();
+        }
+        
+        // 更新汇率数据
+        function updateExchangeRates() {
+            // 模拟汇率变化
+            exchangeRates.forEach(rate => {
+                // 随机变化率 (-0.5% 到 0.5%)
+                const change = (Math.random() - 0.5) / 100;
+                rate.rate = rate.rate * (1 + change);
+                rate.change += change * 100;
+                rate.trend = change >= 0 ? 'up' : 'down';
+            });
+            
+            loadExchangeRates();
+        }
+        
+        // 生成随机图表数据
+        function generateRandomChartData(count, isUpTrend) {
+            const data = [];
+            let value = 50 + Math.random() * 20; // 初始值
+            
+            for (let i = 0; i < count; i++) {
+                // 根据趋势决定随机变化方向
+                const change = (Math.random() * 5) * (isUpTrend ? 1 : -1);
+                value += change;
+                
+                // 确保值在合理范围内
+                value = Math.max(20, Math.min(80, value));
+                data.push(value);
+            }
+            
+            return data;
+        }
+        
+        // 初始化迷你图表
+        function initMiniChart(canvas, data, trend) {
+            const ctx = canvas.getContext('2d');
+            const color = trend === 'positive' ? 'rgba(0, 255, 85, 0.8)' : 'rgba(255, 85, 85, 0.8)';
+            
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.map((_, i) => i),
+                    datasets: [{
+                        data: data,
+                        borderColor: color,
+                        borderWidth: 2,
+                        fill: false,
+                        pointRadius: 0,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: { enabled: false }
+                    },
+                    scales: {
+                        x: { display: false },
+                        y: { display: false }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
