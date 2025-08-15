@@ -1228,15 +1228,16 @@
         }
         document.querySelectorAll('.game-card').forEach(card => {
             card.addEventListener('click', function() {
-                const title = card.querySelector('h3').innerText;
-                const desc = card.querySelector('p').innerText;
-                const color = card.querySelector('.game-thumbnail').style.background.split(',')[1] || '#2196F3';
-                showGamePreview(title, desc, color);
+                // 跳转到游戏显示区域
+                document.getElementById('game-container').style.display = 'none';
+                document.getElementById('game-display').style.display = 'block';
+                // 可选：设置游戏标题等信息
+                // const title = card.querySelector('h3').innerText;
+                // document.getElementById('gameStats').textContent = title;
             });
         });
     </script>
-    <!-- 游戏脚本 -->
-    <script src="games.js"></script>
+    
 
 
     <!-- 在in.html的</body>标签前添加以下代码 -->
@@ -1273,5 +1274,8 @@ document.addEventListener("visibilitychange", function() {
     }
 });
 </script>
+
+<!-- 游戏脚本 -->
+    <script src="games.js"></script>
 </body>
 </html>
