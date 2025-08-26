@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>随机数据文件生成器</title>
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2980b9;
+            --background-color: #f8f9fa;
+            --card-color: #ffffff;
+            --text-color: #333333;
+            --border-color: #dddddd;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: var(--background-color);
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background-color: var(--card-color);
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: var(--primary-color);
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        
+        .range-inputs {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .range-inputs > div {
+            flex: 1;
+        }
+        
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: background-color 0.3s;
+            display: block;
+            width: 100%;
+            margin-top: 20px;
+        }
+        
+        button:hover {
+            background-color: var(--secondary-color);
+        }
+        
+        .output {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #f5f5f5;
+            border-radius: 4px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .output h3 {
+            margin-bottom: 15px;
+        }
+        
+        .file-info {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #e8f4fc;
+            border-radius: 4px;
+            display: none;
+        }
+        
+        @media (max-width: 768px) {
+            .range-inputs {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+      <!-- 在hex-writer.html的顶部添加导航栏 -->
+<div id="top-nav" style="background: white; padding: 15px 20px; margin-bottom: 20px;">
+    <a href="in.html" style="color: #333; text-decoration: none; font-weight: bold;">
+        <i class="fas fa-arrow-left"></i> 返回游戏主页
+    </a>
+</div>
+    <div class="container">
+        <h1>随机数据文件生成器</h1>
+        
+        <form id="dataForm">
+            <div class="form-group">
+                <label for="dataType">数据类型</label>
+                <select id="dataType">
+                    <option value="int">整数</option>
+                    <option value="float">浮点数</option>
+                    <option value="binary">二进制</option>
+                    <option value="hex">十六进制</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="bitWidth">位宽 (位数)</label>
+                <input type="number" id="bitWidth" min="1" max="64" value="8">
+            </div>
+            
+            <div class="form-group">
+                <label>数值范围</label>
+                <div class="range-inputs">
+                    <div>
+                        <label for="minValue">最小值</label>
+                        <input type="number" id="minValue" value="0">
+                    </div>
+                    <div>
+                        <label for="maxValue">最大值</label>
+                        <input type="number" id="maxValue" value="100">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="dataCount">生成数据数量</label>
+                <input type="number" id="dataCount" min="1" max="100000" value="100">
+            </div>
+            
+            <div class="form-group">
+                <label for="fileName">文件名</label>
+                <input type="text" id="fileName" value="random_data">
+            </div>
+            
+            <button type="button" id="generateBtn">生成数据</button>
+        </form>
+        
+        <div class="file-info" id="fileInfo">
+            <h3>文件已生成</h3>
+            <p id="infoText"></p>
+            <button type="button" id="downloadBtn">下载文件</button>
+        </div>
+        
+        <div class="output" id="output">
+            <h3>数据预览 (最多显示100条)</h3>
+            <pre id="preview"></pre>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const dataTypeSelect = document.getElementById('dataType');
+            const bitWidthInput = document.getElementById('bitWidth');
+            const minValueInput = document.getElementById('minValue');
+            const maxValueInput = document.getElementById('maxValue');
+            const dataCountInput = document.getElementById('dataCount');
+            const fileNameInput = document.getElementById('fileName');
+            const generateBtn = document.getElementById('generateBtn');
+            const previewElement = document.getElementById('preview');
+            const fileInfoElement = document.getElementById('fileInfo');
+            const infoTextElement = document.getElementById('infoText');
+            const downloadBtn = document.getElementById('downloadBtn');
+            
+            let generatedData = '';
+            
+            // 更新范围输入的可用性
+            function updateRangeInputs() {
+                const dataType = dataTypeSelect.value;
+                const isNumeric = dataType === 'int' || dataType === 'float';
+                
+                minValueInput.disabled = !isNumeric;
+                maxValueInput.disabled = !isNumeric;
+                
+                if (dataType === 'binary' || dataType === 'hex') {
+                    const bitWidth = parseInt(bitWidthInput.value) || 8;
+                    const maxVal = Math.pow(2, bitWidth) - 1;
+                    minValueInput.value = 0;
+                    maxValueInput.value = maxVal;
+                }
+            }
+            
+            // 初始化
+            updateRangeInputs();
+            
+            // 当数据类型或位宽变化时更新范围输入
+            dataTypeSelect.addEventListener('change', updateRangeInputs);
+            bitWidthInput.addEventListener('input', updateRangeInputs);
+            
+            // 生成随机数据
+            generateBtn.addEventListener('click', function() {
+                const dataType = dataTypeSelect.value;
+                const bitWidth = parseInt(bitWidthInput.value) || 8;
+                const minValue = parseFloat(minValueInput.value);
+                const maxValue = parseFloat(maxValueInput.value);
+                const dataCount = parseInt(dataCountInput.value) || 100;
+                const fileName = fileNameInput.value || 'random_data';
+                
+                // 验证输入
+                if (minValue >= maxValue) {
+                    alert('最大值必须大于最小值');
+                    return;
+                }
+                
+                if (dataCount <= 0) {
+                    alert('数据数量必须大于0');
+                    return;
+                }
+                
+                // 生成数据
+                generatedData = '';
+                let previewData = '';
+                
+                for (let i = 0; i < dataCount; i++) {
+                    let value;
+                    
+                    switch (dataType) {
+                        case 'int':
+                            value = Math.floor(Math.random() * (maxValue - minValue + 1)) + minValue;
+                            break;
+                        case 'float':
+                            value = Math.random() * (maxValue - minValue) + minValue;
+                            // 限制小数位数
+                            value = parseFloat(value.toFixed(6));
+                            break;
+                        case 'binary':
+                            const intVal = Math.floor(Math.random() * (maxValue - minValue + 1)) + minValue;
+                            value = intVal.toString(2).padStart(bitWidth, '0');
+                            break;
+                        case 'hex':
+                            const hexVal = Math.floor(Math.random() * (maxValue - minValue + 1)) + minValue;
+                            value = hexVal.toString(16).toUpperCase().padStart(Math.ceil(bitWidth / 4), '0');
+                            break;
+                    }
+                    
+                    generatedData += value + '\n';
+                    
+                    // 只保存前100条用于预览
+                    if (i < 100) {
+                        previewData += value + '\n';
+                    }
+                }
+                
+                // 显示预览
+                previewElement.textContent = previewData;
+                
+                // 显示文件信息
+                infoTextElement.textContent = `已生成 ${dataCount} 条${getDataTypeName(dataType)}数据，位宽: ${bitWidth}位`;
+                fileInfoElement.style.display = 'block';
+            });
+            
+            // 下载文件
+            downloadBtn.addEventListener('click', function() {
+                const fileName = fileNameInput.value || 'random_data';
+                const blob = new Blob([generatedData], { type: 'text/plain' });
+                const url = URL.createObjectURL(blob);
+                
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${fileName}.txt`;
+                document.body.appendChild(a);
+                a.click();
+                
+                // 清理
+                setTimeout(() => {
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                }, 100);
+            });
+            
+            // 获取数据类型名称
+            function getDataTypeName(type) {
+                switch (type) {
+                    case 'int': return '整数';
+                    case 'float': return '浮点数';
+                    case 'binary': return '二进制';
+                    case 'hex': return '十六进制';
+                    default: return '';
+                }
+            }
+        });
+    </script>
+</body>
+</html>

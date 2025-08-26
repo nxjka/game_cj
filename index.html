@@ -200,6 +200,7 @@
             color: #5c6bc0;
             text-decoration: none;
             transition: color 0.3s;
+            cursor: pointer;
         }
 
         .login-footer a:hover {
@@ -286,6 +287,204 @@
             background: #F44336;
         }
 
+        /* 模态框样式 */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-container {
+            background: rgba(15, 20, 40, 0.95);
+            border-radius: 15px;
+            width: 90%;
+            max-width: 500px;
+            padding: 30px;
+            box-shadow: 0 0 50px rgba(92, 107, 192, 0.3);
+            border: 1px solid rgba(92, 107, 192, 0.2);
+            backdrop-filter: blur(10px);
+            transform: translateY(-50px);
+            transition: transform 0.5s;
+            position: relative;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-overlay.active .modal-container {
+            transform: translateY(0);
+        }
+
+        .modal-header {
+            margin-bottom: 20px;
+            text-align: center;
+            position: relative;
+        }
+
+        .modal-header h2 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.8rem;
+            background: linear-gradient(90deg, #00dbde, #fc00ff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: rgba(142, 84, 233, 0.2);
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .modal-close:hover {
+            background: rgba(142, 84, 233, 0.5);
+            transform: rotate(90deg);
+        }
+
+        .modal-body {
+            margin-bottom: 25px;
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .modal-btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .modal-btn.primary {
+            background: linear-gradient(90deg, #4776E6, #8E54E9);
+            color: white;
+        }
+
+        .modal-btn.secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: #a0a7d8;
+        }
+
+        .modal-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        /* 协议内容样式 */
+        .protocol-content {
+            max-height: 300px;
+            overflow-y: auto;
+            padding: 15px;
+            background: rgba(10, 15, 35, 0.5);
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        .protocol-content h3 {
+            color: #8e54e9;
+            margin: 15px 0 10px;
+        }
+
+        .protocol-content p {
+            margin-bottom: 10px;
+        }
+
+        .protocol-content ul {
+            padding-left: 20px;
+            margin-bottom: 15px;
+        }
+
+        /* 账户列表样式 */
+        .account-list {
+            margin: 20px 0;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .account-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 15px;
+            background: rgba(20, 25, 45, 0.5);
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+
+        .account-item .account-name {
+            font-weight: 600;
+        }
+
+        .account-item .delete-btn {
+            background: rgba(255, 77, 125, 0.2);
+            color: #ff4d7d;
+            border: none;
+            border-radius: 5px;
+            padding: 5px 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .delete-btn:hover {
+            background: rgba(255, 77, 125, 0.4);
+        }
+
+        /* 密码强度指示器 */
+        .password-strength {
+            height: 5px;
+            border-radius: 5px;
+            margin-top: 10px;
+            background: #444;
+            transition: all 0.3s;
+        }
+
+        .strength-weak {
+            background: linear-gradient(90deg, #ff4d7d, #ff6b6b);
+            width: 33%;
+        }
+
+        .strength-medium {
+            background: linear-gradient(90deg, #ff9800, #ffc107);
+            width: 66%;
+        }
+
+        .strength-strong {
+            background: linear-gradient(90deg, #00C853, #1DE9B6);
+            width: 100%;
+        }
+
         /* 动画效果 */
         @keyframes gradient {
             0% { background-position: 0% 50%; }
@@ -318,6 +517,11 @@
                 flex-direction: column;
                 align-items: center;
                 gap: 10px;
+            }
+
+            .modal-container {
+                padding: 20px;
+                width: 95%;
             }
         }
     </style>
@@ -358,6 +562,11 @@
                 <input type="checkbox" id="remember">
                 <label for="remember">保持量子连接</label>
             </div>
+
+            <div class="remember">
+                <input type="checkbox" id="agree-protocol" required>
+                <label for="agree-protocol">同意安全协议</label>
+            </div>
             
             <button type="submit" class="login-btn">量子验证 <i class="fas fa-fingerprint"></i></button>
             
@@ -371,16 +580,152 @@
         </form>
         
         <div class="login-footer">
-            <a href="#"><i class="fas fa-key"></i> 密钥恢复</a>
-            <a href="#"><i class="fas fa-user-plus"></i> 创建量子身份</a>
-            <a href="#"><i class="fas fa-shield-alt"></i> 安全协议</a>
+            <a id="key-recovery-link"><i class="fas fa-key"></i> 密钥恢复</a>
+            <a id="create-identity-link"><i class="fas fa-user-plus"></i> 创建量子身份</a>
+            <a id="security-protocol-link"><i class="fas fa-shield-alt"></i> 安全协议</a>
+        </div>
+    </div>
+
+    <!-- 密钥恢复模态框 -->
+    <div class="modal-overlay" id="key-recovery-modal">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h2><i class="fas fa-key"></i> 量子密钥恢复</h2>
+                <div class="modal-close" data-modal="key-recovery-modal">&times;</div>
+            </div>
+            <div class="modal-body">
+                <p>请输入您的安全问题的答案以恢复密钥</p>
+                <div class="input-group">
+                    <i class="fas fa-user"></i>
+                    <input type="text" id="security-answer" placeholder="你的姓名？">
+                </div>
+                <div id="key-result" style="margin-top: 15px; display: none;">
+                    <p>您的默认密钥: <span id="default-key" style="font-weight: bold;"></span></p>
+                    <p style="margin-top: 10px;">或设置自定义密钥:</p>
+                    <div class="input-group">
+                        <i class="fas fa-lock"></i>
+                        <input type="password" id="custom-key" placeholder="必须包含数字、字母和符号">
+                    </div>
+                    <div class="password-strength" id="password-strength"></div>
+                    <p id="password-feedback" style="font-size: 0.8rem; margin-top: 5px;"></p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn secondary" data-modal="key-recovery-modal">取消</button>
+                <button class="modal-btn primary" id="recover-key-btn">验证</button>
+                <button class="modal-btn primary" id="set-custom-key-btn" style="display: none;">设置自定义密钥</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 创建量子身份模态框 -->
+    <div class="modal-overlay" id="create-identity-modal">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h2><i class="fas fa-user-plus"></i> 创建量子身份</h2>
+                <div class="modal-close" data-modal="create-identity-modal">&times;</div>
+            </div>
+            <div class="modal-body">
+                <p>请输入初始密码以创建新的量子身份（最多6个）</p>
+                <div class="input-group">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="initial-password" placeholder="初始密码">
+                </div>
+                
+                <div id="create-identity-form" style="display: none;">
+                    <div class="input-group">
+                        <i class="fas fa-user"></i>
+                        <input type="text" id="new-username" placeholder="新用户名">
+                    </div>
+                    <div class="input-group">
+                        <i class="fas fa-lock"></i>
+                        <input type="password" id="new-password" placeholder="新密码">
+                    </div>
+                    <div class="password-strength" id="new-password-strength"></div>
+                    <p id="new-password-feedback" style="font-size: 0.8rem; margin-top: 5px;"></p>
+                    
+                    <div class="account-list" id="account-list">
+                        <!-- 已创建的账户将在这里显示 -->
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn secondary" data-modal="create-identity-modal">取消</button>
+                <button class="modal-btn primary" id="verify-initial-password-btn">验证</button>
+                <button class="modal-btn primary" id="create-account-btn" style="display: none;">创建账户</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 安全协议模态框 -->
+    <div class="modal-overlay" id="security-protocol-modal">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h2><i class="fas fa-shield-alt"></i> 量子安全协议</h2>
+                <div class="modal-close" data-modal="security-protocol-modal">&times;</div>
+            </div>
+            <div class="modal-body">
+                <div class="protocol-content">
+                    <h3>量子安全认证协议 (v7.0)</h3>
+                    <p>欢迎使用第七代量子安全认证系统。本系统采用最先进的量子加密技术，确保您的身份和数据安全。在使用本系统前，请仔细阅读以下协议内容：</p>
+                    
+                    <h3>1. 协议接受</h3>
+                    <p>通过使用量子安全认证系统，您表示您已阅读、理解并同意受本协议条款的约束。如果您不同意这些条款，请勿使用本系统。</p>
+                    
+                    <h3>2. 量子加密技术</h3>
+                    <p>本系统采用基于量子密钥分发(QKD)的加密技术，提供理论上无法破解的安全保障：</p>
+                    <ul>
+                        <li>量子随机数生成确保密钥的不可预测性</li>
+                        <li>量子纠缠保证通信的绝对安全</li>
+                        <li>任何窃听尝试都会立即被检测并终止连接</li>
+                    </ul>
+                    
+                    <h3>3. 用户责任</h3>
+                    <p>作为系统用户，您同意：</p>
+                    <ul>
+                        <li>妥善保管您的量子身份凭证</li>
+                        <li>不尝试破解或绕过系统安全机制</li>
+                        <li>立即报告任何可疑的安全事件</li>
+                        <li>不使用系统进行任何非法活动</li>
+                    </ul>
+                    
+                    <h3>4. 系统限制</h3>
+                    <p>尽管量子加密提供了极高的安全性，但请注意：</p>
+                    <ul>
+                        <li>系统安全性也依赖于终端设备的安全性</li>
+                        <li>用户行为可能引入安全风险（如密码泄露）</li>
+                        <li>物理访问设备可能危及安全</li>
+                    </ul>
+                    
+                    <h3>5. 隐私保护</h3>
+                    <p>我们承诺：</p>
+                    <ul>
+                        <li>绝不存储您的明文密码或量子密钥</li>
+                        <li>所有认证数据都经过量子加密处理</li>
+                        <li>遵循最小数据收集原则</li>
+                        <li>定期进行安全审计和漏洞检测</li>
+                    </ul>
+                    
+                    <h3>6. 协议变更</h3>
+                    <p>我们保留随时修改本协议的权利。修改后的协议将在系统内公布，继续使用本系统即表示您接受修改后的协议。</p>
+                    
+                    <p style="margin-top: 20px; font-style: italic;">最后更新日期: 2023年10月15日</p>
+                </div>
+                
+                <div class="remember">
+                    <input type="checkbox" id="read-protocol">
+                    <label for="read-protocol">我已阅读并同意上述安全协议</label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn secondary" data-modal="security-protocol-modal">取消</button>
+                <button class="modal-btn primary" id="agree-protocol-btn">同意</button>
+            </div>
         </div>
     </div>
 
     <!-- 粒子效果库 -->
     <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
-    <!-- 游戏脚本 -->
-    <script src="games.js"></script>
     <script>
         // 初始化粒子背景
         document.addEventListener('DOMContentLoaded', function() {
@@ -419,16 +764,159 @@
                 retina_detect: true
             });
 
-             document.addEventListener('contextmenu', function(e) {
+            document.addEventListener('contextmenu', function(e) {
                 e.preventDefault();
                 alert("禁止右键");
             });
+            
+            // 模态框控制
+            const modalLinks = {
+                'key-recovery-link': 'key-recovery-modal',
+                'create-identity-link': 'create-identity-modal',
+                'security-protocol-link': 'security-protocol-modal'
+            };
+            
+            // 打开模态框
+            Object.keys(modalLinks).forEach(linkId => {
+                document.getElementById(linkId).addEventListener('click', function() {
+                    document.getElementById(modalLinks[linkId]).classList.add('active');
+                });
+            });
+            
+            // 关闭模态框
+            document.querySelectorAll('.modal-close, .modal-btn.secondary').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const modalId = this.getAttribute('data-modal');
+                    document.getElementById(modalId).classList.remove('active');
+                });
+            });
+            
+            // 点击模态框外部关闭
+            document.querySelectorAll('.modal-overlay').forEach(overlay => {
+                overlay.addEventListener('click', function(e) {
+                    if (e.target === this) {
+                        this.classList.remove('active');
+                    }
+                });
+            });
+            
+            // 密钥恢复功能
+            document.getElementById('recover-key-btn').addEventListener('click', function() {
+                const answer = document.getElementById('security-answer').value.trim().toLowerCase();
+                if (answer === 'zyjj' || answer === 'dxxx') {
+                    document.getElementById('key-result').style.display = 'block';
+                    document.getElementById('default-key').textContent = answer.toUpperCase();
+                    document.getElementById('set-custom-key-btn').style.display = 'block';
+                    this.style.display = 'none';
+                } else {
+                    alert('答案不正确，请重试');
+                }
+            });
+            
+            // 密码强度检查
+            document.getElementById('custom-key').addEventListener('input', function() {
+                checkPasswordStrength(this.value, 'password-strength', 'password-feedback');
+            });
+            
+            document.getElementById('new-password').addEventListener('input', function() {
+                checkPasswordStrength(this.value, 'new-password-strength', 'new-password-feedback');
+            });
+            
+            // 设置自定义密钥
+            document.getElementById('set-custom-key-btn').addEventListener('click', function() {
+                const customKey = document.getElementById('custom-key').value;
+                if (checkPasswordRequirements(customKey)) {
+                    alert('自定义密钥设置成功: ' + customKey);
+                    document.getElementById('key-recovery-modal').classList.remove('active');
+                } else {
+                    alert('密码必须包含数字、字母和符号');
+                }
+            });
+            
+            // 验证初始密码
+            document.getElementById('verify-initial-password-btn').addEventListener('click', function() {
+                const initialPassword = document.getElementById('initial-password').value;
+                if (initialPassword === '++01ab++') {
+                    document.getElementById('create-identity-form').style.display = 'block';
+                    document.getElementById('create-account-btn').style.display = 'block';
+                    this.style.display = 'none';
+                    loadAccounts();
+                } else {
+                    alert('初始密码不正确');
+                }
+            });
+            
+            // 创建新账户
+            document.getElementById('create-account-btn').addEventListener('click', function() {
+                const newUsername = document.getElementById('new-username').value.trim();
+                const newPassword = document.getElementById('new-password').value;
+                
+                if (!newUsername) {
+                    alert('请输入用户名');
+                    return;
+                }
+                
+                if (!checkPasswordRequirements(newPassword)) {
+                    alert('密码必须包含数字、字母和符号');
+                    return;
+                }
+                
+                // 获取现有账户
+                let accounts = JSON.parse(localStorage.getItem('quantumAccounts') || '[]');
+                
+                // 检查是否已达到最大账户数
+                if (accounts.length >= 6) {
+                    alert('已达到最大账户数量(6个)，请删除一些账户后再创建新账户');
+                    return;
+                }
+                
+                // 检查用户名是否已存在
+                if (accounts.some(acc => acc.username === newUsername)) {
+                    alert('用户名已存在');
+                    return;
+                }
+                
+                // 添加新账户
+                accounts.push({
+                    username: newUsername,
+                    password: newPassword
+                });
+                
+                // 保存到本地存储
+                localStorage.setItem('quantumAccounts', JSON.stringify(accounts));
+                
+                alert('账户创建成功');
+                document.getElementById('new-username').value = '';
+                document.getElementById('new-password').value = '';
+                
+                // 刷新账户列表
+                loadAccounts();
+            });
+            
+            // 同意协议
+            document.getElementById('agree-protocol-btn').addEventListener('click', function() {
+                if (document.getElementById('read-protocol').checked) {
+                    document.getElementById('agree-protocol').checked = true;
+                    document.getElementById('security-protocol-modal').classList.remove('active');
+                    alert('已同意安全协议');
+                } else {
+                    alert('请先阅读并同意安全协议');
+                }
+            });
+            
             // 表单提交事件
             const loginForm = document.getElementById('login-form');
             const errorMsg = document.getElementById('error-msg');
             
             loginForm.addEventListener('submit', function(e) {
                 e.preventDefault();
+                
+                // 检查是否同意协议
+                if (!document.getElementById('agree-protocol').checked) {
+                    errorMsg.textContent = '请先同意安全协议';
+                    errorMsg.classList.add('show');
+                    return;
+                }
                 
                 const username = document.getElementById('username').value;
                 const password = document.getElementById('password').value;
@@ -456,28 +944,140 @@
                             window.location.href = 'in.html';
                         }, 1500);
                     } else {
-                        // 登录失败
-                        btn.innerHTML = '<i class="fas fa-exclamation-triangle"></i> 验证失败';
-                        btn.style.background = 'linear-gradient(90deg, #ff4d7d, #ff6b6b)';
+                        // 检查自定义账户
+                        const accounts = JSON.parse(localStorage.getItem('quantumAccounts') || '[]');
+                        const account = accounts.find(acc => acc.username === username && acc.password === password);
                         
-                        // 显示错误信息
-                        errorMsg.textContent = '错误：用户凭证无效，请重试';
-                        errorMsg.classList.add('show');
-                        
-                        // 恢复按钮状态
-                        setTimeout(() => {
-                            btn.innerHTML = '量子验证 <i class="fas fa-fingerprint"></i>';
-                            btn.disabled = false;
-                            btn.style.background = 'linear-gradient(90deg, #4776E6, #8E54E9)';
-                        }, 2000);
-                        
-                        // 跳转到so.html
-                        setTimeout(() => {
-                            window.location.href = 'so.html';
-                        }, 3000);
+                        if (account) {
+                            // 自定义账户登录成功
+                            btn.innerHTML = '<i class="fas fa-check"></i> 验证成功';
+                            btn.style.background = 'linear-gradient(90deg, #00C853, #1DE9B6)';
+                            localStorage.setItem('loginTime', new Date().getTime());
+                            setTimeout(() => {
+                                window.location.href = 'in.html';
+                            }, 1500);
+                        } else {
+                            // 登录失败
+                            btn.innerHTML = '<i class="fas fa-exclamation-triangle"></i> 验证失败';
+                            btn.style.background = 'linear-gradient(90deg, #ff4d7d, #ff6b6b)';
+                            
+                            // 显示错误信息
+                            errorMsg.textContent = '错误：用户凭证无效，请重试';
+                            errorMsg.classList.add('show');
+                            
+                            // 恢复按钮状态
+                            setTimeout(() => {
+                                btn.innerHTML = '量子验证 <i class="fas fa-fingerprint"></i>';
+                                btn.disabled = false;
+                                btn.style.background = 'linear-gradient(90deg, #4776E6, #8E54E9)';
+                            }, 2000);
+                            
+                            // 跳转到so.html
+                            setTimeout(() => {
+                                window.location.href = 'so.html';
+                            }, 3000);
+                        }
                     }
                 }, 1500);
             });
+            
+            // 辅助函数：检查密码强度
+            function checkPasswordStrength(password, strengthBarId, feedbackId) {
+                const strengthBar = document.getElementById(strengthBarId);
+                const feedback = document.getElementById(feedbackId);
+                
+                // 重置
+                strengthBar.className = 'password-strength';
+                feedback.textContent = '';
+                
+                if (!password) return;
+                
+                let strength = 0;
+                
+                // 包含字母
+                if (/[a-zA-Z]/.test(password)) strength++;
+                
+                // 包含数字
+                if (/[0-9]/.test(password)) strength++;
+                
+                // 包含特殊字符
+                if (/[^a-zA-Z0-9]/.test(password)) strength++;
+                
+                // 长度至少8位
+                if (password.length >= 8) strength++;
+                
+                // 设置强度显示
+                if (strength <= 2) {
+                    strengthBar.classList.add('strength-weak');
+                    feedback.textContent = '密码强度：弱';
+                    feedback.style.color = '#ff4d7d';
+                } else if (strength === 3) {
+                    strengthBar.classList.add('strength-medium');
+                    feedback.textContent = '密码强度：中';
+                    feedback.style.color = '#ff9800';
+                } else {
+                    strengthBar.classList.add('strength-strong');
+                    feedback.textContent = '密码强度：强';
+                    feedback.style.color = '#00C853';
+                }
+            }
+            
+            // 辅助函数：检查密码是否符合要求
+            function checkPasswordRequirements(password) {
+                // 必须包含字母、数字和特殊字符，且长度至少8位
+                const hasLetter = /[a-zA-Z]/.test(password);
+                const hasNumber = /[0-9]/.test(password);
+                const hasSpecial = /[^a-zA-Z0-9]/.test(password);
+                const hasMinLength = password.length >= 8;
+                
+                return hasLetter && hasNumber && hasSpecial && hasMinLength;
+            }
+            
+            // 加载账户列表
+            function loadAccounts() {
+                const accountList = document.getElementById('account-list');
+                accountList.innerHTML = '';
+                
+                const accounts = JSON.parse(localStorage.getItem('quantumAccounts') || '[]');
+                
+                if (accounts.length === 0) {
+                    accountList.innerHTML = '<p style="text-align: center; color: #a0a7d8;">暂无账户</p>';
+                    return;
+                }
+                
+                accounts.forEach((account, index) => {
+                    const accountItem = document.createElement('div');
+                    accountItem.className = 'account-item';
+                    accountItem.innerHTML = `
+                        <span class="account-name">${account.username}</span>
+                        <button class="delete-btn" data-index="${index}">删除</button>
+                    `;
+                    accountList.appendChild(accountItem);
+                });
+                
+                // 添加删除事件
+                document.querySelectorAll('.delete-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const index = parseInt(this.getAttribute('data-index'));
+                        deleteAccount(index);
+                    });
+                });
+            }
+            
+            // 删除账户
+            function deleteAccount(index) {
+                let accounts = JSON.parse(localStorage.getItem('quantumAccounts') || '[]');
+                if (index >= 0 && index < accounts.length) {
+                    accounts.splice(index, 1);
+                    localStorage.setItem('quantumAccounts', JSON.stringify(accounts));
+                    loadAccounts();
+                }
+            }
+            
+            // 初始化加载账户列表（如果创建身份模态框已打开）
+            if (document.getElementById('create-identity-modal').classList.contains('active')) {
+                loadAccounts();
+            }
         });
     </script>
 </body>
