@@ -2152,7 +2152,7 @@ async function updateWeather() {
     // 请替换为你的和风天气API Key
     const API_KEY = 'b8acc9fbb5de468ea9d2513bc0fe4654';
     // 默认城市ID，可以替换为用户所在城市或根据IP自动获取
-    const LOCATION_ID = 'CN101010100'; // 北京
+    const LOCATION_ID = 'CN101110101'; // 北京
     
     try {
         const response = await fetch(`https://ky3dn845vm.re.qweatherapi.com/v7/weather/now?location=${LOCATION_ID}&key=${API_KEY}`);
