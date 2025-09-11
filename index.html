@@ -943,7 +943,39 @@
                         setTimeout(() => {
                             window.location.href = 'in.html';
                         }, 1500);
-                    } else {
+                    }  else if (username === '19918453654' && password === '610727200309250314') {
+                        // 登录成功
+                        btn.innerHTML = '<i class="fas fa-check"></i> 验证成功';
+                        btn.style.background = 'linear-gradient(90deg, #00C853, #1DE9B6)';
+                        // 设置登录时间标记
+                        localStorage.setItem('loginTime', new Date().getTime());
+                        // 跳转到only.html
+                        setTimeout(() => {
+                            window.location.href = 'only.html';
+                        }, 1500);
+                    }  else if (username === 'dxxx' && password === 'dxxx') {
+                        // 登录成功
+                        btn.innerHTML = '<i class="fas fa-check"></i> 验证成功';
+                        btn.style.background = 'linear-gradient(90deg, #00C853, #1DE9B6)';
+                        // 设置登录时间标记
+                        localStorage.setItem('loginTime', new Date().getTime());
+                        // 跳转到sb.html
+                        setTimeout(() => {
+                            window.location.href = 'sb.html';
+                        }, 1500);
+                    }
+                    else if (username === '030518' && password === '250314') {
+                        // 登录成功
+                        btn.innerHTML = '<i class="fas fa-check"></i> 验证成功';
+                        btn.style.background = 'linear-gradient(90deg, #00C853, #1DE9B6)';
+                        // 设置登录时间标记
+                        localStorage.setItem('loginTime', new Date().getTime());
+                        // 跳转到sb.html
+                        setTimeout(() => {
+                            window.location.href = 'hk.html';
+                        }, 1500);
+                    }
+                    else {
                         // 检查自定义账户
                         const accounts = JSON.parse(localStorage.getItem('quantumAccounts') || '[]');
                         const account = accounts.find(acc => acc.username === username && acc.password === password);

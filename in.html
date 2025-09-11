@@ -1,49 +1,81 @@
-
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>mine_work</title>
+    <title>my world - 科技版</title>
     <style>
-        /* 基础样式 */
+        /* 基础样式 - 科技感版本 */
         :root {
-            --primary-color: #4361ee;
-            --secondary-color: #3f37c9;
-            --accent-color: #4895ef;
-            --dark-color: #2b2d42;
-            --light-color: #f8f9fa;
-            --success-color: #4cc9f0;
-            --danger-color: #f72585;
-            --warning-color: #f8961e;
-            --info-color: #be5b33;
+            --primary-color: #00c6ff;
+            --secondary-color: #0072ff;
+            --accent-color: #00ffcc;
+            --dark-color: #0a1128;
+            --light-color: #ccd6f6;
+            --success-color: #00ff95;
+            --danger-color: #ff073a;
+            --warning-color: #ffcc00;
+            --info-color: #9d4edd;
+            --neon-blue: #00c6ff;
+            --neon-purple: #9d4edd;
+            --neon-pink: #ff2a6d;
+            --neon-green: #00ff95;
+            --grid-color: rgba(0, 198, 255, 0.1);
         }
         
         body {
             font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
             margin: 0;
             padding: 0;
-            background: #f5f7fa;
-            color: #333;
+            background: linear-gradient(135deg, #0a1128 0%, #1a1b2e 100%);
+            color: var(--light-color);
             line-height: 1.6;
             touch-action: manipulation;
+            position: relative;
+            overflow-x: hidden;
+        }
+        
+        /* 科技感背景效果 */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                linear-gradient(var(--grid-color) 1px, transparent 1px),
+                linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+            background-size: 30px 30px;
+            z-index: -1;
+            pointer-events: none;
+        }
+        
+        /* 动态粒子背景 */
+        #particles-js {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
         }
         
         /* 顶部信息栏 */
         #top-bar {
             display: flex;
             flex-direction: column;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
         }
         
         #info-bar {
-            background: linear-gradient(135deg, var(--dark-color), var(--secondary-color));
-            color: white;
+            background: linear-gradient(135deg, rgba(10, 17, 40, 0.9), rgba(26, 27, 46, 0.9));
+            color: var(--light-color);
             padding: 10px 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(0, 198, 255, 0.3);
         }
         
         .info-item {
@@ -51,30 +83,37 @@
             align-items: center;
             margin: 5px 10px;
             font-size: 14px;
-            background: rgba(255,255,255,0.1);
+            background: rgba(0, 198, 255, 0.1);
             padding: 5px 12px;
             border-radius: 20px;
             transition: all 0.3s ease;
+            border: 1px solid rgba(0, 198, 255, 0.2);
+            box-shadow: 0 0 10px rgba(0, 198, 255, 0.1);
         }
         
         .info-item:hover {
-            background: rgba(255,255,255,0.2);
+            background: rgba(0, 198, 255, 0.2);
             transform: translateY(-2px);
+            box-shadow: 0 0 15px rgba(0, 198, 255, 0.3);
         }
         
         .info-item i {
             margin-right: 8px;
             font-size: 16px;
+            color: var(--neon-blue);
+            text-shadow: 0 0 5px var(--neon-blue);
         }
         
         /* 导航栏 */
         #top-nav {
-            background: white;
+            background: rgba(10, 17, 40, 0.8);
             padding: 15px 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 2px 15px rgba(0,0,0,0.05);
+            box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(0, 198, 255, 0.3);
         }
         
         .nav-links {
@@ -94,10 +133,17 @@
             border: none;
             font-size: 16px;
             font-weight: bold;
-            color: var(--primary-color);
+            color: var(--neon-blue);
             cursor: pointer;
             padding: 4px 0;
             margin-bottom: 2px;
+            text-shadow: 0 0 5px var(--neon-blue);
+            transition: all 0.3s ease;
+        }
+        
+        .nav-expand-btn:hover {
+            color: var(--accent-color);
+            text-shadow: 0 0 8px var(--accent-color);
         }
         
         .nav-group-list {
@@ -105,21 +151,29 @@
             gap: 6px;
             margin-left: 18px;
             display: none;
+            background: rgba(10, 17, 40, 0.9);
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid rgba(0, 198, 255, 0.3);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            backdrop-filter: blur(10px);
         }
         
         .nav-group-list a {
-            color: var(--dark-color);
+            color: var(--light-color);
             text-decoration: none;
             font-size: 15px;
-            padding: 4px 0;
+            padding: 8px 12px;
             border-radius: 6px;
             transition: all 0.3s ease;
             font-weight: 500;
         }
         
         .nav-group-list a:hover {
-            background: var(--light-color);
-            color: var(--primary-color);
+            background: rgba(0, 198, 255, 0.1);
+            color: var(--neon-blue);
+            text-shadow: 0 0 5px var(--neon-blue);
+            transform: translateX(5px);
         }
         
         /* 搜索区域 */
@@ -131,18 +185,24 @@
         
         #search-input {
             padding: 10px 15px;
-            border: 1px solid #e0e0e0;
+            background: rgba(10, 17, 40, 0.7);
+            border: 1px solid rgba(0, 198, 255, 0.3);
             border-radius: 6px;
             width: 250px;
             font-size: 14px;
             transition: all 0.3s;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            color: var(--light-color);
         }
         
         #search-input:focus {
             outline: none;
             border-color: var(--accent-color);
-            box-shadow: 0 0 0 3px rgba(72, 149, 239, 0.2);
+            box-shadow: 0 0 0 3px rgba(0, 255, 204, 0.2);
+        }
+        
+        #search-input::placeholder {
+            color: rgba(204, 214, 246, 0.6);
         }
         
         #search-btn, #clear-search-btn {
@@ -157,52 +217,57 @@
         }
         
         #search-btn {
-            background: var(--primary-color);
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
             color: white;
         }
         
         #search-btn:hover {
-            background: var(--secondary-color);
+            background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
             transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15), 0 0 15px rgba(0, 198, 255, 0.5);
         }
         
         #clear-search-btn {
-            background: var(--light-color);
+            background: rgba(10, 17, 40, 0.7);
             color: var(--danger-color);
-            border: 1px solid #f0f0f0;
+            border: 1px solid rgba(255, 7, 58, 0.3);
         }
         
         #clear-search-btn:hover {
-            background: #f8f9fa;
-            color: #d90429;
+            background: rgba(255, 7, 58, 0.1);
+            color: #ff2a6d;
             transform: translateY(-2px);
+            box-shadow: 0 0 15px rgba(255, 7, 58, 0.3);
         }
         
         /* 搜索历史 */
         #search-history {
             margin: 20px auto;
             padding: 20px;
-            background: white;
+            background: rgba(10, 17, 40, 0.8);
             border-radius: 12px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
             max-width: 800px;
             display: none;
+            border: 1px solid rgba(0, 198, 255, 0.3);
+            backdrop-filter: blur(10px);
         }
         
         #search-history h3 {
             margin-top: 0;
-            color: var(--dark-color);
+            color: var(--neon-blue);
             padding-bottom: 15px;
-            border-bottom: 1px solid #eee;
+            border-bottom: 1px solid rgba(0, 198, 255, 0.3);
             font-size: 18px;
             display: flex;
             align-items: center;
+            text-shadow: 0 0 5px var(--neon-blue);
         }
         
         #search-history h3 i {
             margin-right: 10px;
             color: var(--accent-color);
+            text-shadow: 0 0 5px var(--accent-color);
         }
         
         #search-history-list {
@@ -213,7 +278,7 @@
         
         #search-history-list li {
             padding: 12px 15px;
-            border-bottom: 1px solid #f0f0f0;
+            border-bottom: 1px solid rgba(0, 198, 255, 0.1);
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -225,18 +290,18 @@
         }
         
         #search-history-list li:hover {
-            background-color: #f9f9f9;
+            background-color: rgba(0, 198, 255, 0.1);
             transform: translateX(5px);
         }
         
         .search-item {
             flex-grow: 1;
             cursor: pointer;
-            color: var(--dark-color);
+            color: var(--light-color);
         }
         
         .search-time {
-            color: #888;
+            color: rgba(204, 214, 246, 0.7);
             font-size: 0.85em;
             margin: 0 15px;
         }
@@ -247,15 +312,17 @@
             font-weight: bold;
             padding: 0 5px;
             transition: all 0.2s;
+            text-shadow: 0 0 5px var(--danger-color);
         }
         
         .delete-search:hover {
             transform: scale(1.2);
+            color: #ff2a6d;
         }
         
         /* 游戏标题 */
         #header {
-            background: linear-gradient(135deg, var(--primary-color), var(--info-color));
+            background: linear-gradient(135deg, rgba(0, 198, 255, 0.8), rgba(157, 78, 221, 0.8));
             color: white;
             padding: 40px 20px;
             text-align: center;
@@ -263,6 +330,7 @@
             margin-bottom: 30px;
             position: relative;
             overflow: hidden;
+            border-bottom: 1px solid rgba(0, 198, 255, 0.5);
         }
         
         #header::before {
@@ -283,33 +351,37 @@
             font-weight: 700;
             position: relative;
             z-index: 1;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2), 0 0 20px var(--neon-blue);
+            letter-spacing: 2px;
         }
         
         /* 游戏介绍区域 */
         #game-intro {
-            background: white;
+            background: rgba(10, 17, 40, 0.8);
             padding: 25px;
             margin: 0 auto 40px;
             max-width: 1200px;
             border-radius: 12px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-            border: 1px solid rgba(0,0,0,0.03);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border: 1px solid rgba(0, 198, 255, 0.3);
+            backdrop-filter: blur(10px);
         }
         
         #game-intro h2 {
             margin-top: 0;
-            color: var(--dark-color);
-            border-bottom: 1px solid #eee;
+            color: var(--neon-blue);
+            border-bottom: 1px solid rgba(0, 198, 255, 0.3);
             padding-bottom: 15px;
             font-size: 24px;
             display: flex;
             align-items: center;
+            text-shadow: 0 0 5px var(--neon-blue);
         }
         
         #game-intro h2 i {
             margin-right: 12px;
             color: var(--accent-color);
+            text-shadow: 0 0 5px var(--accent-color);
         }
         
         .game-description {
@@ -322,17 +394,19 @@
         .game-desc-card {
             flex: 1;
             min-width: 250px;
-            background: white;
+            background: rgba(10, 17, 40, 0.6);
             border-radius: 10px;
             padding: 20px;
             box-shadow: 0 3px 10px rgba(0,0,0,0.08);
             transition: all 0.3s ease;
-            border: 1px solid rgba(0,0,0,0.03);
+            border: 1px solid rgba(0, 198, 255, 0.2);
+            backdrop-filter: blur(5px);
         }
         
         .game-desc-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1), 0 0 15px rgba(0, 198, 255, 0.3);
+            border-color: rgba(0, 198, 255, 0.5);
         }
         
         .game-desc-card h3 {
@@ -341,6 +415,7 @@
             display: flex;
             align-items: center;
             font-size: 18px;
+            text-shadow: 0 0 5px var(--primary-color);
         }
         
         .game-desc-card h3 i {
@@ -348,15 +423,18 @@
             font-size: 20px;
             width: 30px;
             height: 30px;
-            background: rgba(72, 149, 239, 0.1);
+            background: rgba(0, 198, 255, 0.1);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
+            color: var(--neon-blue);
+            text-shadow: 0 0 5px var(--neon-blue);
+            box-shadow: 0 0 10px rgba(0, 198, 255, 0.3);
         }
         
         .game-desc-card p {
-            color: #666;
+            color: rgba(204, 214, 246, 0.8);
             font-size: 15px;
             line-height: 1.6;
         }
@@ -375,14 +453,15 @@
         /* 游戏卡片样式 */
         .game-card {
             width: 280px;
-            background: white;
+            background: rgba(10, 17, 40, 0.8);
             border-radius: 12px;
             overflow: hidden;
             box-shadow: 0 5px 15px rgba(0,0,0,0.08);
             cursor: pointer;
             transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
             position: relative;
-            border: 1px solid rgba(0,0,0,0.03);
+            border: 1px solid rgba(0, 198, 255, 0.2);
+            backdrop-filter: blur(5px);
         }
         
         .game-card::after {
@@ -400,7 +479,8 @@
         
         .game-card:hover {
             transform: translateY(-8px);
-            box-shadow: 0 12px 25px rgba(0,0,0,0.15);
+            box-shadow: 0 12px 25px rgba(0,0,0,0.15), 0 0 20px rgba(0, 198, 255, 0.4);
+            border-color: rgba(0, 198, 255, 0.5);
         }
         
         .game-card:hover::after {
@@ -424,19 +504,20 @@
             padding: 20px;
             position: relative;
             z-index: 2;
-            background: white;
+            background: rgba(10, 17, 40, 0.8);
         }
         
         .game-info h3 {
             margin: 0 0 8px 0;
-            color: var(--dark-color);
+            color: var(--neon-blue);
             font-size: 1.4em;
             font-weight: 600;
+            text-shadow: 0 0 5px var(--neon-blue);
         }
         
         .game-info p {
             margin: 0;
-            color: #777;
+            color: rgba(204, 214, 246, 0.8);
             font-size: 0.95em;
         }
         
@@ -448,21 +529,23 @@
             display: none;
             position: relative;
             padding: 20px;
-            background: white;
+            background: rgba(10, 17, 40, 0.8);
             border-radius: 12px;
             box-shadow: 0 5px 20px rgba(0,0,0,0.08);
             max-width: 1000px;
             margin: 30px auto;
-            border: 1px solid rgba(0,0,0,0.03);
+            border: 1px solid rgba(0, 198, 255, 0.3);
+            backdrop-filter: blur(10px);
         }
         
         canvas {
             background: #000;
             margin: 0 auto;
             display: block;
-            box-shadow: 0 3px 15px rgba(0,0,0,0.2);
+            box-shadow: 0 3px 15px rgba(0,0,0,0.2), 0 0 20px rgba(0, 198, 255, 0.3);
             border-radius: 8px;
             touch-action: none;
+            border: 1px solid rgba(0, 198, 255, 0.5);
         }
         
         /* 控制按钮 */
@@ -477,7 +560,7 @@
         
         button {
             padding: 12px 24px;
-            background: var(--primary-color);
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
             color: white;
             border: none;
             border-radius: 8px;
@@ -492,11 +575,33 @@
             gap: 8px;
             user-select: none;
             -webkit-tap-highlight-color: transparent;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        button::before {
+            content: "";
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(
+                to bottom right,
+                rgba(255, 255, 255, 0.2),
+                rgba(255, 255, 255, 0)
+            );
+            transform: rotate(30deg);
+            transition: all 0.3s;
         }
         
         button:hover {
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2), 0 0 15px rgba(0, 198, 255, 0.5);
+        }
+        
+        button:hover::before {
+            transform: rotate(30deg) translate(10%, 10%);
         }
         
         button i {
@@ -504,47 +609,53 @@
         }
         
         #startBtn {
-            background: var(--success-color);
+            background: linear-gradient(135deg, var(--success-color), #00cc7a);
         }
         
         #startBtn:hover {
-            background: #3aa8d8;
+            background: linear-gradient(135deg, #00cc7a, var(--success-color));
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2), 0 0 15px rgba(0, 255, 149, 0.5);
         }
         
         #pauseBtn {
-            background: var(--warning-color);
+            background: linear-gradient(135deg, var(--warning-color), #e68a00);
         }
         
         #pauseBtn:hover {
-            background: #e68a19;
+            background: linear-gradient(135deg, #e68a00, var(--warning-color));
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2), 0 0 15px rgba(255, 204, 0, 0.5);
         }
         
         #restartBtn {
-            background: var(--danger-color);
+            background: linear-gradient(135deg, var(--danger-color), #cc0029);
         }
         
         #restartBtn:hover {
-            background: #e51773;
+            background: linear-gradient(135deg, #cc0029, var(--danger-color));
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2), 0 0 15px rgba(255, 7, 58, 0.5);
         }
         
         #backBtn {
-            background: var(--dark-color);
+            background: linear-gradient(135deg, var(--dark-color), #1a1b2e);
         }
         
         #backBtn:hover {
-            background: #1a1b2e;
+            background: linear-gradient(135deg, #1a1b2e, var(--dark-color));
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2), 0 0 15px rgba(10, 17, 40, 0.5);
         }
         
         /* 游戏统计信息 */
         .game-stats {
             margin: 15px;
             font-size: 18px;
-            color: var(--dark-color);
+            color: var(--neon-blue);
             font-weight: 600;
-            background: rgba(72, 149, 239, 0.1);
+            background: rgba(0, 198, 255, 0.1);
             padding: 10px 15px;
             border-radius: 8px;
             display: inline-block;
+            text-shadow: 0 0 5px var(--neon-blue);
+            border: 1px solid rgba(0, 198, 255, 0.3);
         }
         
         /* 移动端方向键控制面板 */
@@ -565,23 +676,26 @@
         }
         
         .dpad-btn {
-            background: rgba(0, 0, 0, 0.5);
-            border: none;
+            background: rgba(0, 198, 255, 0.2);
+            border: 1px solid rgba(0, 198, 255, 0.5);
             border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: white;
+            color: var(--neon-blue);
             font-size: 24px;
             cursor: pointer;
             user-select: none;
             -webkit-tap-highlight-color: transparent;
             transition: all 0.1s;
+            text-shadow: 0 0 5px var(--neon-blue);
+            box-shadow: 0 0 10px rgba(0, 198, 255, 0.2);
         }
         
         .dpad-btn:active {
-            background: rgba(0, 0, 0, 0.8);
+            background: rgba(0, 198, 255, 0.4);
             transform: scale(0.95);
+            box-shadow: 0 0 15px rgba(0, 198, 255, 0.5);
         }
         
         .dpad-up {
@@ -598,6 +712,8 @@
             grid-column: 2;
             grid-row: 2;
             background: transparent;
+            border: none;
+            box-shadow: none;
         }
         
         .dpad-right {
@@ -623,9 +739,9 @@
             width: 70px;
             height: 70px;
             border-radius: 50%;
-            background: rgba(0, 0, 0, 0.5);
-            border: none;
-            color: white;
+            background: rgba(0, 198, 255, 0.2);
+            border: 1px solid rgba(0, 198, 255, 0.5);
+            color: var(--neon-blue);
             font-size: 20px;
             display: flex;
             align-items: center;
@@ -634,11 +750,14 @@
             user-select: none;
             -webkit-tap-highlight-color: transparent;
             transition: all 0.1s;
+            text-shadow: 0 0 5px var(--neon-blue);
+            box-shadow: 0 0 10px rgba(0, 198, 255, 0.2);
         }
         
         .action-btn:active {
-            background: rgba(0, 0, 0, 0.8);
+            background: rgba(0, 198, 255, 0.4);
             transform: scale(0.95);
+            box-shadow: 0 0 15px rgba(0, 198, 255, 0.5);
         }
         
         /* 排行榜模态框样式 */
@@ -656,7 +775,7 @@
         }
         
         .modal-content {
-            background-color: white;
+            background: rgba(10, 17, 40, 0.95);
             margin: 8% auto;
             padding: 30px;
             border-radius: 12px;
@@ -665,7 +784,8 @@
             box-shadow: 0 10px 30px rgba(0,0,0,0.3);
             position: relative;
             animation: modalFadeIn 0.3s;
-            border: 1px solid rgba(0,0,0,0.05);
+            border: 1px solid rgba(0, 198, 255, 0.5);
+            backdrop-filter: blur(10px);
         }
         
         @keyframes modalFadeIn {
@@ -693,19 +813,22 @@
         .close:hover {
             color: var(--danger-color);
             transform: rotate(90deg);
+            text-shadow: 0 0 5px var(--danger-color);
         }
         
         #leaderboard-title {
             margin-top: 0;
-            color: var(--dark-color);
+            color: var(--neon-blue);
             font-size: 24px;
             display: flex;
             align-items: center;
             gap: 10px;
+            text-shadow: 0 0 5px var(--neon-blue);
         }
         
         #leaderboard-title i {
             color: var(--accent-color);
+            text-shadow: 0 0 5px var(--accent-color);
         }
         
         #leaderboard-list {
@@ -713,25 +836,25 @@
             max-height: 500px;
             overflow-y: auto;
             border-radius: 8px;
-            border: 1px solid #eee;
+            border: 1px solid rgba(0, 198, 255, 0.3);
         }
         
         .leaderboard-entry {
             display: flex;
             justify-content: space-between;
             padding: 15px 20px;
-            border-bottom: 1px solid #f0f0f0;
+            border-bottom: 1px solid rgba(0, 198, 255, 0.1);
             align-items: center;
             gap: 15px;
             transition: all 0.2s;
         }
         
         .leaderboard-entry:hover {
-            background-color: #f9f9f9;
+            background-color: rgba(0, 198, 255, 0.1);
         }
         
         .leaderboard-entry:nth-child(odd) {
-            background-color: #fcfcfc;
+            background-color: rgba(10, 17, 40, 0.5);
         }
         
         .leaderboard-entry span:first-child {
@@ -739,6 +862,7 @@
             width: 30px;
             flex-shrink: 0;
             color: var(--primary-color);
+            text-shadow: 0 0 5px var(--primary-color);
         }
         
         .leaderboard-entry span:nth-child(2) {
@@ -747,20 +871,20 @@
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
-            color: var(--dark-color);
+            color: var(--light-color);
         }
         
         .leaderboard-entry span:last-child {
             flex-shrink: 0;
             text-align: right;
-            color: #777;
+            color: rgba(204, 214, 246, 0.7);
             font-size: 0.9em;
             min-width: 120px;
         }
         
         /* 排行榜清空按钮 */
         #clear-leaderboard-btn {
-            background: var(--danger-color);
+            background: linear-gradient(135deg, var(--danger-color), #cc0029);
             color: white;
             border: none;
             border-radius: 8px;
@@ -775,9 +899,9 @@
         }
         
         #clear-leaderboard-btn:hover {
-            background: #e51773;
+            background: linear-gradient(135deg, #cc0029, var(--danger-color));
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2), 0 0 15px rgba(255, 7, 58, 0.5);
         }
         
         /* 排行榜按钮 */
@@ -803,7 +927,7 @@
         
         #leaderboard-btn:hover {
             transform: translateY(-3px) scale(1.05);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3), 0 0 20px rgba(0, 198, 255, 0.5);
         }
         
         /* 网页标签按钮 */
@@ -829,7 +953,7 @@
         
         #quick-links-btn:hover {
             transform: translateY(-3px) scale(1.05);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3), 0 0 20px rgba(0, 198, 255, 0.5);
         }
         
         /* 网页标签面板 */
@@ -839,13 +963,15 @@
             top: 100px;
             left: 20px;
             right: 20px;
-            background: white;
+            background: rgba(10, 17, 40, 0.95);
             padding: 15px;
             border-radius: 8px;
             box-shadow: 0 5px 15px rgba(0,0,0,0.1);
             z-index: 1000;
             max-width: 400px;
             margin: 0 auto;
+            border: 1px solid rgba(0, 198, 255, 0.5);
+            backdrop-filter: blur(10px);
         }
         
         /* 响应式设计 */
@@ -980,28 +1106,78 @@
                 width: 60px;
                 height: 60px;
                 margin: 0 5px;
-                background: rgba(0,0,0,0.5);
+                background: rgba(0, 198, 255, 0.2);
+                border: 1px solid rgba(0, 198, 255, 0.5);
                 border-radius: 8px;
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                color: white;
+                color: var(--neon-blue);
                 font-weight: bold;
                 user-select: none;
                 -webkit-tap-highlight-color: transparent;
+                text-shadow: 0 0 5px var(--neon-blue);
+                box-shadow: 0 0 10px rgba(0, 198, 255, 0.2);
             }
             
             .piano-key:active {
-                background: rgba(0,0,0,0.8);
+                background: rgba(0, 198, 255, 0.4);
+                box-shadow: 0 0 15px rgba(0, 198, 255, 0.5);
             }
+        }
+
+        /* 添加数据流效果 */
+        @keyframes dataStream {
+            0% {
+                transform: translateY(-100%);
+                opacity: 0;
+            }
+            5% {
+                opacity: 1;
+            }
+            95% {
+                opacity: 0.5;
+            }
+            100% {
+                transform: translateY(1000%);
+                opacity: 0;
+            }
+        }
+
+        .data-stream {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .data-bit {
+            position: absolute;
+            color: rgba(0, 198, 255, 0.7);
+            font-family: monospace;
+            font-size: 14px;
+            animation: dataStream 10s linear infinite;
+            text-shadow: 0 0 5px var(--neon-blue);
+            user-select: none;
         }
     </style>
     <!-- 引入Font Awesome图标库 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <!-- 引入Google字体 -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <!-- 引入粒子效果库 -->
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
 </head>
 <body>
+    <!-- 粒子背景容器 -->
+    <div id="particles-js"></div>
+    
+    <!-- 数据流效果 -->
+    <div class="data-stream" id="data-stream"></div>
+    
     <div id="top-bar">
         <div id="info-bar">
             <div class="info-item">
@@ -1039,6 +1215,7 @@
                     <a href="huitu.html">绘图结构</a>
                     <a href="zhuan.html">单位换算</a>
                     <a href="wen.html">随机数据文件生成器</a>
+                    <a href="to.html">随机地图生成器</a>
                 </div>
             </div>
             <div class="nav-group">
@@ -1048,6 +1225,7 @@
                     <a href="https://www.iqiyi.com/">爱奇艺</a>
                     <a href="https://v.qq.com/">腾讯视频</a>
                     <a href="https://www.bilibili.com/">B站</a>
+                    <a href="https://www.douyin.com/">抖音</a>
                 </div>
             </div>
             <div class="nav-group">
@@ -1111,7 +1289,7 @@
     <div id="game-container">
         <!-- 贪吃蛇游戏卡片 -->
         <div class="game-card" data-game="snake">
-            <div class="game-thumbnail" style="background: linear-gradient(135deg, #4CAF50, #81C784);"></div>
+            <div class="game-thumbnail" style="background: linear-gradient(135deg, rgba(76, 175, 80, 0.7), rgba(129, 199, 132, 0.7));"></div>
             <div class="game-info">
                 <h3>贪吃蛇</h3>
                 <p>经典贪吃蛇游戏，挑战你的反应速度</p>
@@ -1120,7 +1298,7 @@
         
         <!-- 俄罗斯方块游戏卡片 -->
         <div class="game-card" data-game="tetris">
-            <div class="game-thumbnail" style="background: linear-gradient(135deg, #2196F3, #64B5F6);"></div>
+            <div class="game-thumbnail" style="background: linear-gradient(135deg, rgba(33, 150, 243, 0.7), rgba(100, 181, 246, 0.7));"></div>
             <div class="game-info">
                 <h3>俄罗斯方块</h3>
                 <p>经典俄罗斯方块，测试你的空间思维能力</p>
@@ -1129,7 +1307,7 @@
         
         <!-- 推箱子游戏卡片 -->
         <div class="game-card" data-game="sokoban">
-            <div class="game-thumbnail" style="background: linear-gradient(135deg, #FF9800, #FFB74D);"></div>
+            <div class="game-thumbnail" style="background: linear-gradient(135deg, rgba(255, 152, 0, 0.7), rgba(255, 183, 77, 0.7));"></div>
             <div class="game-info">
                 <h3>推箱子</h3>
                 <p>经典推箱子游戏，考验你的逻辑思维</p>
@@ -1138,7 +1316,7 @@
         
         <!-- 钢琴块游戏卡片 -->
         <div class="game-card" data-game="piano">
-            <div class="game-thumbnail" style="background: linear-gradient(135deg, #9C27B0, #E91E63);"></div>
+            <div class="game-thumbnail" style="background: linear-gradient(135deg, rgba(156, 39, 176, 0.7), rgba(233, 30, 99, 0.7));"></div>
             <div class="game-info">
                 <h3>钢琴块</h3>
                 <p>经典钢琴块游戏，测试你的反应速度</p>
@@ -1208,7 +1386,7 @@
     
     <!-- 游戏卡片弹窗预览 -->
     <div id="game-preview-modal" class="modal" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.4);z-index:999;justify-content:center;align-items:center;">
-        <div class="modal-content" style="background:#fff;padding:32px 24px;border-radius:16px;max-width:400px;box-shadow:0 8px 32px rgba(0,0,0,0.2);position:relative;">
+        <div class="modal-content" style="background:rgba(10, 17, 40, 0.95);padding:32px 24px;border-radius:16px;max-width:400px;box-shadow:0 8px 32px rgba(0,0,0,0.2);position:relative;border:1px solid rgba(0, 198, 255, 0.5);">
             <span class="close" onclick="closeGamePreview()" style="position:absolute;top:12px;right:18px;font-size:24px;cursor:pointer;">&times;</span>
             <div id="game-preview-content"></div>
         </div>
@@ -1237,10 +1415,71 @@
                 // document.getElementById('gameStats').textContent = title;
             });
         });
+
+        // 初始化粒子背景
+        document.addEventListener('DOMContentLoaded', function() {
+            particlesJS('particles-js', {
+                particles: {
+                    number: { value: 80, density: { enable: true, value_area: 800 } },
+                    color: { value: "#00c6ff" },
+                    shape: { type: "circle" },
+                    opacity: { value: 0.5, random: true },
+                    size: { value: 3, random: true },
+                    line_linked: {
+                        enable: true,
+                        distance: 150,
+                        color: "#00c6ff",
+                        opacity: 0.4,
+                        width: 1
+                    },
+                    move: {
+                        enable: true,
+                        speed: 2,
+                        direction: "none",
+                        random: true,
+                        out_mode: "out"
+                    }
+                },
+                interactivity: {
+                    detect_on: "canvas",
+                    events: {
+                        onhover: { enable: true, mode: "grab" },
+                        onclick: { enable: true, mode: "push" }
+                    }
+                }
+            });
+
+            // 创建数据流效果
+            createDataStream();
+        });
+
+        // 创建数据流效果
+        function createDataStream() {
+            const dataStream = document.getElementById('data-stream');
+            const characters = '01010101010101010101010101';
+            
+            for (let i = 0; i < 20; i++) {
+                setTimeout(() => {
+                    createDataColumn(i);
+                }, i * 500);
+            }
+            
+            function createDataColumn(index) {
+                const left = Math.random() * 100;
+                const delay = Math.random() * 5;
+                
+                for (let j = 0; j < 20; j++) {
+                    const dataBit = document.createElement('div');
+                    dataBit.className = 'data-bit';
+                    dataBit.textContent = characters.charAt(Math.floor(Math.random() * characters.length));
+                    dataBit.style.left = `${left}%`;
+                    dataBit.style.animationDelay = `${delay + j * 0.1}s`;
+                    dataStream.appendChild(dataBit);
+                }
+            }
+        }
     </script>
     
-
-
     <!-- 在in.html的</body>标签前添加以下代码 -->
 <script>
 // 登录时效管理 (10分钟)

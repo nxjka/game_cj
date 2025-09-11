@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>黑客矩阵 :: 终极数字体验</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Courier New', monospace;
+        }
+        
+        body {
+            background-color: #0a0a0a;
+            color: #00ff00;
+            overflow: hidden;
+            height: 100vh;
+            position: relative;
+        }
+        
+        /* 矩阵数字雨效果 */
+        #matrix {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            opacity: 0.3;
+        }
+        
+        /* 主容器 */
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 2fr 1fr;
+            grid-template-rows: auto 1fr auto;
+            gap: 10px;
+            height: 100vh;
+            padding: 15px;
+        }
+        
+        /* 标题栏 */
+        .header {
+            grid-column: 1 / 4;
+            text-align: center;
+            padding: 10px;
+            border: 1px solid #00ff00;
+            background-color: rgba(0, 20, 0, 0.7);
+            box-shadow: 0 0 15px #00ff00;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            text-shadow: 0 0 10px #00ff00;
+            animation: glow 2s infinite alternate;
+        }
+        
+        /* 可拖动窗口 */
+        .window {
+            background-color: rgba(0, 15, 0, 0.8);
+            border: 1px solid #00ff00;
+            border-radius: 5px;
+            box-shadow: 0 0 10px #00ff00;
+            overflow: hidden;
+            position: absolute;
+            min-width: 300px;
+            min-height: 200px;
+        }
+        
+        .window-header {
+            background-color: #002200;
+            padding: 8px;
+            cursor: move;
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px solid #00ff00;
+        }
+        
+        .window-content {
+            padding: 15px;
+            height: calc(100% - 35px);
+            overflow: auto;
+        }
+        
+        /* 控制台样式 */
+        #console {
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 15px;
+            height: 100%;
+            overflow-y: auto;
+            border: 1px solid #00ff00;
+        }
+        
+        .console-line {
+            margin-bottom: 5px;
+            line-height: 1.4;
+        }
+        
+        /* 按钮和交互元素 */
+        .btn {
+            background-color: #003300;
+            color: #00ff00;
+            border: 1px solid #00ff00;
+            padding: 8px 15px;
+            margin: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn:hover {
+            background-color: #00ff00;
+            color: #000;
+            box-shadow: 0 0 15px #00ff00;
+        }
+        
+        /* 进度条 */
+        .progress-container {
+            width: 100%;
+            height: 20px;
+            background-color: #001100;
+            border: 1px solid #00ff00;
+            margin: 10px 0;
+            overflow: hidden;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background-color: #00ff00;
+            width: 0%;
+            transition: width 0.5s;
+            box-shadow: 0 0 10px #00ff00;
+        }
+        
+        /* 动画效果 */
+        @keyframes glow {
+            from { text-shadow: 0 0 5px #00ff00; }
+            to { text-shadow: 0 0 20px #00ff00, 0 0 30px #00ff00; }
+        }
+        
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .blink {
+            animation: blink 1s infinite;
+        }
+        
+        /* 雷达扫描效果 */
+        .radar {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            border: 2px solid #00ff00;
+            position: relative;
+            overflow: hidden;
+            margin: 20px auto;
+        }
+        
+        .radar::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(transparent 50%, rgba(0, 255, 0, 0.2) 50%);
+            background-size: 100% 5px;
+        }
+        
+        .radar-sweep {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, transparent, rgba(0, 255, 0, 0.3));
+            clip-path: polygon(50% 50%, 50% 0, 100% 0, 100% 100%, 0 100%, 0 0, 50% 0);
+            animation: sweep 4s infinite linear;
+            transform-origin: center;
+        }
+        
+        @keyframes sweep {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="matrix"></canvas>
+    
+    <div class="container">
+        <div class="header">
+            <h1>黑客矩阵 :: 终极数字体验</h1>
+            <p>警告: 未经授权访问可能违反法律 | 状态: <span class="blink">已连接至暗网</span></p>
+        </div>
+        
+        <!-- 可拖动窗口 -->
+        <div class="window" style="top: 100px; left: 50px; width: 320px; height: 250px;">
+            <div class="window-header">
+                <span>系统控制台</span>
+                <span>X</span>
+            </div>
+            <div class="window-content">
+                <div class="radar">
+                    <div class="radar-sweep"></div>
+                </div>
+                <p>检测到 12 个脆弱系统</p>
+                <button class="btn" onclick="startScan()">开始扫描</button>
+            </div>
+        </div>
+        
+        <div class="window" style="top: 100px; right: 50px; width: 320px; height: 250px;">
+            <div class="window-header">
+                <span>密码破解工具</span>
+                <span>X</span>
+            </div>
+            <div class="window-content">
+                <p>目标: NSA主数据库</p>
+                <div class="progress-container">
+                    <div class="progress-bar" id="crack-progress"></div>
+                </div>
+                <p>状态: <span id="crack-status">就绪</span></p>
+                <button class="btn" onclick="startCrack()">初始化破解序列</button>
+            </div>
+        </div>
+        
+        <div class="window" style="bottom: 50px; left: 50px; width: 320px; height: 250px;">
+            <div class="window-header">
+                <span>数据注入器</span>
+                <span>X</span>
+            </div>
+            <div class="window-content">
+                <p>选择注入模式:</p>
+                <button class="btn" onclick="injectData('SQL')">SQL 注入</button>
+                <button class="btn" onclick="injectData('XSS')">XSS 攻击</button>
+                <button class="btn" onclick="injectData('DDoS')">DDoS 攻击</button>
+                <p id="inject-status">等待指令...</p>
+            </div>
+        </div>
+        
+        <!-- 主控制台 -->
+        <div style="grid-column: 2; grid-row: 2; padding: 10px;">
+            <div id="console">
+                <div class="console-line">> 系统初始化完成</div>
+                <div class="console-line">> 加载核心模块...</div>
+                <div class="console-line">> 建立安全连接...</div>
+                <div class="console-line">> 欢迎来到黑客矩阵控制中心</div>
+                <div class="console-line">> 输入 "help" 获取命令列表</div>
+            </div>
+            <input type="text" id="command-input" style="width: 100%; padding: 10px; margin-top: 10px; background: #001100; color: #00ff00; border: 1px solid #00ff00;" placeholder="输入命令...">
+        </div>
+        
+        <!-- 状态栏 -->
+        <div style="grid-column: 1 / 4; grid-row: 3; padding: 10px; border: 1px solid #00ff00; background-color: rgba(0, 20, 0, 0.7); display: flex; justify-content: space-between;">
+            <div>连接状态: <span class="blink">活跃</span></div>
+            <div>安全级别: 0x7F3A9C</div>
+            <div>时间: <span id="digital-clock">00:00:00</span></div>
+        </div>
+    </div>
+
+    <script>
+        // 矩阵数字雨效果
+        const canvas = document.getElementById('matrix');
+        const ctx = canvas.getContext('2d');
+        
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        
+        const letters = '01010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101';
+        const fontSize = 14;
+        const columns = canvas.width / fontSize;
+        
+        const drops = [];
+        for (let i = 0; i < columns; i++) {
+            drops[i] = 1;
+        }
+        
+        function drawMatrix() {
+            ctx.fillStyle = 'rgba(0, 10, 0, 0.1)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.fillStyle = '#00ff00';
+            ctx.font = `${fontSize}px monospace`;
+            
+            for (let i = 0; i < drops.length; i++) {
+                const text = letters[Math.floor(Math.random() * letters.length)];
+                ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+                
+                if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+                    drops[i] = 0;
+                }
+                
+                drops[i]++;
+            }
+        }
+        
+        setInterval(drawMatrix, 50);
+        
+        // 窗口拖动功能
+        const windows = document.querySelectorAll('.window');
+        windows.forEach(window => {
+            const header = window.querySelector('.window-header');
+            let isDragging = false;
+            let offsetX, offsetY;
+            
+            header.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                offsetX = e.clientX - window.getBoundingClientRect().left;
+                offsetY = e.clientY - window.getBoundingClientRect().top;
+                window.style.zIndex = 1000;
+            });
+            
+            document.addEventListener('mousemove', (e) => {
+                if (isDragging) {
+                    window.style.left = `${e.clientX - offsetX}px`;
+                    window.style.top = `${e.clientY - offsetY}px`;
+                }
+            });
+            
+            document.addEventListener('mouseup', () => {
+                isDragging = false;
+            });
+            
+            // 关闭按钮
+            const closeBtn = header.querySelector('span:last-child');
+            closeBtn.addEventListener('click', () => {
+                window.style.display = 'none';
+            });
+        });
+        
+        // 数字时钟
+        function updateClock() {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString();
+            document.getElementById('digital-clock').textContent = timeStr;
+        }
+        
+        setInterval(updateClock, 1000);
+        updateClock();
+        
+        // 控制台命令处理
+        const consoleElem = document.getElementById('console');
+        const commandInput = document.getElementById('command-input');
+        
+        commandInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                const command = commandInput.value.trim();
+                addConsoleLine(`> ${command}`);
+                
+                // 处理命令
+                processCommand(command);
+                
+                commandInput.value = '';
+                
+                // 自动滚动到底部
+                consoleElem.scrollTop = consoleElem.scrollHeight;
+            }
+        });
+        
+        function addConsoleLine(text) {
+            const line = document.createElement('div');
+            line.className = 'console-line';
+            line.textContent = text;
+            consoleElem.appendChild(line);
+        }
+        
+        function processCommand(command) {
+            switch(command.toLowerCase()) {
+                case 'help':
+                    addConsoleLine('可用命令: scan, crack, inject, clear, help');
+                    break;
+                case 'scan':
+                    startScan();
+                    break;
+                case 'crack':
+                    startCrack();
+                    break;
+                case 'inject':
+                    addConsoleLine('请指定注入类型: sql, xss, ddos');
+                    break;
+                case 'clear':
+                    consoleElem.innerHTML = '';
+                    break;
+                default:
+                    addConsoleLine(`未知命令: ${command}`);
+                    addConsoleLine('输入 "help" 获取命令列表');
+            }
+        }
+        
+        // 扫描功能
+        function startScan() {
+            addConsoleLine('开始网络扫描...');
+            document.querySelector('#crack-status').textContent = '扫描中...';
+            
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += Math.random() * 10;
+                document.querySelector('#crack-progress').style.width = `${progress}%`;
+                
+                if (progress >= 100) {
+                    clearInterval(interval);
+                    document.querySelector('#crack-status').textContent = '扫描完成';
+                    addConsoleLine('扫描完成: 发现 23 个潜在漏洞');
+                }
+            }, 200);
+        }
+        
+        // 密码破解功能
+        function startCrack() {
+            addConsoleLine('初始化密码破解序列...');
+            document.querySelector('#crack-status').textContent = '破解中...';
+            
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += Math.random() * 5;
+                document.querySelector('#crack-progress').style.width = `${progress}%`;
+                
+                if (progress >= 100) {
+                    clearInterval(interval);
+                    document.querySelector('#crack-status').textContent = '破解成功!';
+                    addConsoleLine('密码破解成功: 访问权限已获取');
+                    
+                    // 添加一些炫酷效果
+                    document.body.style.animation = 'glow 0.5s';
+                    setTimeout(() => {
+                        document.body.style.animation = '';
+                    }, 500);
+                }
+            }, 300);
+        }
+        
+        // 数据注入功能
+        function injectData(type) {
+            const statusElem = document.querySelector('#inject-status');
+            statusElem.textContent = `${type} 注入中...`;
+            
+            addConsoleLine(`开始 ${type} 数据注入...`);
+            
+            setTimeout(() => {
+                statusElem.textContent = `${type} 注入成功!`;
+                addConsoleLine(`${type} 注入完成: 目标系统已受影响`);
+                
+                // 创建注入成功动画
+                const injectEffect = document.createElement('div');
+                injectEffect.style.position = 'fixed';
+                injectEffect.style.top = '0';
+                injectEffect.style.left = '0';
+                injectEffect.style.width = '100%';
+                injectEffect.style.height = '100%';
+                injectEffect.style.background = 'radial-gradient(circle, transparent 30%, rgba(0,255,0,0.3) 70%)';
+                injectEffect.style.pointerEvents = 'none';
+                injectEffect.style.zIndex = '10000';
+                injectEffect.style.animation = 'fadeOut 1s forwards';
+                
+                document.body.appendChild(injectEffect);
+                
+                setTimeout(() => {
+                    document.body.removeChild(injectEffect);
+                }, 1000);
+            }, 2000);
+        }
+        
+        // 随机添加控制台消息
+        setInterval(() => {
+            const messages = [
+                '检测到网络活动',
+                '防火墙状态: 活跃',
+                '监控数据流...',
+                '加密通道: 安全',
+                '反追踪协议: 启用'
+            ];
+            
+            if (Math.random() > 0.7) {
+                addConsoleLine('> ' + messages[Math.floor(Math.random() * messages.length)]);
+            }
+        }, 5000);
+    </script>
+</body>
+</html>

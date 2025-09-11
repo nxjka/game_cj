@@ -2155,7 +2155,7 @@ async function updateWeather() {
     const LOCATION_ID = 'CN101010100'; // 北京
     
     try {
-        const response = await fetch(`https://devapi.qweather.com/v7/weather/now?location=${LOCATION_ID}&key=${API_KEY}`);
+        const response = await fetch(`https://ky3dn845vm.re.qweatherapi.com/v7/weather/now?location=${LOCATION_ID}&key=${API_KEY}`);
         const data = await response.json();
         
         if (data.code === '200') {
