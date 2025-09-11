@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>多功能TXT阅读器</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            color: #333;
+            line-height: 1.6;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 20px;
+        }
+        
+        header {
+            grid-column: 1 / -1;
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+        }
+        
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 2.5rem;
+        }
+        
+        .subtitle {
+            color: #7f8c8d;
+            font-size: 1.2rem;
+        }
+        
+        .library-section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            height: fit-content;
+        }
+        
+        .library-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #eee;
+        }
+        
+        .books-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .book-item {
+            padding: 12px 15px;
+            margin-bottom: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .book-item:hover {
+            background: #e9ecef;
+            transform: translateX(5px);
+        }
+        
+        .book-item.active {
+            background: #4a69bd;
+            color: white;
+        }
+        
+        .reader-section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            display: flex;
+            flex-direction: column;
+            min-height: 700px;
+        }
+        
+        .reader-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #eee;
+        }
+        
+        .book-title {
+            font-size: 1.8rem;
+            color: #2c3e50;
+        }
+        
+        .book-content {
+            flex-grow: 1;
+            font-size: 18px;
+            line-height: 1.8;
+            text-align: justify;
+            padding: 25px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            overflow-y: auto;
+            max-height: 500px;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-top: 2px solid #eee;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            background: #4a69bd;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn:hover {
+            background: #3c5aa6;
+            transform: translateY(-2px);
+        }
+        
+        .btn:disabled {
+            background: #95a5a6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .reading-controls {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+        
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #f1f3f5;
+            padding: 8px 15px;
+            border-radius: 6px;
+        }
+        
+        .control-label {
+            font-weight: 500;
+            color: #495057;
+        }
+        
+        input[type="number"] {
+            width: 60px;
+            padding: 8px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            text-align: center;
+        }
+        
+        .mode-toggle {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #f39c12;
+        }
+        
+        .page-info {
+            font-size: 16px;
+            color: #495057;
+            font-weight: 500;
+        }
+        
+        .upload-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+        
+        .upload-title {
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+        
+        .file-input {
+            display: none;
+        }
+        
+        .file-label {
+            display: inline-block;
+            padding: 12px 25px;
+            background: #4a69bd;
+            color: white;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.3s;
+            font-weight: 500;
+        }
+        
+        .file-label:hover {
+            background: #3c5aa6;
+        }
+        
+        .image-preview {
+            margin-top: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+        }
+        
+        .preview-item {
+            position: relative;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .preview-item img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            display: block;
+        }
+        
+        .preview-item .remove-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: #e74c3c;
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .tab-container {
+            margin-top: 20px;
+        }
+        
+        .tabs {
+            display: flex;
+            margin-bottom: 15px;
+        }
+        
+        .tab {
+            padding: 10px 20px;
+            background: #e9ecef;
+            border-radius: 6px 6px 0 0;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        
+        .tab.active {
+            background: #4a69bd;
+            color: white;
+        }
+        
+        .tab-content {
+            display: none;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 0 10px 10px 10px;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        footer {
+            grid-column: 1 / -1;
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            color: white;
+            font-size: 16px;
+        }
+        
+        @media (max-width: 900px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+            
+            .books-list {
+                max-height: 200px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>多功能TXT阅读器</h1>
+            <p class="subtitle">上传TXT文件或图片，享受自定义阅读体验</p>
+        </header>
+        
+        <section class="library-section">
+            <div class="library-header">
+                <h2>我的书籍库</h2>
+                <button class="btn" id="addBookBtn"><i class="fas fa-plus"></i> 添加书籍</button>
+            </div>
+            
+            <div class="books-list" id="booksList">
+                <!-- 书籍列表将动态生成 -->
+                <div class="book-item active">
+                    <span>示例书籍</span>
+                    <i class="fas fa-book"></i>
+                </div>
+            </div>
+            
+            <div class="upload-section">
+                <h3 class="upload-title">上传内容</h3>
+                
+                <div class="tab-container">
+                    <div class="tabs">
+                        <div class="tab active" data-tab="txt">TXT文件</div>
+                        <div class="tab" data-tab="image">图片</div>
+                    </div>
+                    
+                    <div class="tab-content active" id="txtTab">
+                        <input type="file" id="txtFileInput" class="file-input" accept=".txt" multiple>
+                        <label for="txtFileInput" class="file-label"><i class="fas fa-file-alt"></i> 选择TXT文件</label>
+                    </div>
+                    
+                    <div class="tab-content" id="imageTab">
+                        <input type="file" id="imageFileInput" class="file-input" accept="image/*" multiple>
+                        <label for="imageFileInput" class="file-label"><i class="fas fa-image"></i> 选择图片</label>
+                        
+                        <div class="image-preview" id="imagePreview"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <section class="reader-section">
+            <div class="reader-header">
+                <h2 class="book-title" id="bookTitle">示例书籍</h2>
+                <div class="control-group">
+                    <span class="control-label">每页行数:</span>
+                    <input type="number" id="linesPerPage" min="5" max="50" value="15">
+                </div>
+            </div>
+            
+            <div class="book-content" id="bookContent">
+                <!-- 书籍内容将在这里显示 -->
+                <p>欢迎使用多功能TXT阅读器！</p>
+                <p>您可以上传多个TXT文件，它们将显示在左侧的书籍库中。</p>
+                <p>点击左侧的书籍名称可以切换阅读的书籍。</p>
+                <p>使用下方的控制按钮可以翻页，调整每页行数，或者切换日夜模式。</p>
+                <p>您还可以上传图片来创建漫画阅读体验。</p>
+                <p>享受阅读吧！</p>
+            </div>
+            
+            <div class="controls">
+                <div>
+                    <button class="btn" id="prevBtn" disabled><i class="fas fa-arrow-left"></i> 上一页</button>
+                    <button class="btn" id="nextBtn">下一页 <i class="fas fa-arrow-right"></i></button>
+                </div>
+                
+                <div class="reading-controls">
+                    <div class="control-group">
+                        <span class="control-label">字体大小:</span>
+                        <button class="mode-toggle" id="fontSmaller">A-</button>
+                        <button class="mode-toggle" id="fontReset">A</button>
+                        <button class="mode-toggle" id="fontLarger">A+</button>
+                    </div>
+                    
+                    <button class="mode-toggle" id="modeToggle">🌙</button>
+                    
+                    <span class="page-info" id="pageInfo">第 1 页</span>
+                </div>
+            </div>
+        </section>
+        
+        <footer>
+            <p>© 2023 多功能TXT阅读器 | 设计用于最佳阅读体验</p>
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 获取DOM元素
+            const txtFileInput = document.getElementById('txtFileInput');
+            const imageFileInput = document.getElementById('imageFileInput');
+            const booksList = document.getElementById('booksList');
+            const readerSection = document.getElementById('readerSection');
+            const bookTitle = document.getElementById('bookTitle');
+            const bookContent = document.getElementById('bookContent');
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            const fontSmaller = document.getElementById('fontSmaller');
+            const fontReset = document.getElementById('fontReset');
+            const fontLarger = document.getElementById('fontLarger');
+            const modeToggle = document.getElementById('modeToggle');
+            const pageInfo = document.getElementById('pageInfo');
+            const linesPerPage = document.getElementById('linesPerPage');
+            const imagePreview = document.getElementById('imagePreview');
+            const tabs = document.querySelectorAll('.tab');
+            const tabContents = document.querySelectorAll('.tab-content');
+            
+            // 全局变量
+            let books = [];
+            let currentBookIndex = 0;
+            let currentPage = 1;
+            let totalPages = 1;
+            let fontSize = 18;
+            let isNightMode = false;
+            
+            // 初始化示例书籍
+            const sampleBook = {
+                id: Date.now(),
+                title: "示例书籍",
+                type: "text",
+                content: "欢迎使用多功能TXT阅读器！\n\n您可以上传多个TXT文件，它们将显示在左侧的书籍库中。\n点击左侧的书籍名称可以切换阅读的书籍。\n使用下方的控制按钮可以翻页，调整每页行数，或者切换日夜模式。\n您还可以上传图片来创建漫画阅读体验。\n\n享受阅读吧！",
+                linesPerPage: 15
+            };
+            
+            books.push(sampleBook);
+            renderBooksList();
+            
+            // 监听TXT文件上传
+            txtFileInput.addEventListener('change', function(e) {
+                const files = e.target.files;
+                if (!files.length) return;
+                
+                for (let i = 0; i < files.length; i++) {
+                    const file = files[i];
+                    const reader = new FileReader();
+                    
+                    reader.onload = function(e) {
+                        const content = e.target.result;
+                        const newBook = {
+                            id: Date.now() + i,
+                            title: file.name.replace('.txt', ''),
+                            type: "text",
+                            content: content,
+                            linesPerPage: 15
+                        };
+                        
+                        books.push(newBook);
+                        renderBooksList();
+                        switchBook(books.length - 1);
+                    };
+                    
+                    reader.readAsText(file);
+                }
+            });
+            
+            // 监听图片文件上传
+            imageFileInput.addEventListener('change', function(e) {
+                const files = e.target.files;
+                if (!files.length) return;
+                
+                for (let i = 0; i < files.length; i++) {
+                    const file = files[i];
+                    if (!file.type.match('image.*')) continue;
+                    
+                    const reader = new FileReader();
+                    
+                    reader.onload = function(e) {
+                        const imgData = e.target.result;
+                        
+                        // 创建图片预览
+                        const previewItem = document.createElement('div');
+                        previewItem.className = 'preview-item';
+                        
+                        const img = document.createElement('img');
+                        img.src = imgData;
+                        
+                        const removeBtn = document.createElement('div');
+                        removeBtn.className = 'remove-btn';
+                        removeBtn.innerHTML = '×';
+                        removeBtn.onclick = function() {
+                            previewItem.remove();
+                        };
+                        
+                        previewItem.appendChild(img);
+                        previewItem.appendChild(removeBtn);
+                        imagePreview.appendChild(previewItem);
+                        
+                        // 创建图片书籍
+                        const newBook = {
+                            id: Date.now() + i,
+                            title: `图片 ${books.length + 1}`,
+                            type: "image",
+                            content: imgData,
+                            linesPerPage: 1
+                        };
+                        
+                        books.push(newBook);
+                        renderBooksList();
+                    };
+                    
+                    reader.readAsDataURL(file);
+                }
+            });
+            
+            // 渲染书籍列表
+            function renderBooksList() {
+                booksList.innerHTML = '';
+                
+                books.forEach((book, index) => {
+                    const bookItem = document.createElement('div');
+                    bookItem.className = `book-item ${index === currentBookIndex ? 'active' : ''}`;
+                    bookItem.innerHTML = `
+                        <span>${book.title}</span>
+                        <i class="fas ${book.type === 'text' ? 'fa-book' : 'fa-image'}"></i>
+                    `;
+                    
+                    bookItem.addEventListener('click', () => {
+                        switchBook(index);
+                    });
+                    
+                    booksList.appendChild(bookItem);
+                });
+            }
+            
+            // 切换书籍
+            function switchBook(index) {
+                currentBookIndex = index;
+                currentPage = 1;
+                renderBooksList();
+                displayCurrentBook();
+            }
+            
+            // 显示当前书籍
+            function displayCurrentBook() {
+                const book = books[currentBookIndex];
+                bookTitle.textContent = book.title;
+                linesPerPage.value = book.linesPerPage;
+                
+                if (book.type === 'text') {
+                    processTextContent(book.content);
+                } else {
+                    // 显示图片
+                    bookContent.innerHTML = `<img src="${book.content}" style="max-width: 100%; display: block; margin: 0 auto;">`;
+                    totalPages = 1;
+                    updatePageInfo();
+                }
+            }
+            
+            // 处理文本内容并分页
+            function processTextContent(content) {
+                // 分割文本为行
+                const lines = content.split('\n').filter(line => line.trim() !== '');
+                const linesPerPageValue = parseInt(linesPerPage.value);
+                
+                // 计算总页数
+                totalPages = Math.ceil(lines.length / linesPerPageValue);
+                
+                // 显示当前页
+                showTextPage(currentPage, lines, linesPerPageValue);
+            }
+            
+            // 显示文本页
+            function showTextPage(pageNum, lines, linesPerPage) {
+                if (pageNum < 1 || pageNum > totalPages) return;
+                
+                currentPage = pageNum;
+                
+                const start = (pageNum - 1) * linesPerPage;
+                const end = Math.min(start + linesPerPage, lines.length);
+                const pageLines = lines.slice(start, end);
+                
+                bookContent.innerHTML = '';
+                
+                pageLines.forEach(line => {
+                    const p = document.createElement('p');
+                    p.textContent = line;
+                    bookContent.appendChild(p);
+                });
+                
+                updatePageInfo();
+                
+                // 更新按钮状态
+                prevBtn.disabled = pageNum === 1;
+                nextBtn.disabled = pageNum === totalPages;
+            }
+            
+            // 更新页面信息
+            function updatePageInfo() {
+                pageInfo.textContent = `第 ${currentPage} 页，共 ${totalPages} 页`;
+            }
+            
+            // 上一页
+            prevBtn.addEventListener('click', function() {
+                if (currentPage > 1) {
+                    currentPage--;
+                    
+                    if (books[currentBookIndex].type === 'text') {
+                        processTextContent(books[currentBookIndex].content);
+                    } else {
+                        displayCurrentBook();
+                    }
+                }
+            });
+            
+            // 下一页
+            nextBtn.addEventListener('click', function() {
+                if (currentPage < totalPages) {
+                    currentPage++;
+                    
+                    if (books[currentBookIndex].type === 'text') {
+                        processTextContent(books[currentBookIndex].content);
+                    } else {
+                        displayCurrentBook();
+                    }
+                }
+            });
+            
+            // 字体大小控制
+            fontSmaller.addEventListener('click', function() {
+                if (fontSize > 14) {
+                    fontSize -= 2;
+                    bookContent.style.fontSize = fontSize + 'px';
+                }
+            });
+            
+            fontReset.addEventListener('click', function() {
+                fontSize = 18;
+                bookContent.style.fontSize = fontSize + 'px';
+            });
+            
+            fontLarger.addEventListener('click', function() {
+                if (fontSize < 24) {
+                    fontSize += 2;
+                    bookContent.style.fontSize = fontSize + 'px';
+                }
+            });
+            
+            // 夜间模式切换
+            modeToggle.addEventListener('click', function() {
+                isNightMode = !isNightMode;
+                document.body.classList.toggle('night-mode', isNightMode);
+                modeToggle.textContent = isNightMode ? '☀️' : '🌙';
+                
+                // 更新阅读区域样式
+                if (isNightMode) {
+                    readerSection.style.backgroundColor = '#2d2d2d';
+                    readerSection.style.color = '#e6e6e6';
+                    bookContent.style.backgroundColor = '#3d3d3d';
+                    bookTitle.style.color = '#ecf0f1';
+                } else {
+                    readerSection.style.backgroundColor = 'rgba(255, 255, 255, 0.95)';
+                    readerSection.style.color = '#333';
+                    bookContent.style.backgroundColor = '#f8f9fa';
+                    bookTitle.style.color = '#2c3e50';
+                }
+            });
+            
+            // 每页行数更改
+            linesPerPage.addEventListener('change', function() {
+                const value = parseInt(this.value);
+                if (value < 5) this.value = 5;
+                if (value > 50) this.value = 50;
+                
+                books[currentBookIndex].linesPerPage = parseInt(this.value);
+                
+                if (books[currentBookIndex].type === 'text') {
+                    processTextContent(books[currentBookIndex].content);
+                }
+            });
+            
+            // 标签切换
+            tabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const tabId = this.getAttribute('data-tab');
+                    
+                    // 更新活动标签
+                    tabs.forEach(t => t.classList.remove('active'));
+                    tabContents.forEach(t => t.classList.remove('active'));
+                    
+                    this.classList.add('active');
+                    document.getElementById(tabId + 'Tab').classList.add('active');
+                });
+            });
+            
+            // 添加新书籍按钮
+            document.getElementById('addBookBtn').addEventListener('click', function() {
+                const newBook = {
+                    id: Date.now(),
+                    title: `新书籍 ${books.length + 1}`,
+                    type: "text",
+                    content: "这是您的新书籍，开始编写您的内容吧！",
+                    linesPerPage: 15
+                };
+                
+                books.push(newBook);
+                renderBooksList();
+                switchBook(books.length - 1);
+            });
+        });
+    </script>
+</body>
+</html>

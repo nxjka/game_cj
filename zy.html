@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>设计资源导航 - 设计师必备工具大全</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 20px;
+            color: white;
+        }
+        
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .description {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .search-box {
+            display: flex;
+            justify-content: center;
+            margin: 30px 0;
+        }
+        
+        .search-box input {
+            padding: 15px 20px;
+            width: 100%;
+            max-width: 500px;
+            border: none;
+            border-radius: 50px 0 0 50px;
+            font-size: 1.1rem;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            outline: none;
+        }
+        
+        .search-box button {
+            padding: 15px 25px;
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            border-radius: 0 50px 50px 0;
+            cursor: pointer;
+            font-size: 1.1rem;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .search-box button:hover {
+            background: #ee5a5a;
+        }
+        
+        .categories {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+        
+        .category-btn {
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+        
+        .category-btn:hover, .category-btn.active {
+            background: #ff6b6b;
+        }
+        
+        .websites-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 25px;
+        }
+        
+        .website-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        
+        .website-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+        }
+        
+        .website-icon {
+            font-size: 2.8rem;
+            margin-bottom: 20px;
+            color: #667eea;
+            flex-shrink: 0;
+        }
+        
+        .website-name {
+            font-weight: 700;
+            margin-bottom: 12px;
+            font-size: 1.3rem;
+            color: #333;
+        }
+        
+        .website-desc {
+            font-size: 0.95rem;
+            color: #666;
+            margin-bottom: 20px;
+            line-height: 1.5;
+            flex-grow: 1;
+        }
+        
+        .website-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        
+        .website-tag {
+            background: #e0e7ff;
+            color: #667eea;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        
+        .visit-btn {
+            padding: 10px 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+            font-weight: 600;
+            margin-top: auto;
+        }
+        
+        .visit-btn:hover {
+            background: #5a67d8;
+            transform: translateY(-2px);
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 50px;
+            padding: 20px;
+            color: white;
+            opacity: 0.7;
+        }
+        
+        @media (max-width: 768px) {
+            .websites-grid {
+                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+                gap: 15px;
+            }
+            
+            h1 {
+                font-size: 2.2rem;
+            }
+            
+            .website-card {
+                padding: 20px;
+            }
+        }
+        
+        .featured-badge {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            background: #ff6b6b;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .card-wrapper {
+            position: relative;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>设计资源导航</h1>
+            <p class="description">精选优质设计资源网站，提升你的设计效率与创造力</p>
+        </header>
+        
+        <div class="search-box">
+            <input type="text" placeholder="搜索设计资源...">
+            <button><i class="fas fa-search"></i> 搜索</button>
+        </div>
+        
+        <div class="categories">
+            <button class="category-btn active">全部</button>
+            <button class="category-btn">UI/UX设计</button>
+            <button class="category-btn">灵感资源</button>
+            <button class="category-btn">图标字体</button>
+            <button class="category-btn">配色方案</button>
+            <button class="category-btn">设计工具</button>
+            <button class="category-btn">素材资源</button>
+        </div>
+        
+        <div class="websites-grid">
+            <!-- UI/UX设计 -->
+            <div class="card-wrapper">
+                <div class="website-card">
+                    <div class="website-icon"><i class="fab fa-figma"></i></div>
+                    <div class="website-name">Figma</div>
+                    <div class="website-desc">基于浏览器的协作式UI设计工具，支持实时协作和设计系统管理</div>
+                    <div class="website-tags">
+                        <span class="website-tag">UI设计</span>
+                        <span class="website-tag">协作</span>
+                    </div>
+                    <a href="https://www.figma.com/" target="_blank"><button class="visit-btn">访问网站</button></a>
+                </div>
+            </div>
+            
+            <div class="card-wrapper">
+                <div class="website-card">
+                    <div class="website-icon"><i class="fas fa-pencil-ruler"></i></div>
+                    <div class="website-name">Dribbble</div>
+                    <div class="website-desc">设计师展示和分享作品的社交平台，寻找设计灵感和人才</div>
+                    <div class="website-tags">
+                        <span class="website-tag">灵感</span>
+                        <span class="website-tag">作品集</span>
+                    </div>
+                    <a href="https://dribbble.com/" target="_blank"><button class="visit-btn">访问网站</button></a>
+                </div>
+            </div>
+            
+            <div class="card-wrapper">
+                <div class="website-card">
+                    <div class="website-icon"><i class="fas fa-bezier-curve"></i></div>
+                    <div class="website-name">Behance</div>
+                    <div class="website-desc">Adobe旗下的创意作品展示平台，汇集全球创意人才的专业作品</div>
+                    <div class="website-tags">
+                        <span class="website-tag">创意</span>
+                        <span class="website-tag">作品集</span>
+                    </div>
+                    <a href="https://www.behance.net/" target="_blank"><button class="visit-btn">访问网站</button></a>
+                </div>
+            </div>
+            
+            <!-- 灵感资源 -->
+            <div class="card-wrapper">
+                <div class="website-card">
+                    <div class="website-icon"><i class="fas fa-palette"></i></div>
+                    <div class="website-name">Awwwards</div>
+                    <div class="website-desc">评选最佳网页设计作品的平台，提供大量优秀网页设计案例</div>
+                    <div class="website-tags">
+                        <span class="website-tag">网页设计</span>
+                        <span class="website-tag">灵感</span>
+                    </div>
+                    <a href="https://www.awwwards.com/" target="_blank"><button class="visit-btn">访问网站</button></a>
+                </div>
+            </div>
+            
+            <div class="card-wrapper">
+                <div class="website-card">
+                    <div class="website-icon"><i class="fas fa-lightbulb"></i></div>
+                    <div class="website-name">SiteInspire</div>
+                    <div class="website-desc">网页设计灵感库，展示精心挑选的优秀网站设计作品</div>
+                    <div class="website-tags">
+                        <span class="website-tag">网页设计</span>
+                        <span class="website-tag">案例</span>
+                    </div>
+                    <a href="https://www.siteinspire.com/" target="_blank"><button class="visit-btn">访问网站</button></a>
+                </div>
+            </div>
+            
+            <div class="card-wrapper">
+                <div class="website-card">
+                    <div class="website-icon"><i class="fas fa-desktop"></i></div>
+                    <div class="website-name">UI Movement</div>
+                    <div class="website-desc">专注于UI动效设计的灵感社区，展示最佳移动应用界面动画</div>
+                    <div class="website-tags">
+                        <span class="website-tag">动效</span>
+                        <span class="website-tag">UI设计</span>
+                    </div>
+                    <a href="https://uimovement.com/" target="_blank"><button class="visit-btn">访问网站</button></a>
+                </div>
+            </div>
+            
+            <!-- 图标字体 -->
+            <div class="card-wrapper">
+                <div class="website-card">
+                    <div class="website-icon"><i class="fas fa-icons"></i></div>
+                    <div class="website-name">Font Awesome</div>
+                    <div class="website-desc">世界上最受欢迎的图标集和工具包，拥有数千个矢量图标</div>
+                    <div class="website-tags">
+                        <span class="website-tag">图标</span>
+                        <span class="website-tag">字体</span>
+                    </div>
+                    <a href="https://fontawesome.com/" target="_blank"><button class="visit-btn">访问网站</button></a>
+                </div>
+            </div>
+            
+            <div class="card-wrapper">
+                <div class="website-card">
+                    <div class="website-icon"><i class="fas fa-font"></i></div>
+                    <div class="website-name">Google Fonts</div>
+                    <div class="website-desc">免费开源的字体库，提供数百种优化用于web的字体家族</div>
+                    <div class="website-tags">
+                        <span class="website-tag">字体</span>
+                        <span class="website-tag">免费</span>
+                    </div>
+                    <a href="https://fonts.google.com/" target="_blank"><button class="visit-btn">访问网站</button></a>
+                </div>
+            </div>
+            
+            <div class="card-wrapper">
+                <div class="website-card">
+                    <div class="website-icon"><i class="fas fa-paint-brush"></i></div>
+                    <div class="website-name">Iconfinder</div>
+                    <div class="website-desc">提供数百万高质量图标的平台，包含免费和付费选项</div>
+                    <div class="website-tags">
+                        <span class="website-tag">图标</span>
+                        <span class="website-tag">资源</span>
+                    </div>
+                    <a href="https://www.iconfinder.com/" target="_blank"><button class="visit-btn">访问网站</button></a>
+                </div>
+            </div>
+            
+            <!-- 配色方案 -->
+            <div class="card-wrapper">
+                <div class="website-card">
+                    <div class="website-icon"><i class="fas fa-fill-drip"></i></div>
+                    <div class="website-name">Coolors</div>
+                    <div class="website-desc">超快速的配色方案生成器，为你的设计项目创建完美调色板</div>
+                    <div class="website-tags">
+                        <span class="website-tag">配色</span>
+                        <span class="website-tag">生成器</span>
+                    </div>
+                    <a href="https://coolors.co/" target="_blank"><button class="visit-btn">访问网站</button></a>
+                </div>
+            </div>
+            
+            <div class="card-wrapper">
+                <div class="website-card">
+                    <div class="website-icon"><i class="fas fa-swatchbook"></i></div>
+                    <div class="website-name">Adobe Color</div>
+                    <div class="website-desc">基于色彩理论的配色工具，创建和探索色彩组合与和谐</div>
+                    <div class="website-tags">
+                        <span class="website-tag">配色</span>
+                        <span class="website-tag">工具</span>
+                    </div>
+                    <a href="https://color.adobe.com/" target="_blank"><button class="visit-btn">访问网站</button></a>
+                </div>
+            </div>
+            
+            <div class="card-wrapper">
+                <div class="website-card">
+                    <div class="website-icon"><i class="fas fa-eye-dropper"></i></div>
+                    <div class="website-name">Colormind</div>
+                    <div class="website-desc">使用深度学习技术的配色方案生成器，学习来自现实世界的色彩风格</div>
+                    <div class="website-tags">
+                        <span class="website-tag">配色</span>
+                        <span class="website-tag">AI</span>
+                    </div>
+                    <a href="http://colormind.io/" target="_blank"><button class="visit-btn">访问网站</button></a>
+                </div>
+            </div>
+            
+            <!-- 设计工具 -->
+            <div class="card-wrapper">
+                <div class="website-card">
+                    <div class="website-icon"><i class="fas fa-magic"></i></div>
+                    <div class="website-name">Canva</div>
+                    <div class="website-desc">在线设计平台，提供模板和工具让非设计师也能轻松创建专业设计</div>
+                    <div class="website-tags">
+                        <span class="website-tag">设计工具</span>
+                        <span class="website-tag">模板</span>
+                    </div>
+                    <a href="https://www.canva.com/" target="_blank"><button class="visit-btn">访问网站</button></a>
+                </div>
+            </div>
+            
+            <div class="card-wrapper">
+                <div class="website-card">
+                    <div class="website-icon"><i class="fas fa-crop-alt"></i></div>
+                    <div class="website-name">Sketch</div>
+                    <div class="website-desc">专业矢量图形编辑软件，专为UI和UX设计师打造</div>
+                    <div class="website-tags">
+                        <span class="website-tag">UI设计</span>
+                        <span class="website-tag">工具</span>
+                    </div>
+                    <a href="https://www.sketch.com/" target="_blank"><button class="visit-btn">访问网站</button></a>
+                </div>
+            </div>
+            
+            <div class="card-wrapper">
+                <div class="website-card">
+                    <div class="website-icon"><i class="fas fa-vector-square"></i></div>
+                    <div class="website-name">Adobe XD</div>
+                    <div class="website-desc">Adobe推出的UX/UI设计和协作工具，支持原型设计和共享</div>
+                    <div class="website-tags">
+                        <span class="website-tag">UX设计</span>
+                        <span class="website-tag">原型</span>
+                    </div>
+                    <a href="https://www.adobe.com/products/xd.html" target="_blank"><button class="visit-btn">访问网站</button></a>
+                </div>
+            </div>
+            
+            <!-- 素材资源 -->
+            <div class="card-wrapper">
+                <div class="website-card">
+                    <div class="website-icon"><i class="fas fa-images"></i></div>
+                    <div class="website-name">Unsplash</div>
+                    <div class="website-desc">高质量免费图片资源库，所有照片均可免费下载和使用</div>
+                    <div class="website-tags">
+                        <span class="website-tag">图片</span>
+                        <span class="website-tag">免费</span>
+                    </div>
+                    <a href="https://unsplash.com/" target="_blank"><button class="visit-btn">访问网站</button></a>
+                </div>
+            </div>
+            
+            <div class="card-wrapper">
+                <div class="website-card">
+                    <div class="website-icon"><i class="fas fa-camera"></i></div>
+                    <div class="website-name">Pexels</div>
+                    <div class="website-desc">提供大量免费库存照片和视频的平台，由创作者社区共享</div>
+                    <div class="website-tags">
+                        <span class="website-tag">图片</span>
+                        <span class="website-tag">视频</span>
+                    </div>
+                    <a href="https://www.pexels.com/" target="_blank"><button class="visit-btn">访问网站</button></a>
+                </div>
+            </div>
+            
+            <div class="card-wrapper">
+                <div class="website-card">
+                    <div class="website-icon"><i class="fas fa-music"></i></div>
+                    <div class="website-name">Envato Elements</div>
+                    <div class="website-desc">创意资产订阅服务，提供数百万字体、模板、照片和图形资源</div>
+                    <div class="website-tags">
+                        <span class="website-tag">资源库</span>
+                        <span class="website-tag">订阅</span>
+                    </div>
+                    <a href="https://elements.envato.com/" target="_blank"><button class="visit-btn">访问网站</button></a>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>© 2023 设计资源导航 | 为设计师提供优质资源整合</p>
+        </footer>
+    </div>
+
+    <script>
+        // 分类筛选功能
+        document.addEventListener('DOMContentLoaded', function() {
+            const categoryBtns = document.querySelectorAll('.category-btn');
+            const websiteCards = document.querySelectorAll('.website-card');
+            
+            categoryBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    // 移除所有active类
+                    categoryBtns.forEach(b => b.classList.remove('active'));
+                    // 给当前点击的按钮添加active类
+                    this.classList.add('active');
+                    
+                    const category = this.textContent.trim();
+                    
+                    // 筛选卡片
+                    websiteCards.forEach(card => {
+                        if (category === '全部') {
+                            card.parentElement.style.display = 'block';
+                        } else {
+                            const tags = card.querySelectorAll('.website-tag');
+                            let hasCategory = false;
+                            
+                            tags.forEach(tag => {
+                                if (tag.textContent === category) {
+                                    hasCategory = true;
+                                }
+                            });
+                            
+                            card.parentElement.style.display = hasCategory ? 'block' : 'none';
+                        }
+                    });
+                });
+            });
+            
+            // 搜索功能
+            const searchInput = document.querySelector('.search-box input');
+            const searchBtn = document.querySelector('.search-box button');
+            
+            searchBtn.addEventListener('click', performSearch);
+            searchInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    performSearch();
+                }
+            });
+            
+            function performSearch() {
+                const searchTerm = searchInput.value.toLowerCase();
+                
+                websiteCards.forEach(card => {
+                    const name = card.querySelector('.website-name').textContent.toLowerCase();
+                    const desc = card.querySelector('.website-desc').textContent.toLowerCase();
+                    const tags = card.querySelectorAll('.website-tag');
+                    let tagMatch = false;
+                    
+                    tags.forEach(tag => {
+                        if (tag.textContent.toLowerCase().includes(searchTerm)) {
+                            tagMatch = true;
+                        }
+                    });
+                    
+                    if (name.includes(searchTerm) || desc.includes(searchTerm) || tagMatch) {
+                        card.parentElement.style.display = 'block';
+                    } else {
+                        card.parentElement.style.display = 'none';
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>视频网站导航大全</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            color: #333;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 20px;
+            color: white;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .description {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .search-box {
+            display: flex;
+            justify-content: center;
+            margin: 30px 0;
+        }
+        
+        .search-box input {
+            padding: 15px 20px;
+            width: 100%;
+            max-width: 500px;
+            border: none;
+            border-radius: 50px 0 0 50px;
+            font-size: 1.1rem;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            outline: none;
+        }
+        
+        .search-box button {
+            padding: 15px 25px;
+            background: #ff4b2b;
+            color: white;
+            border: none;
+            border-radius: 0 50px 50px 0;
+            cursor: pointer;
+            font-size: 1.1rem;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .search-box button:hover {
+            background: #ff416c;
+        }
+        
+        .categories {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+        
+        .category-btn {
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+        
+        .category-btn:hover, .category-btn.active {
+            background: #ff4b2b;
+        }
+        
+        .websites-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 25px;
+        }
+        
+        .website-card {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .website-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+        }
+        
+        .website-icon {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            color: #ff4b2b;
+        }
+        
+        .website-name {
+            font-weight: 600;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+        
+        .website-desc {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 15px;
+        }
+        
+        .visit-btn {
+            padding: 8px 15px;
+            background: #ff4b2b;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+        
+        .visit-btn:hover {
+            background: #ff416c;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 50px;
+            padding: 20px;
+            color: white;
+            opacity: 0.7;
+        }
+        
+        @media (max-width: 768px) {
+            .websites-grid {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+                gap: 15px;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>视频网站导航大全</h1>
+            <p class="description">一站式访问国内外热门视频平台，发现更多精彩内容</p>
+        </header>
+        
+        <div class="search-box">
+            <input type="text" placeholder="搜索视频网站...">
+            <button><i class="fas fa-search"></i> 搜索</button>
+        </div>
+        
+        <div class="categories">
+            <button class="category-btn active">全部</button>
+            <button class="category-btn">国内视频</button>
+            <button class="category-btn">短视频</button>
+            <button class="category-btn">国际平台</button>
+            <button class="category-btn">影视点播</button>
+            <button class="category-btn">直播平台</button>
+        </div>
+        
+        <div class="websites-grid">
+            <!-- 原有网站 -->
+            <div class="website-card">
+                <div class="website-icon"><i class="fas fa-play-circle"></i></div>
+                <div class="website-name">优酷</div>
+                <div class="website-desc">阿里巴巴旗下视频平台</div>
+                <a href="https://www.youku.com/ku/webhome" target="_blank"><button class="visit-btn">访问网站</button></a>
+            </div>
+            
+            <div class="website-card">
+                <div class="website-icon"><i class="fas fa-tv"></i></div>
+                <div class="website-name">爱奇艺</div>
+                <div class="website-desc">百度旗下视频平台</div>
+                <a href="https://www.iqiyi.com/" target="_blank"><button class="visit-btn">访问网站</button></a>
+            </div>
+            
+            <div class="website-card">
+                <div class="website-icon"><i class="fab fa-tencent"></i></div>
+                <div class="website-name">腾讯视频</div>
+                <div class="website-desc">腾讯旗下视频平台</div>
+                <a href="https://v.qq.com/" target="_blank"><button class="visit-btn">访问网站</button></a>
+            </div>
+            
+            <div class="website-card">
+                <div class="website-icon"><i class="fas fa-circle"></i></div>
+                <div class="website-name">B站</div>
+                <div class="website-desc">哔哩哔哩弹幕视频网</div>
+                <a href="https://www.bilibili.com/" target="_blank"><button class="visit-btn">访问网站</button></a>
+            </div>
+            
+            <div class="website-card">
+                <div class="website-icon"><i class="fas fa-video"></i></div>
+                <div class="website-name">抖音</div>
+                <div class="website-desc">短视频分享平台</div>
+                <a href="https://www.douyin.com/" target="_blank"><button class="visit-btn">访问网站</button></a>
+            </div>
+            
+            <div class="website-card">
+                <div class="website-icon"><i class="fas fa-bolt"></i></div>
+                <div class="website-name">快手</div>
+                <div class="website-desc">短视频分享平台</div>
+                <a href="https://www.kuaishou.com/" target="_blank"><button class="visit-btn">访问网站</button></a>
+            </div>
+            
+            <div class="website-card">
+                <div class="website-icon"><i class="fas fa-film"></i></div>
+                <div class="website-name">芒果TV</div>
+                <div class="website-desc">湖南广播电视台旗下视频平台</div>
+                <a href="https://www.mgtv.com/" target="_blank"><button class="visit-btn">访问网站</button></a>
+            </div>
+            
+            <div class="website-card">
+                <div class="website-icon"><i class="fas fa-gamepad"></i></div>
+                <div class="website-name">AcFun</div>
+                <div class="website-desc">弹幕视频网</div>
+                <a href="https://www.acfun.cn/" target="_blank"><button class="visit-btn">访问网站</button></a>
+            </div>
+            
+            <div class="website-card">
+                <div class="website-icon"><i class="fas fa-desktop"></i></div>
+                <div class="website-name">PPTV</div>
+                <div class="website-desc">网络电视平台</div>
+                <a href="https://www.pptv.com/" target="_blank"><button class="visit-btn">访问网站</button></a>
+            </div>
+            
+            <div class="website-card">
+                <div class="website-icon"><i class="fas fa-clapperboard"></i></div>
+                <div class="website-name">1905电影网</div>
+                <div class="website-desc">专业电影门户网站</div>
+                <a href="https://www.1905.com/" target="_blank"><button class="visit-btn">访问网站</button></a>
+            </div>
+            
+            <!-- 新增网站 -->
+            <div class="website-card">
+                <div class="website-icon"><i class="fab fa-youtube"></i></div>
+                <div class="website-name">YouTube</div>
+                <div class="website-desc">全球最大视频分享平台</div>
+                <a href="https://www.youtube.com/" target="_blank"><button class="visit-btn">访问网站</button></a>
+            </div>
+            
+            <div class="website-card">
+                <div class="website-icon"><i class="fas fa-network-wired"></i></div>
+                <div class="website-name">Netflix</div>
+                <div class="website-desc">全球流媒体服务商</div>
+                <a href="https://www.netflix.com/" target="_blank"><button class="visit-btn">访问网站</button></a>
+            </div>
+            
+            <div class="website-card">
+                <div class="website-icon"><i class="fas fa-crown"></i></div>
+                <div class="website-name">西瓜视频</div>
+                <div class="website-desc">字节跳动旗下视频平台</div>
+                <a href="https://www.ixigua.com/" target="_blank"><button class="visit-btn">访问网站</button></a>
+            </div>
+            
+            <div class="website-card">
+                <div class="website-icon"><i class="fas fa-pepper-hot"></i></div>
+                <div class="website-name">哗哩哗哩</div>
+                <div class="website-desc">二次元社区平台</div>
+                <a href="https://www.hualihuali.com/" target="_blank"><button class="visit-btn">访问网站</button></a>
+            </div>
+            
+            <div class="website-card">
+                <div class="website-icon"><i class="fas fa-cloud-sun"></i></div>
+                <div class="website-name">搜狐视频</div>
+                <div class="website-desc">搜狐旗下视频平台</div>
+                <a href="https://tv.sohu.com/" target="_blank"><button class="visit-btn">访问网站</button></a>
+            </div>
+            
+            <div class="website-card">
+                <div class="website-icon"><i class="fas fa-feather"></i></div>
+                <div class="website-name">凤凰视频</div>
+                <div class="website-desc">凤凰新媒体旗下视频平台</div>
+                <a href="https://v.ifeng.com/" target="_blank"><button class="visit-btn">访问网站</button></a>
+            </div>
+            
+            <div class="website-card">
+                <div class="website-icon"><i class="fas fa-dove"></i></div>
+                <div class="website-name">新浪视频</div>
+                <div class="website-desc">新浪旗下视频平台</div>
+                <a href="https://video.sina.com.cn/" target="_blank"><button class="visit-btn">访问网站</button></a>
+            </div>
+            
+            <div class="website-card">
+                <div class="website-icon"><i class="fas fa-fire"></i></div>
+                <div class="website-name">火线视频</div>
+                <div class="website-desc">高清影视点播平台</div>
+                <a href="https://www.huoshan.com/" target="_blank"><button class="visit-btn">访问网站</button></a>
+            </div>
+            
+            <div class="website-card">
+                <div class="website-icon"><i class="fas fa-hat-cowboy"></i></div>
+                <div class="website-name">乐视视频</div>
+                <div class="website-desc">乐视旗下视频平台</div>
+                <a href="https://www.le.com/" target="_blank"><button class="visit-btn">访问网站</button></a>
+            </div>
+            
+            <div class="website-card">
+                <div class="website-icon"><i class="fas fa-microphone"></i></div>
+                <div class="website-name">咪咕视频</div>
+                <div class="website-desc">中国移动旗下视频平台</div>
+                <a href="https://www.miguvideo.com/" target="_blank"><button class="visit-btn">访问网站</button></a>
+            </div>
+        </div>
+        
+        <footer>
+            <p>© 2023 视频网站导航大全 | 精选国内外优质视频平台</p>
+        </footer>
+    </div>
+
+    <script>
+        // 简单的分类筛选功能
+        document.addEventListener('DOMContentLoaded', function() {
+            const categoryBtns = document.querySelectorAll('.category-btn');
+            const websiteCards = document.querySelectorAll('.website-card');
+            
+            categoryBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    // 移除所有active类
+                    categoryBtns.forEach(b => b.classList.remove('active'));
+                    // 给当前点击的按钮添加active类
+                    this.classList.add('active');
+                    
+                    // 这里可以添加实际的筛选逻辑
+                    // 目前只是示例，实际应根据数据属性进行筛选
+                });
+            });
+            
+            // 搜索功能
+            const searchInput = document.querySelector('.search-box input');
+            const searchBtn = document.querySelector('.search-box button');
+            
+            searchBtn.addEventListener('click', performSearch);
+            searchInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    performSearch();
+                }
+            });
+            
+            function performSearch() {
+                const searchTerm = searchInput.value.toLowerCase();
+                
+                websiteCards.forEach(card => {
+                    const name = card.querySelector('.website-name').textContent.toLowerCase();
+                    const desc = card.querySelector('.website-desc').textContent.toLowerCase();
+                    
+                    if (name.includes(searchTerm) || desc.includes(searchTerm)) {
+                        card.style.display = 'block';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>
