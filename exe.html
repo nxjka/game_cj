@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SafeEXE - 在线程序运行平台</title>
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2980b9;
+            --accent-color: #e74c3c;
+            --light-color: #ecf0f1;
+            --dark-color: #2c3e50;
+            --success-color: #2ecc71;
+            --warning-color: #f39c12;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 1rem 0;
+            text-align: center;
+            border-radius: 0 0 10px 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+        
+        .logo {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+        
+        .tagline {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .upload-section, .output-section {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+        
+        .section-title {
+            font-size: 1.5rem;
+            color: var(--dark-color);
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--light-color);
+        }
+        
+        .file-drop-area {
+            border: 2px dashed var(--primary-color);
+            border-radius: 5px;
+            padding: 30px;
+            text-align: center;
+            transition: all 0.3s;
+            margin-bottom: 20px;
+            cursor: pointer;
+        }
+        
+        .file-drop-area:hover {
+            background-color: rgba(52, 152, 219, 0.05);
+        }
+        
+        .file-input {
+            display: none;
+        }
+        
+        .file-message {
+            font-size: 1.1rem;
+            color: var(--primary-color);
+            margin-top: 10px;
+        }
+        
+        .file-icon {
+            font-size: 3rem;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+        
+        .options-panel {
+            margin: 20px 0;
+        }
+        
+        .option-group {
+            margin-bottom: 15px;
+        }
+        
+        .option-label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        
+        .option-select, .option-input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+        
+        .btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: background-color 0.3s;
+            display: inline-block;
+        }
+        
+        .btn:hover {
+            background-color: var(--secondary-color);
+        }
+        
+        .btn-run {
+            background-color: var(--success-color);
+            width: 100%;
+            padding: 15px;
+            font-size: 1.2rem;
+        }
+        
+        .btn-run:hover {
+            background-color: #27ae60;
+        }
+        
+        .output-console {
+            background-color: #2c3e50;
+            color: #ecf0f1;
+            padding: 15px;
+            border-radius: 5px;
+            height: 300px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+            margin-bottom: 20px;
+        }
+        
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+        
+        .status-ready {
+            background-color: var(--success-color);
+        }
+        
+        .status-processing {
+            background-color: var(--warning-color);
+        }
+        
+        .status-error {
+            background-color: var(--accent-color);
+        }
+        
+        .security-notice {
+            background-color: #fff3cd;
+            border-left: 4px solid var(--warning-color);
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 4px;
+        }
+        
+        .security-title {
+            font-weight: bold;
+            color: #856404;
+            margin-bottom: 5px;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            color: #7f8c8d;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="logo">SafeEXE</div>
+            <div class="tagline">安全地在云端运行Windows应用程序</div>
+        </div>
+    </header>
+    
+    <div class="container">
+        <div class="main-content">
+            <div class="upload-section">
+                <h2 class="section-title">上传并运行程序</h2>
+                
+                <div class="file-drop-area" id="dropZone">
+                    <div class="file-icon">📁</div>
+                    <p>拖放EXE文件到这里</p>
+                    <p class="file-message">或者点击选择文件</p>
+                    <input type="file" id="fileInput" class="file-input" accept=".exe">
+                </div>
+                
+                <div class="options-panel">
+                    <div class="option-group">
+                        <label class="option-label">运行环境</label>
+                        <select class="option-select">
+                            <option value="win10">Windows 10 基础环境</option>
+                            <option value="win7">Windows 7 兼容模式</option>
+                            <option value="minimal">最小化环境（无GUI支持）</option>
+                        </select>
+                    </div>
+                    
+                    <div class="option-group">
+                        <label class="option-label">超时设置（秒）</label>
+                        <input type="number" class="option-input" value="30" min="5" max="120">
+                    </div>
+                    
+                    <div class="option-group">
+                        <label class="option-label">程序参数（可选）</label>
+                        <input type="text" class="option-input" placeholder="输入命令行参数">
+                    </div>
+                </div>
+                
+                <button class="btn btn-run" id="runButton">运行程序</button>
+                
+                <div class="security-notice">
+                    <div class="security-title">安全提示</div>
+                    <p>所有程序都在安全的沙盒环境中运行，与我们的主系统完全隔离。运行时间、内存和磁盘访问都受到严格限制。</p>
+                </div>
+            </div>
+            
+            <div class="output-section">
+                <h2 class="section-title">运行结果</h2>
+                
+                <div class="status-indicator">
+                    <div class="status-dot status-ready" id="statusDot"></div>
+                    <span id="statusText">就绪，等待程序运行</span>
+                </div>
+                
+                <div class="output-console" id="outputConsole">
+                    // 程序输出将显示在这里...
+                </div>
+                
+                <div class="option-group">
+                    <label class="option-label">输入（如需与程序交互）</label>
+                    <input type="text" class="option-input" id="programInput" placeholder="输入文本并按下Enter" disabled>
+                </div>
+                
+                <div style="margin-top: 20px;">
+                    <button class="btn" disabled>下载输出文件</button>
+                    <button class="btn" style="background-color: #7f8c8d;" id="resetButton">重置</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <footer>
+        <div class="container">
+            <p>SafeEXE &copy; 2023 - 所有程序都在安全隔离环境中运行，我们不对用户上传的程序内容负责</p>
+        </div>
+    </footer>
+
+    <script>
+        // 简单的界面交互逻辑
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const runButton = document.getElementById('runButton');
+        const outputConsole = document.getElementById('outputConsole');
+        const statusDot = document.getElementById('statusDot');
+        const statusText = document.getElementById('statusText');
+        const programInput = document.getElementById('programInput');
+        const resetButton = document.getElementById('resetButton');
+        
+        // 拖放功能
+        dropZone.addEventListener('click', () => {
+            fileInput.click();
+        });
+        
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.style.borderColor = '#2ecc71';
+            dropZone.style.backgroundColor = 'rgba(46, 204, 113, 0.1)';
+        });
+        
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.style.borderColor = '#3498db';
+            dropZone.style.backgroundColor = '';
+        });
+        
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.style.borderColor = '#3498db';
+            dropZone.style.backgroundColor = '';
+            
+            if (e.dataTransfer.files.length) {
+                fileInput.files = e.dataTransfer.files;
+                updateFileMessage(e.dataTransfer.files[0].name);
+            }
+        });
+        
+        fileInput.addEventListener('change', () => {
+            if (fileInput.files.length) {
+                updateFileMessage(fileInput.files[0].name);
+            }
+        });
+        
+        function updateFileMessage(fileName) {
+            const message = document.querySelector('.file-message');
+            message.textContent = `已选择: ${fileName}`;
+        }
+        
+        // 模拟运行过程
+        runButton.addEventListener('click', () => {
+            if (!fileInput.files.length) {
+                outputConsole.textContent = "错误: 请先选择要运行的EXE文件";
+                return;
+            }
+            
+            // 更新状态
+            statusDot.className = 'status-dot status-processing';
+            statusText.textContent = '正在运行程序...';
+            outputConsole.textContent = "初始化沙盒环境...\n";
+            
+            // 模拟程序输出
+            setTimeout(() => {
+                outputConsole.textContent += "加载程序...\n";
+            }, 800);
+            
+            setTimeout(() => {
+                outputConsole.textContent += "程序开始运行...\n";
+                outputConsole.textContent += "Hello, World!\n";
+                outputConsole.textContent += "程序运行完毕，退出代码: 0\n";
+                
+                // 更新状态
+                statusDot.className = 'status-dot status-ready';
+                statusText.textContent = '运行完成';
+            }, 2500);
+        });
+        
+        // 重置按钮
+        resetButton.addEventListener('click', () => {
+            fileInput.value = '';
+            document.querySelector('.file-message').textContent = '或者点击选择文件';
+            outputConsole.textContent = '// 程序输出将显示在这里...';
+            statusDot.className = 'status-dot status-ready';
+            statusText.textContent = '就绪，等待程序运行';
+        });
+    </script>
+</body>
+</html>

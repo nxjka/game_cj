@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D维度变换可视化</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #fff;
+        }
+        
+        #container {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+        }
+        
+        #info {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px;
+            border-radius: 10px;
+            max-width: 300px;
+            z-index: 100;
+        }
+        
+        #controls {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 15px;
+            z-index: 100;
+        }
+        
+        button {
+            background: #4cc9f0;
+            color: #000;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 50px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(76, 201, 240, 0.3);
+        }
+        
+        button:hover {
+            background: #3a9fc9;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(76, 201, 240, 0.5);
+        }
+        
+        button:active {
+            transform: translateY(1px);
+        }
+        
+        #dimension-label {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 24px;
+            font-weight: bold;
+            z-index: 100;
+        }
+        
+        h1 {
+            margin-top: 0;
+            color: #4cc9f0;
+        }
+        
+        .progress-bar {
+            height: 5px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+            margin-top: 15px;
+            overflow: hidden;
+        }
+        
+        .progress {
+            height: 100%;
+            background: #4cc9f0;
+            width: 0%;
+            transition: width 0.1s linear;
+        }
+    </style>
+</head>
+<body>
+    <div id="container"></div>
+    
+    <div id="info">
+        <h1>维度变换可视化</h1>
+        <p>此可视化展示了从一维到三维的变换过程：</p>
+        <ul>
+            <li><strong>一维</strong>：单一的点</li>
+            <li><strong>二维</strong>：平面上的点</li>
+            <li><strong>三维</strong>：空间中的立方体</li>
+        </ul>
+        <p>使用鼠标拖动可以旋转视图，滚轮可以缩放。</p>
+        
+        <div class="progress-bar">
+            <div class="progress" id="progress"></div>
+        </div>
+    </div>
+    
+    <div id="dimension-label">一维</div>
+    
+    <div id="controls">
+        <button id="pause-btn">暂停</button>
+        <button id="restart-btn">重新开始</button>
+    </div>
+
+    <script>
+        // 初始化变量
+        let scene, camera, renderer;
+        let point, line, square, cube;
+        let animationId;
+        let isPaused = false;
+        let currentPhase = 0; // 0: 一维, 1: 二维, 2: 三维
+        let animationProgress = 0;
+        let startTime;
+        
+        // 初始化场景
+        function init() {
+            // 创建场景
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x0a0a1a);
+            
+            // 创建相机
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.z = 5;
+            
+            // 创建渲染器
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            document.getElementById('container').appendChild(renderer.domElement);
+            
+            // 添加光源
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+            scene.add(ambientLight);
+            
+            const directionalLight = new THREE.DirectionalLight(0x4cc9f0, 1);
+            directionalLight.position.set(5, 5, 5);
+            scene.add(directionalLight);
+            
+            // 添加坐标轴辅助
+            const axesHelper = new THREE.AxesHelper(3);
+            scene.add(axesHelper);
+            
+            // 创建维度对象
+            createDimensionObjects();
+            
+            // 添加事件监听器
+            window.addEventListener('resize', onWindowResize);
+            
+            // 添加鼠标控制
+            addMouseControls();
+            
+            // 开始动画
+            startTime = Date.now();
+            animate();
+        }
+        
+        // 创建维度对象
+        function createDimensionObjects() {
+            // 一维：一个点
+            const pointGeometry = new THREE.SphereGeometry(0.1, 32, 32);
+            const pointMaterial = new THREE.MeshPhongMaterial({ color: 0xff0066 });
+            point = new THREE.Mesh(pointGeometry, pointMaterial);
+            scene.add(point);
+            
+            // 二维：一个正方形
+            const squareGeometry = new THREE.PlaneGeometry(1, 1);
+            const squareMaterial = new THREE.MeshPhongMaterial({ 
+                color: 0x4cc9f0, 
+                transparent: true, 
+                opacity: 0.7,
+                side: THREE.DoubleSide
+            });
+            square = new THREE.Mesh(squareGeometry, squareMaterial);
+            square.visible = false;
+            scene.add(square);
+            
+            // 三维：一个立方体
+            const cubeGeometry = new THREE.BoxGeometry(1, 1, 1);
+            const cubeMaterial = new THREE.MeshPhongMaterial({ 
+                color: 0x9d4edd, 
+                transparent: true, 
+                opacity: 0.8,
+                wireframe: false
+            });
+            cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
+            cube.visible = false;
+            scene.add(cube);
+        }
+        
+        // 动画函数
+        function animate() {
+            if (!isPaused) {
+                const currentTime = Date.now();
+                const elapsedTime = currentTime - startTime;
+                
+                // 计算动画进度 (0到1之间)
+                animationProgress = (elapsedTime % 15000) / 15000; // 15秒一个完整周期
+                
+                // 更新进度条
+                document.getElementById('progress').style.width = `${animationProgress * 100}%`;
+                
+                // 根据进度确定当前阶段
+                if (animationProgress < 0.33) {
+                    // 一维阶段
+                    if (currentPhase !== 0) {
+                        currentPhase = 0;
+                        updateDimensionLabel('一维');
+                    }
+                    updateOneDimensional(animationProgress * 3);
+                } else if (animationProgress < 0.66) {
+                    // 二维阶段
+                    if (currentPhase !== 1) {
+                        currentPhase = 1;
+                        updateDimensionLabel('二维');
+                    }
+                    updateTwoDimensional((animationProgress - 0.33) * 3);
+                } else {
+                    // 三维阶段
+                    if (currentPhase !== 2) {
+                        currentPhase = 2;
+                        updateDimensionLabel('三维');
+                    }
+                    updateThreeDimensional((animationProgress - 0.66) * 3);
+                }
+            }
+            
+            // 渲染场景
+            renderer.render(scene, camera);
+            animationId = requestAnimationFrame(animate);
+        }
+        
+        // 更新一维状态
+        function updateOneDimensional(progress) {
+            // 隐藏其他维度
+            square.visible = false;
+            cube.visible = false;
+            
+            // 显示并动画点
+            point.visible = true;
+            point.position.x = Math.sin(progress * Math.PI * 2) * 2;
+            point.position.y = 0;
+            point.position.z = 0;
+            
+            // 改变颜色
+            point.material.color.setHSL(progress, 1, 0.5);
+        }
+        
+        // 更新二维状态
+        function updateTwoDimensional(progress) {
+            // 隐藏其他维度
+            point.visible = false;
+            cube.visible = false;
+            
+            // 显示并动画正方形
+            square.visible = true;
+            square.rotation.x = progress * Math.PI / 2;
+            square.rotation.y = progress * Math.PI / 2;
+            
+            // 改变颜色
+            square.material.color.setHSL(0.5 + progress * 0.5, 1, 0.5);
+        }
+        
+        // 更新三维状态
+        function updateThreeDimensional(progress) {
+            // 隐藏其他维度
+            point.visible = false;
+            square.visible = false;
+            
+            // 显示并动画立方体
+            cube.visible = true;
+            cube.rotation.x = progress * Math.PI;
+            cube.rotation.y = progress * Math.PI;
+            cube.scale.set(1 + Math.sin(progress * Math.PI) * 0.2, 
+                          1 + Math.sin(progress * Math.PI) * 0.2, 
+                          1 + Math.sin(progress * Math.PI) * 0.2);
+            
+            // 改变颜色
+            cube.material.color.setHSL(progress, 1, 0.5);
+        }
+        
+        // 更新维度标签
+        function updateDimensionLabel(dimension) {
+            document.getElementById('dimension-label').textContent = dimension;
+        }
+        
+        // 窗口大小变化时调整相机和渲染器
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+        
+        // 添加鼠标控制
+        function addMouseControls() {
+            let isMouseDown = false;
+            let previousMousePosition = {
+                x: 0,
+                y: 0
+            };
+            
+            renderer.domElement.addEventListener('mousedown', (e) => {
+                isMouseDown = true;
+                previousMousePosition = {
+                    x: e.clientX,
+                    y: e.clientY
+                };
+            });
+            
+            window.addEventListener('mouseup', () => {
+                isMouseDown = false;
+            });
+            
+            window.addEventListener('mousemove', (e) => {
+                if (!isMouseDown) return;
+                
+                const deltaMove = {
+                    x: e.clientX - previousMousePosition.x,
+                    y: e.clientY - previousMousePosition.y
+                };
+                
+                // 旋转场景
+                if (currentPhase === 0) {
+                    point.rotation.y += deltaMove.x * 0.01;
+                } else if (currentPhase === 1) {
+                    square.rotation.y += deltaMove.x * 0.01;
+                    square.rotation.x += deltaMove.y * 0.01;
+                } else if (currentPhase === 2) {
+                    cube.rotation.y += deltaMove.x * 0.01;
+                    cube.rotation.x += deltaMove.y * 0.01;
+                }
+                
+                previousMousePosition = {
+                    x: e.clientX,
+                    y: e.clientY
+                };
+            });
+            
+            // 添加缩放控制
+            renderer.domElement.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                camera.position.z += e.deltaY * 0.01;
+                camera.position.z = Math.max(2, Math.min(10, camera.position.z));
+            });
+        }
+        
+        // 暂停/继续动画
+        function togglePause() {
+            isPaused = !isPaused;
+            document.getElementById('pause-btn').textContent = isPaused ? '继续' : '暂停';
+            
+            if (!isPaused) {
+                // 调整开始时间，使动画从暂停点继续
+                startTime = Date.now() - (animationProgress * 15000);
+            }
+        }
+        
+        // 重新开始动画
+        function restartAnimation() {
+            startTime = Date.now();
+            animationProgress = 0;
+            currentPhase = 0;
+            updateDimensionLabel('一维');
+            document.getElementById('progress').style.width = '0%';
+        }
+        
+        // 初始化并开始
+        init();
+        
+        // 添加按钮事件监听
+        document.getElementById('pause-btn').addEventListener('click', togglePause);
+        document.getElementById('restart-btn').addEventListener('click', restartAnimation);
+    </script>
+</body>
+</html>
