@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>汉字编码解码工具</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        
+        .description {
+            color: #7f8c8d;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .main-content {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+        }
+        
+        .input-section, .output-section {
+            flex: 1;
+            min-width: 300px;
+        }
+        
+        .section-title {
+            font-size: 1.2rem;
+            color: #3498db;
+            margin-bottom: 15px;
+            padding-bottom: 5px;
+            border-bottom: 2px solid #3498db;
+        }
+        
+        .input-area {
+            width: 100%;
+            height: 150px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            resize: vertical;
+            margin-bottom: 15px;
+        }
+        
+        .encoding-selector {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .encoding-option {
+            flex: 1;
+            min-width: 120px;
+        }
+        
+        .encoding-option label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: white;
+        }
+        
+        .buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        button {
+            flex: 1;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            background-color: #3498db;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #2980b9;
+        }
+        
+        .result-area {
+            background-color: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 5px;
+            padding: 15px;
+            min-height: 150px;
+            overflow-wrap: break-word;
+        }
+        
+        .encoding-info {
+            margin-top: 30px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            padding: 20px;
+        }
+        
+        .info-title {
+            font-size: 1.2rem;
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+        
+        .info-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        
+        .encoding-detail {
+            background-color: white;
+            border-radius: 5px;
+            padding: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        
+        .encoding-detail h3 {
+            color: #3498db;
+            margin-bottom: 10px;
+        }
+        
+        .encoding-detail p {
+            margin-bottom: 10px;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            color: #7f8c8d;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 768px) {
+            .main-content {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>汉字编码解码工具</h1>
+            <p class="description">探索汉字在不同编码形式下的表示方式，支持GB2312、GBK、UTF-8、Unicode等多种编码格式的转换</p>
+        </header>
+        
+        <div class="main-content">
+            <div class="input-section">
+                <h2 class="section-title">输入区域</h2>
+                <textarea class="input-area" id="inputText" placeholder="请输入要编码或解码的汉字..."></textarea>
+                
+                <div class="encoding-selector">
+                    <div class="encoding-option">
+                        <label for="sourceEncoding">源编码</label>
+                        <select id="sourceEncoding">
+                            <option value="auto">自动检测</option>
+                            <option value="utf8">UTF-8</option>
+                            <option value="gb2312">GB2312</option>
+                            <option value="gbk">GBK</option>
+                            <option value="unicode">Unicode</option>
+                            <option value="hex">十六进制</option>
+                            <option value="base64">Base64</option>
+                        </select>
+                    </div>
+                    
+                    <div class="encoding-option">
+                        <label for="targetEncoding">目标编码</label>
+                        <select id="targetEncoding">
+                            <option value="utf8">UTF-8</option>
+                            <option value="gb2312">GB2312</option>
+                            <option value="gbk">GBK</option>
+                            <option value="unicode">Unicode</option>
+                            <option value="hex">十六进制</option>
+                            <option value="base64">Base64</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="buttons">
+                    <button id="encodeBtn">编码</button>
+                    <button id="decodeBtn">解码</button>
+                    <button id="clearBtn">清空</button>
+                </div>
+            </div>
+            
+            <div class="output-section">
+                <h2 class="section-title">输出结果</h2>
+                <div class="result-area" id="resultArea">
+                    <p>编码/解码结果将显示在这里...</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="encoding-info">
+            <h2 class="info-title">编码格式说明</h2>
+            <div class="info-content">
+                <div class="encoding-detail">
+                    <h3>UTF-8</h3>
+                    <p>UTF-8是一种针对Unicode的可变长度字符编码，是互联网上使用最广泛的Unicode编码形式。</p>
+                    <p>汉字在UTF-8中通常占用3个字节。</p>
+                </div>
+                
+                <div class="encoding-detail">
+                    <h3>GB2312</h3>
+                    <p>GB2312是简体中文的字符集国家标准，共收录了6763个汉字。</p>
+                    <p>每个汉字在GB2312中占用2个字节。</p>
+                </div>
+                
+                <div class="encoding-detail">
+                    <h3>GBK</h3>
+                    <p>GBK是GB2312的扩展，支持更多的汉字，共收录了21886个汉字。</p>
+                    <p>每个汉字在GBK中同样占用2个字节。</p>
+                </div>
+                
+                <div class="encoding-detail">
+                    <h3>Unicode</h3>
+                    <p>Unicode为世界上所有字符提供了唯一的数字标识，是字符编码的国际标准。</p>
+                    <p>汉字在Unicode中通常表示为U+XXXX的形式。</p>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>汉字编码解码工具 &copy; 2023 | 本工具仅用于学习和演示目的</p>
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const inputText = document.getElementById('inputText');
+            const sourceEncoding = document.getElementById('sourceEncoding');
+            const targetEncoding = document.getElementById('targetEncoding');
+            const encodeBtn = document.getElementById('encodeBtn');
+            const decodeBtn = document.getElementById('decodeBtn');
+            const clearBtn = document.getElementById('clearBtn');
+            const resultArea = document.getElementById('resultArea');
+            
+            // 编码按钮点击事件
+            encodeBtn.addEventListener('click', function() {
+                const text = inputText.value.trim();
+                if (!text) {
+                    resultArea.innerHTML = '<p style="color: #e74c3c;">请输入要编码的内容</p>';
+                    return;
+                }
+                
+                const target = targetEncoding.value;
+                let result = '';
+                
+                try {
+                    switch(target) {
+                        case 'utf8':
+                            result = textToUtf8Bytes(text);
+                            break;
+                        case 'gb2312':
+                            result = textToGb2312Bytes(text);
+                            break;
+                        case 'gbk':
+                            result = textToGbkBytes(text);
+                            break;
+                        case 'unicode':
+                            result = textToUnicode(text);
+                            break;
+                        case 'hex':
+                            result = textToHex(text);
+                            break;
+                        case 'base64':
+                            result = btoa(unescape(encodeURIComponent(text)));
+                            break;
+                        default:
+                            result = '不支持的编码格式';
+                    }
+                    
+                    resultArea.innerHTML = `<p><strong>${getEncodingName(target)} 编码结果：</strong></p><p>${result}</p>`;
+                } catch (error) {
+                    resultArea.innerHTML = `<p style="color: #e74c3c;">编码失败：${error.message}</p>`;
+                }
+            });
+            
+            // 解码按钮点击事件
+            decodeBtn.addEventListener('click', function() {
+                const text = inputText.value.trim();
+                if (!text) {
+                    resultArea.innerHTML = '<p style="color: #e74c3c;">请输入要解码的内容</p>';
+                    return;
+                }
+                
+                const source = sourceEncoding.value;
+                let result = '';
+                
+                try {
+                    switch(source) {
+                        case 'utf8':
+                            result = utf8BytesToText(text);
+                            break;
+                        case 'gb2312':
+                            result = gb2312BytesToText(text);
+                            break;
+                        case 'gbk':
+                            result = gbkBytesToText(text);
+                            break;
+                        case 'unicode':
+                            result = unicodeToText(text);
+                            break;
+                        case 'hex':
+                            result = hexToText(text);
+                            break;
+                        case 'base64':
+                            result = decodeURIComponent(escape(atob(text)));
+                            break;
+                        case 'auto':
+                            result = autoDecode(text);
+                            break;
+                        default:
+                            result = '不支持的编码格式';
+                    }
+                    
+                    resultArea.innerHTML = `<p><strong>${getEncodingName(source)} 解码结果：</strong></p><p>${result}</p>`;
+                } catch (error) {
+                    resultArea.innerHTML = `<p style="color: #e74c3c;">解码失败：${error.message}</p>`;
+                }
+            });
+            
+            // 清空按钮点击事件
+            clearBtn.addEventListener('click', function() {
+                inputText.value = '';
+                resultArea.innerHTML = '<p>编码/解码结果将显示在这里...</p>';
+            });
+            
+            // 获取编码名称
+            function getEncodingName(encoding) {
+                const names = {
+                    'utf8': 'UTF-8',
+                    'gb2312': 'GB2312',
+                    'gbk': 'GBK',
+                    'unicode': 'Unicode',
+                    'hex': '十六进制',
+                    'base64': 'Base64',
+                    'auto': '自动检测'
+                };
+                return names[encoding] || encoding;
+            }
+            
+            // 以下是简化的编码转换函数
+            // 在实际应用中，这些函数需要更复杂的实现
+            
+            function textToUtf8Bytes(text) {
+                // 简化实现
+                const encoder = new TextEncoder();
+                const bytes = encoder.encode(text);
+                return Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join(' ');
+            }
+            
+            function utf8BytesToText(bytesStr) {
+                // 简化实现
+                const bytes = bytesStr.split(' ').map(b => parseInt(b, 16));
+                const decoder = new TextDecoder();
+                return decoder.decode(new Uint8Array(bytes));
+            }
+            
+            function textToUnicode(text) {
+                let result = '';
+                for (let i = 0; i < text.length; i++) {
+                    const code = text.charCodeAt(i);
+                    result += 'U+' + code.toString(16).toUpperCase().padStart(4, '0') + ' ';
+                }
+                return result.trim();
+            }
+            
+            function unicodeToText(unicodeStr) {
+                const codes = unicodeStr.split(' ').map(c => {
+                    if (c.startsWith('U+')) {
+                        return parseInt(c.substring(2), 16);
+                    }
+                    return parseInt(c, 16);
+                });
+                
+                return String.fromCharCode(...codes);
+            }
+            
+            function textToHex(text) {
+                let result = '';
+                for (let i = 0; i < text.length; i++) {
+                    const code = text.charCodeAt(i);
+                    result += code.toString(16).toUpperCase().padStart(4, '0') + ' ';
+                }
+                return result.trim();
+            }
+            
+            function hexToText(hexStr) {
+                const codes = hexStr.split(' ').map(h => parseInt(h, 16));
+                return String.fromCharCode(...codes);
+            }
+            
+            // 以下为简化的GB2312和GBK转换函数
+            // 实际实现需要完整的编码表
+            
+            function textToGb2312Bytes(text) {
+                // 简化实现 - 实际应使用完整编码表
+                return text.split('').map(char => {
+                    const code = char.charCodeAt(0);
+                    if (code < 128) {
+                        return code.toString(16).padStart(2, '0');
+                    } else {
+                        // 简化的GB2312编码 - 实际应使用编码表
+                        return (code >> 8).toString(16).padStart(2, '0') + ' ' + (code & 0xFF).toString(16).padStart(2, '0');
+                    }
+                }).join(' ');
+            }
+            
+            function gb2312BytesToText(bytesStr) {
+                // 简化实现 - 实际应使用完整编码表
+                const bytes = bytesStr.split(' ').map(b => parseInt(b, 16));
+                let result = '';
+                
+                for (let i = 0; i < bytes.length; i++) {
+                    if (bytes[i] < 128) {
+                        result += String.fromCharCode(bytes[i]);
+                    } else {
+                        // 简化的GB2312解码 - 实际应使用编码表
+                        if (i + 1 < bytes.length) {
+                            const code = (bytes[i] << 8) | bytes[i + 1];
+                            result += String.fromCharCode(code);
+                            i++;
+                        }
+                    }
+                }
+                
+                return result;
+            }
+            
+            function textToGbkBytes(text) {
+                // 简化实现 - 实际应使用完整编码表
+                return textToGb2312Bytes(text); // 简化为与GB2312相同
+            }
+            
+            function gbkBytesToText(bytesStr) {
+                // 简化实现 - 实际应使用完整编码表
+                return gb2312BytesToText(bytesStr); // 简化为与GB2312相同
+            }
+            
+            function autoDecode(text) {
+                // 简化的自动检测实现
+                // 实际实现需要更复杂的检测逻辑
+                
+                // 检查是否是Base64
+                if (/^[A-Za-z0-9+/]*={0,2}$/.test(text)) {
+                    try {
+                        const decoded = decodeURIComponent(escape(atob(text)));
+                        if (decoded.length > 0) {
+                            return `检测为Base64编码: ${decoded}`;
+                        }
+                    } catch (e) {
+                        // 不是有效的Base64
+                    }
+                }
+                
+                // 检查是否是十六进制
+                if (/^[0-9A-Fa-f\s]+$/.test(text.replace(/U\+/g, ''))) {
+                    try {
+                        const decoded = hexToText(text);
+                        if (decoded.length > 0) {
+                            return `检测为十六进制编码: ${decoded}`;
+                        }
+                    } catch (e) {
+                        // 不是有效的十六进制
+                    }
+                }
+                
+                // 检查是否是Unicode表示法
+                if (/^U\+[0-9A-Fa-f]{4}(\s+U\+[0-9A-Fa-f]{4})*$/.test(text)) {
+                    try {
+                        const decoded = unicodeToText(text);
+                        if (decoded.length > 0) {
+                            return `检测为Unicode编码: ${decoded}`;
+                        }
+                    } catch (e) {
+                        // 不是有效的Unicode
+                    }
+                }
+                
+                return '无法自动识别编码格式，请手动选择源编码';
+            }
+        });
+    </script>
+</body>
+</html>

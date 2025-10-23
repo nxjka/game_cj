@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JSON文件分析解构工具</title>
+    <title>JSON文件分析解构与格式转换工具</title>
     <style>
         :root {
             --primary-color: #4361ee;
@@ -147,6 +147,7 @@
             display: flex;
             border-bottom: 1px solid #ddd;
             margin-bottom: 20px;
+            flex-wrap: wrap;
         }
         
         .tab {
@@ -224,6 +225,50 @@
             color: #666;
         }
         
+        .conversion-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 20px;
+            align-items: center;
+        }
+        
+        .conversion-result {
+            margin-top: 20px;
+        }
+        
+        .converted-content {
+            font-family: 'Courier New', Courier, monospace;
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: var(--border-radius);
+            max-height: 500px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            margin-bottom: 15px;
+        }
+        
+        .download-btn {
+            background-color: var(--success-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s;
+        }
+        
+        .download-btn:hover {
+            background-color: #3aa8d0;
+        }
+        
+        select, button {
+            padding: 8px 12px;
+            border-radius: var(--border-radius);
+            border: 1px solid #ddd;
+        }
+        
         footer {
             text-align: center;
             margin-top: 40px;
@@ -248,14 +293,22 @@
             .stats-grid {
                 grid-template-columns: 1fr 1fr;
             }
+            
+            .tabs {
+                flex-direction: column;
+            }
+            
+            .tab {
+                text-align: center;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>JSON文件分析解构工具</h1>
-            <p class="description">上传多个JSON文件，分析其结构、比较差异并可视化数据模式</p>
+            <h1>JSON文件分析解构与格式转换工具</h1>
+            <p class="description">上传多个JSON文件，分析其结构、比较差异、可视化数据并转换为其他格式</p>
         </header>
         
         <section class="upload-section">
@@ -278,6 +331,7 @@
                 <div class="tab" data-tab="structure">结构分析</div>
                 <div class="tab" data-tab="comparison">文件比较</div>
                 <div class="tab" data-tab="visualization">数据可视化</div>
+                <div class="tab" data-tab="conversion">格式转换</div>
             </div>
             
             <div class="tab-content active" id="overview">
@@ -302,7 +356,7 @@
             
             <div class="tab-content" id="comparison">
                 <h3>文件比较</h3>
-                <div class="comparison-controls">
+                <div class="conversion-controls">
                     <select id="compareFile1">
                         <!-- 比较文件1选择器 -->
                     </select>
@@ -326,10 +380,29 @@
                     <!-- 可视化图表将在这里显示 -->
                 </div>
             </div>
+            
+            <div class="tab-content" id="conversion">
+                <h3>格式转换</h3>
+                <div class="conversion-controls">
+                    <select id="convertFileSelector">
+                        <!-- 转换文件选择器 -->
+                    </select>
+                    <select id="targetFormat">
+                        <option value="csv">CSV</option>
+                        <option value="xml">XML</option>
+                        <option value="yaml">YAML</option>
+                        <option value="txt">纯文本</option>
+                    </select>
+                    <button id="convertBtn">转换</button>
+                </div>
+                <div class="conversion-result" id="conversionResult">
+                    <!-- 转换结果将在这里显示 -->
+                </div>
+            </div>
         </section>
         
         <footer>
-            <p>JSON文件分析解构工具 &copy; 2023 - 使用纯HTML、CSS和JavaScript构建</p>
+            <p>JSON文件分析解构与格式转换工具 &copy; 2023 - 使用纯HTML、CSS和JavaScript构建</p>
         </footer>
     </div>
 
@@ -355,6 +428,10 @@
         const visualizationContainer = document.getElementById('visualizationContainer');
         const statsGrid = document.getElementById('statsGrid');
         const overviewContent = document.getElementById('overviewContent');
+        const convertFileSelector = document.getElementById('convertFileSelector');
+        const targetFormat = document.getElementById('targetFormat');
+        const convertBtn = document.getElementById('convertBtn');
+        const conversionResult = document.getElementById('conversionResult');
         
         // 事件监听器
         uploadBtn.addEventListener('click', () => fileInput.click());
@@ -387,12 +464,17 @@
                     displayVisualization();
                 } else if (tabId === 'overview') {
                     displayOverview();
+                } else if (tabId === 'conversion') {
+                    updateConversionSelectors();
                 }
             });
         });
         
         // 文件比较
         compareBtn.addEventListener('click', compareFiles);
+        
+        // 格式转换
+        convertBtn.addEventListener('click', convertFile);
         
         // 文件选择处理
         function handleFileSelect(e) {
@@ -573,6 +655,18 @@
             vizFileSelector.addEventListener('change', displayVisualization);
         }
         
+        // 更新转换文件选择器
+        function updateConversionSelectors() {
+            convertFileSelector.innerHTML = '';
+            
+            uploadedFiles.forEach((file, index) => {
+                const option = document.createElement('option');
+                option.value = index;
+                option.textContent = file.name;
+                convertFileSelector.appendChild(option);
+            });
+        }
+        
         // 显示JSON结构
         function displayJsonStructure() {
             const selectedIndex = fileSelector.value;
@@ -728,6 +822,56 @@
             `;
         }
         
+        // 格式转换
+        function convertFile() {
+            const selectedIndex = convertFileSelector.value;
+            if (selectedIndex === '' || !uploadedFiles[selectedIndex]) return;
+            
+            const file = uploadedFiles[selectedIndex];
+            const format = targetFormat.value;
+            
+            let convertedContent = '';
+            let fileExtension = '';
+            
+            try {
+                switch (format) {
+                    case 'csv':
+                        convertedContent = jsonToCsv(file.content);
+                        fileExtension = 'csv';
+                        break;
+                    case 'xml':
+                        convertedContent = jsonToXml(file.content);
+                        fileExtension = 'xml';
+                        break;
+                    case 'yaml':
+                        convertedContent = jsonToYaml(file.content);
+                        fileExtension = 'yaml';
+                        break;
+                    case 'txt':
+                        convertedContent = JSON.stringify(file.content, null, 2);
+                        fileExtension = 'txt';
+                        break;
+                    default:
+                        throw new Error('不支持的格式');
+                }
+                
+                // 显示转换结果
+                conversionResult.innerHTML = `
+                    <h4>转换结果 (${format.toUpperCase()})</h4>
+                    <div class="converted-content">${convertedContent}</div>
+                    <button class="download-btn" id="downloadBtn">下载 ${file.name.split('.')[0]}.${fileExtension}</button>
+                `;
+                
+                // 添加下载功能
+                document.getElementById('downloadBtn').addEventListener('click', () => {
+                    downloadFile(convertedContent, `${file.name.split('.')[0]}.${fileExtension}`, `text/${format}`);
+                });
+                
+            } catch (error) {
+                conversionResult.innerHTML = `<p>转换失败: ${error.message}</p>`;
+            }
+        }
+        
         // 辅助函数
         
         // 格式化文件大小
@@ -844,6 +988,134 @@
             }
             
             return counts;
+        }
+        
+        // JSON转CSV
+        function jsonToCsv(json) {
+            if (Array.isArray(json)) {
+                if (json.length === 0) return '';
+                
+                // 获取所有可能的键
+                const allKeys = [];
+                json.forEach(item => {
+                    Object.keys(item).forEach(key => {
+                        if (!allKeys.includes(key)) allKeys.push(key);
+                    });
+                });
+                
+                // 生成CSV标题行
+                let csv = allKeys.join(',') + '\n';
+                
+                // 生成数据行
+                json.forEach(item => {
+                    const row = allKeys.map(key => {
+                        let value = item[key] !== undefined ? item[key] : '';
+                        // 处理包含逗号、引号或换行符的值
+                        if (typeof value === 'string' && (value.includes(',') || value.includes('"') || value.includes('\n'))) {
+                            value = '"' + value.replace(/"/g, '""') + '"';
+                        }
+                        return value;
+                    });
+                    csv += row.join(',') + '\n';
+                });
+                
+                return csv;
+            } else {
+                // 如果不是数组，将其视为单行数据
+                const keys = Object.keys(json);
+                let csv = keys.join(',') + '\n';
+                
+                const row = keys.map(key => {
+                    let value = json[key];
+                    if (typeof value === 'string' && (value.includes(',') || value.includes('"') || value.includes('\n'))) {
+                        value = '"' + value.replace(/"/g, '""') + '"';
+                    }
+                    return value;
+                });
+                
+                csv += row.join(',');
+                return csv;
+            }
+        }
+        
+        // JSON转XML
+        function jsonToXml(json, rootName = 'root') {
+            let xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
+            
+            function parseValue(key, value) {
+                if (typeof value === 'object' && value !== null) {
+                    if (Array.isArray(value)) {
+                        let arrayXml = '';
+                        value.forEach((item, index) => {
+                            arrayXml += parseValue(key, item);
+                        });
+                        return arrayXml;
+                    } else {
+                        let objXml = `<${key}>`;
+                        for (let prop in value) {
+                            if (value.hasOwnProperty(prop)) {
+                                objXml += parseValue(prop, value[prop]);
+                            }
+                        }
+                        objXml += `</${key}>\n`;
+                        return objXml;
+                    }
+                } else {
+                    return `<${key}>${value}</${key}>\n`;
+                }
+            }
+            
+            xml += `<${rootName}>\n`;
+            xml += parseValue('data', json);
+            xml += `</${rootName}>`;
+            
+            return xml;
+        }
+        
+        // JSON转YAML
+        function jsonToYaml(json, indent = 0) {
+            const spaces = ' '.repeat(indent);
+            let yaml = '';
+            
+            if (Array.isArray(json)) {
+                json.forEach(item => {
+                    if (typeof item === 'object' && item !== null) {
+                        yaml += spaces + '-\n';
+                        yaml += jsonToYaml(item, indent + 2);
+                    } else {
+                        yaml += spaces + '- ' + item + '\n';
+                    }
+                });
+            } else if (typeof json === 'object' && json !== null) {
+                for (let key in json) {
+                    if (json.hasOwnProperty(key)) {
+                        const value = json[key];
+                        if (typeof value === 'object' && value !== null) {
+                            yaml += spaces + key + ':\n';
+                            yaml += jsonToYaml(value, indent + 2);
+                        } else {
+                            yaml += spaces + key + ': ' + value + '\n';
+                        }
+                    }
+                }
+            } else {
+                yaml += spaces + json + '\n';
+            }
+            
+            return yaml;
+        }
+        
+        // 下载文件
+        function downloadFile(content, filename, mimeType) {
+            const blob = new Blob([content], { type: mimeType });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
         }
     </script>
 </body>
