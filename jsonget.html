@@ -3,14 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JSON数据结构展示</title>
+    <title>JSON文件分析解构工具</title>
     <style>
         :root {
-            --primary-color: #3498db;
-            --secondary-color: #2ecc71;
-            --dark-color: #2c3e50;
-            --light-color: #ecf0f1;
-            --danger-color: #e74c3c;
+            --primary-color: #4361ee;
+            --secondary-color: #3a0ca3;
+            --light-color: #f8f9fa;
+            --dark-color: #212529;
+            --success-color: #4cc9f0;
+            --warning-color: #f72585;
+            --border-radius: 8px;
+            --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
         
         * {
@@ -21,614 +24,827 @@
         }
         
         body {
-            background-color: #f5f7fa;
-            color: #333;
+            background-color: #f5f7fb;
+            color: var(--dark-color);
             line-height: 1.6;
-        }
-        
-        header {
-            background: linear-gradient(135deg, var(--primary-color), var(--dark-color));
-            color: white;
-            padding: 2rem 0;
-            text-align: center;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
         
         .container {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 2rem;
+            padding: 20px;
         }
         
-        .controls {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 2rem;
-            flex-wrap: wrap;
-            gap: 1rem;
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
         }
         
-        .view-toggle {
-            display: flex;
-            background: white;
-            border-radius: 30px;
-            overflow: hidden;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
         }
         
-        .view-toggle button {
-            padding: 0.7rem 1.5rem;
-            border: none;
-            background: transparent;
-            cursor: pointer;
+        .description {
+            font-size: 1.1rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .upload-section {
+            background-color: white;
+            border-radius: var(--border-radius);
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: var(--box-shadow);
+        }
+        
+        .upload-area {
+            border: 2px dashed #ccc;
+            border-radius: var(--border-radius);
+            padding: 40px 20px;
+            text-align: center;
             transition: all 0.3s ease;
+            cursor: pointer;
+            margin-bottom: 20px;
         }
         
-        .view-toggle button.active {
-            background: var(--primary-color);
+        .upload-area:hover, .upload-area.drag-over {
+            border-color: var(--primary-color);
+            background-color: rgba(67, 97, 238, 0.05);
+        }
+        
+        .upload-icon {
+            font-size: 48px;
+            color: var(--primary-color);
+            margin-bottom: 15px;
+        }
+        
+        .file-input {
+            display: none;
+        }
+        
+        .upload-btn {
+            background-color: var(--primary-color);
             color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s;
         }
         
-        .search-box {
-            padding: 0.7rem 1rem;
-            border: 1px solid #ddd;
-            border-radius: 30px;
-            width: 250px;
-            outline: none;
+        .upload-btn:hover {
+            background-color: var(--secondary-color);
         }
         
-        .json-cards {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-            gap: 2rem;
+        .file-list {
+            margin-top: 20px;
         }
         
-        .card {
-            background: white;
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-        
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
-        }
-        
-        .card-header {
-            padding: 1.2rem;
-            background: var(--dark-color);
-            color: white;
+        .file-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            padding: 10px 15px;
+            background-color: var(--light-color);
+            border-radius: var(--border-radius);
+            margin-bottom: 10px;
         }
         
-        .card-type {
-            background: var(--secondary-color);
-            padding: 0.3rem 0.8rem;
-            border-radius: 20px;
-            font-size: 0.8rem;
+        .file-name {
+            flex-grow: 1;
         }
         
-        .card-body {
-            padding: 1.5rem;
+        .file-actions button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--primary-color);
+            margin-left: 10px;
         }
         
-        .json-code {
-            background: #2d2d2d;
-            color: #f8f8f2;
-            border-radius: 5px;
-            padding: 1rem;
-            font-family: 'Courier New', monospace;
-            font-size: 0.9rem;
-            overflow-x: auto;
-            white-space: pre-wrap;
-            max-height: 300px;
-            overflow-y: auto;
+        .file-actions button:hover {
+            color: var(--secondary-color);
         }
         
-        .json-visual {
+        .analysis-section {
             display: none;
-            padding: 1rem;
+            background-color: white;
+            border-radius: var(--border-radius);
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: var(--box-shadow);
         }
         
-        .json-node {
-            margin-left: 1.5rem;
-            border-left: 1px dashed #ddd;
-            padding-left: 1rem;
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid #ddd;
+            margin-bottom: 20px;
         }
         
-        .json-key {
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+        }
+        
+        .tab.active {
+            border-bottom: 3px solid var(--primary-color);
             color: var(--primary-color);
             font-weight: bold;
         }
         
-        .json-string {
-            color: var(--secondary-color);
+        .tab-content {
+            display: none;
         }
         
-        .json-number {
-            color: #e74c3c;
+        .tab-content.active {
+            display: block;
         }
         
-        .json-boolean {
-            color: #9b59b6;
+        .json-tree {
+            font-family: 'Courier New', Courier, monospace;
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: var(--border-radius);
+            max-height: 500px;
+            overflow-y: auto;
+            white-space: pre-wrap;
         }
         
-        .json-null {
-            color: #7f8c8d;
+        .comparison-result {
+            margin-top: 20px;
+        }
+        
+        .diff-item {
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: var(--border-radius);
+        }
+        
+        .added {
+            background-color: rgba(76, 201, 240, 0.2);
+            border-left: 4px solid var(--success-color);
+        }
+        
+        .removed {
+            background-color: rgba(247, 37, 133, 0.2);
+            border-left: 4px solid var(--warning-color);
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-card {
+            background-color: var(--light-color);
+            padding: 15px;
+            border-radius: var(--border-radius);
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            color: #666;
         }
         
         footer {
             text-align: center;
-            padding: 2rem;
-            margin-top: 2rem;
-            background: var(--dark-color);
-            color: white;
+            margin-top: 40px;
+            padding: 20px;
+            color: #666;
+            font-size: 0.9rem;
         }
         
         @media (max-width: 768px) {
-            .json-cards {
-                grid-template-columns: 1fr;
+            .container {
+                padding: 10px;
             }
             
-            .controls {
-                flex-direction: column;
+            h1 {
+                font-size: 2rem;
             }
             
-            .search-box {
-                width: 100%;
+            .upload-area {
+                padding: 20px 10px;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr 1fr;
             }
         }
     </style>
 </head>
 <body>
-    <header>
-        <h1>JSON数据结构展示</h1>
-        <p>探索不同类型的JSON数据结构和应用</p>
-    </header>
-    
     <div class="container">
-        <div class="controls">
-            <div class="view-toggle">
-                <button class="active" id="code-view">代码视图</button>
-                <button id="visual-view">可视化视图</button>
-            </div>
-            <input type="text" class="search-box" placeholder="搜索JSON类型...">
-        </div>
+        <header>
+            <h1>JSON文件分析解构工具</h1>
+            <p class="description">上传多个JSON文件，分析其结构、比较差异并可视化数据模式</p>
+        </header>
         
-        <div class="json-cards">
-            <!-- 用户信息JSON -->
-            <div class="card" data-type="user">
-                <div class="card-header">
-                    <h3>用户信息</h3>
-                    <span class="card-type">对象结构</span>
+        <section class="upload-section">
+            <div class="upload-area" id="uploadArea">
+                <div class="upload-icon">📁</div>
+                <h3>拖放JSON文件到此处或点击上传</h3>
+                <p>支持多个文件同时上传，单个文件大小不超过10MB</p>
+                <input type="file" id="fileInput" class="file-input" multiple accept=".json">
+                <button class="upload-btn" id="uploadBtn">选择文件</button>
+            </div>
+            
+            <div class="file-list" id="fileList">
+                <!-- 上传的文件列表将在这里显示 -->
+            </div>
+        </section>
+        
+        <section class="analysis-section" id="analysisSection">
+            <div class="tabs">
+                <div class="tab active" data-tab="overview">概览</div>
+                <div class="tab" data-tab="structure">结构分析</div>
+                <div class="tab" data-tab="comparison">文件比较</div>
+                <div class="tab" data-tab="visualization">数据可视化</div>
+            </div>
+            
+            <div class="tab-content active" id="overview">
+                <h3>文件概览</h3>
+                <div class="stats-grid" id="statsGrid">
+                    <!-- 统计信息将在这里显示 -->
                 </div>
-                <div class="card-body">
-                    <div class="json-code">
-{
-  "user": {
-    "id": 12345,
-    "username": "john_doe",
-    "email": "john@example.com",
-    "profile": {
-      "firstName": "John",
-      "lastName": "Doe",
-      "age": 30,
-      "address": {
-        "street": "123 Main St",
-        "city": "New York",
-        "country": "USA"
-      }
-    },
-    "preferences": {
-      "theme": "dark",
-      "notifications": true,
-      "language": "en"
-    },
-    "isActive": true,
-    "lastLogin": "2023-05-15T10:30:00Z"
-  }
-}
-                    </div>
-                    <div class="json-visual">
-                        <div class="json-node">
-                            <span class="json-key">user</span>: {
-                            <div class="json-node">
-                                <span class="json-key">id</span>: <span class="json-number">12345</span>,<br>
-                                <span class="json-key">username</span>: <span class="json-string">"john_doe"</span>,<br>
-                                <span class="json-key">email</span>: <span class="json-string">"john@example.com"</span>,<br>
-                                <span class="json-key">profile</span>: {
-                                <div class="json-node">
-                                    <span class="json-key">firstName</span>: <span class="json-string">"John"</span>,<br>
-                                    <span class="json-key">lastName</span>: <span class="json-string">"Doe"</span>,<br>
-                                    <span class="json-key">age</span>: <span class="json-number">30</span>,<br>
-                                    <span class="json-key">address</span>: {
-                                    <div class="json-node">
-                                        <span class="json-key">street</span>: <span class="json-string">"123 Main St"</span>,<br>
-                                        <span class="json-key">city</span>: <span class="json-string">"New York"</span>,<br>
-                                        <span class="json-key">country</span>: <span class="json-string">"USA"</span>
-                                    </div>
-                                    }
-                                </div>
-                                },<br>
-                                <span class="json-key">preferences</span>: {
-                                <div class="json-node">
-                                    <span class="json-key">theme</span>: <span class="json-string">"dark"</span>,<br>
-                                    <span class="json-key">notifications</span>: <span class="json-boolean">true</span>,<br>
-                                    <span class="json-key">language</span>: <span class="json-string">"en"</span>
-                                </div>
-                                },<br>
-                                <span class="json-key">isActive</span>: <span class="json-boolean">true</span>,<br>
-                                <span class="json-key">lastLogin</span>: <span class="json-string">"2023-05-15T10:30:00Z"</span>
-                            </div>
-                            }
-                        </div>
-                    </div>
+                <div id="overviewContent">
+                    <!-- 概览内容将在这里显示 -->
                 </div>
             </div>
             
-            <!-- 产品列表JSON -->
-            <div class="card" data-type="product">
-                <div class="card-header">
-                    <h3>产品列表</h3>
-                    <span class="card-type">数组结构</span>
-                </div>
-                <div class="card-body">
-                    <div class="json-code">
-{
-  "products": [
-    {
-      "id": "P001",
-      "name": "智能手机",
-      "category": "电子产品",
-      "price": 599.99,
-      "inStock": true,
-      "specifications": {
-        "storage": "128GB",
-        "ram": "8GB",
-        "screen": "6.5英寸"
-      },
-      "tags": ["手机", "智能", "5G"]
-    },
-    {
-      "id": "P002",
-      "name": "笔记本电脑",
-      "category": "电子产品",
-      "price": 1299.99,
-      "inStock": false,
-      "specifications": {
-        "processor": "Intel i7",
-        "ram": "16GB",
-        "storage": "512GB SSD"
-      },
-      "tags": ["电脑", "便携", "办公"]
-    },
-    {
-      "id": "P003",
-      "name": "无线耳机",
-      "category": "音频设备",
-      "price": 199.99,
-      "inStock": true,
-      "specifications": {
-        "battery": "20小时",
-        "connectivity": "蓝牙5.0"
-      },
-      "tags": ["耳机", "无线", "音乐"]
-    }
-  ]
-}
-                    </div>
-                    <div class="json-visual">
-                        <div class="json-node">
-                            <span class="json-key">products</span>: [
-                            <div class="json-node">
-                                {<br>
-                                <div class="json-node">
-                                    <span class="json-key">id</span>: <span class="json-string">"P001"</span>,<br>
-                                    <span class="json-key">name</span>: <span class="json-string">"智能手机"</span>,<br>
-                                    <span class="json-key">category</span>: <span class="json-string">"电子产品"</span>,<br>
-                                    <span class="json-key">price</span>: <span class="json-number">599.99</span>,<br>
-                                    <span class="json-key">inStock</span>: <span class="json-boolean">true</span>,<br>
-                                    <span class="json-key">specifications</span>: {
-                                    <div class="json-node">
-                                        <span class="json-key">storage</span>: <span class="json-string">"128GB"</span>,<br>
-                                        <span class="json-key">ram</span>: <span class="json-string">"8GB"</span>,<br>
-                                        <span class="json-key">screen</span>: <span class="json-string">"6.5英寸"</span>
-                                    </div>
-                                    },<br>
-                                    <span class="json-key">tags</span>: [
-                                    <div class="json-node">
-                                        <span class="json-string">"手机"</span>,<br>
-                                        <span class="json-string">"智能"</span>,<br>
-                                        <span class="json-string">"5G"</span>
-                                    </div>
-                                    ]
-                                </div>
-                                },<br>
-                                {<br>
-                                <div class="json-node">
-                                    <span class="json-key">id</span>: <span class="json-string">"P002"</span>,<br>
-                                    <span class="json-key">name</span>: <span class="json-string">"笔记本电脑"</span>,<br>
-                                    <span class="json-key">category</span>: <span class="json-string">"电子产品"</span>,<br>
-                                    <span class="json-key">price</span>: <span class="json-number">1299.99</span>,<br>
-                                    <span class="json-key">inStock</span>: <span class="json-boolean">false</span>,<br>
-                                    <span class="json-key">specifications</span>: {
-                                    <div class="json-node">
-                                        <span class="json-key">processor</span>: <span class="json-string">"Intel i7"</span>,<br>
-                                        <span class="json-key">ram</span>: <span class="json-string">"16GB"</span>,<br>
-                                        <span class="json-key">storage</span>: <span class="json-string">"512GB SSD"</span>
-                                    </div>
-                                    },<br>
-                                    <span class="json-key">tags</span>: [
-                                    <div class="json-node">
-                                        <span class="json-string">"电脑"</span>,<br>
-                                        <span class="json-string">"便携"</span>,<br>
-                                        <span class="json-string">"办公"</span>
-                                    </div>
-                                    ]
-                                </div>
-                                },<br>
-                                {<br>
-                                <div class="json-node">
-                                    <span class="json-key">id</span>: <span class="json-string">"P003"</span>,<br>
-                                    <span class="json-key">name</span>: <span class="json-string">"无线耳机"</span>,<br>
-                                    <span class="json-key">category</span>: <span class="json-string">"音频设备"</span>,<br>
-                                    <span class="json-key">price</span>: <span class="json-number">199.99</span>,<br>
-                                    <span class="json-key">inStock</span>: <span class="json-boolean">true</span>,<br>
-                                    <span class="json-key">specifications</span>: {
-                                    <div class="json-node">
-                                        <span class="json-key">battery</span>: <span class="json-string">"20小时"</span>,<br>
-                                        <span class="json-key">connectivity</span>: <span class="json-string">"蓝牙5.0"</span>
-                                    </div>
-                                    },<br>
-                                    <span class="json-key">tags</span>: [
-                                    <div class="json-node">
-                                        <span class="json-string">"耳机"</span>,<br>
-                                        <span class="json-string">"无线"</span>,<br>
-                                        <span class="json-string">"音乐"</span>
-                                    </div>
-                                    ]
-                                </div>
-                                }
-                            </div>
-                            ]
-                        </div>
-                    </div>
+            <div class="tab-content" id="structure">
+                <h3>JSON结构分析</h3>
+                <select id="fileSelector">
+                    <!-- 文件选择器选项将在这里动态添加 -->
+                </select>
+                <div class="json-tree" id="jsonTree">
+                    <!-- JSON树形结构将在这里显示 -->
                 </div>
             </div>
             
-            <!-- 配置设置JSON -->
-            <div class="card" data-type="config">
-                <div class="card-header">
-                    <h3>应用配置</h3>
-                    <span class="card-type">配置结构</span>
+            <div class="tab-content" id="comparison">
+                <h3>文件比较</h3>
+                <div class="comparison-controls">
+                    <select id="compareFile1">
+                        <!-- 比较文件1选择器 -->
+                    </select>
+                    <span>与</span>
+                    <select id="compareFile2">
+                        <!-- 比较文件2选择器 -->
+                    </select>
+                    <button id="compareBtn">比较</button>
                 </div>
-                <div class="card-body">
-                    <div class="json-code">
-{
-  "app": {
-    "name": "MyApplication",
-    "version": "1.2.3",
-    "environment": "production"
-  },
-  "database": {
-    "host": "localhost",
-    "port": 5432,
-    "name": "myapp_db",
-    "username": "admin",
-    "password": "securepassword123"
-  },
-  "api": {
-    "baseUrl": "https://api.example.com",
-    "timeout": 30000,
-    "retries": 3
-  },
-  "features": {
-    "darkMode": true,
-    "notifications": {
-      "email": true,
-      "push": false,
-      "sms": true
-    },
-    "analytics": {
-      "enabled": true,
-      "provider": "google"
-    }
-  },
-  "security": {
-    "jwtSecret": "supersecretkey",
-    "tokenExpiry": "24h",
-    "corsOrigins": ["https://example.com", "https://app.example.com"]
-  }
-}
-                    </div>
-                    <div class="json-visual">
-                        <div class="json-node">
-                            <span class="json-key">app</span>: {
-                            <div class="json-node">
-                                <span class="json-key">name</span>: <span class="json-string">"MyApplication"</span>,<br>
-                                <span class="json-key">version</span>: <span class="json-string">"1.2.3"</span>,<br>
-                                <span class="json-key">environment</span>: <span class="json-string">"production"</span>
-                            </div>
-                            },<br>
-                            <span class="json-key">database</span>: {
-                            <div class="json-node">
-                                <span class="json-key">host</span>: <span class="json-string">"localhost"</span>,<br>
-                                <span class="json-key">port</span>: <span class="json-number">5432</span>,<br>
-                                <span class="json-key">name</span>: <span class="json-string">"myapp_db"</span>,<br>
-                                <span class="json-key">username</span>: <span class="json-string">"admin"</span>,<br>
-                                <span class="json-key">password</span>: <span class="json-string">"securepassword123"</span>
-                            </div>
-                            },<br>
-                            <span class="json-key">api</span>: {
-                            <div class="json-node">
-                                <span class="json-key">baseUrl</span>: <span class="json-string">"https://api.example.com"</span>,<br>
-                                <span class="json-key">timeout</span>: <span class="json-number">30000</span>,<br>
-                                <span class="json-key">retries</span>: <span class="json-number">3</span>
-                            </div>
-                            },<br>
-                            <span class="json-key">features</span>: {
-                            <div class="json-node">
-                                <span class="json-key">darkMode</span>: <span class="json-boolean">true</span>,<br>
-                                <span class="json-key">notifications</span>: {
-                                <div class="json-node">
-                                    <span class="json-key">email</span>: <span class="json-boolean">true</span>,<br>
-                                    <span class="json-key">push</span>: <span class="json-boolean">false</span>,<br>
-                                    <span class="json-key">sms</span>: <span class="json-boolean">true</span>
-                                </div>
-                                },<br>
-                                <span class="json-key">analytics</span>: {
-                                <div class="json-node">
-                                    <span class="json-key">enabled</span>: <span class="json-boolean">true</span>,<br>
-                                    <span class="json-key">provider</span>: <span class="json-string">"google"</span>
-                                </div>
-                                }
-                            </div>
-                            },<br>
-                            <span class="json-key">security</span>: {
-                            <div class="json-node">
-                                <span class="json-key">jwtSecret</span>: <span class="json-string">"supersecretkey"</span>,<br>
-                                <span class="json-key">tokenExpiry</span>: <span class="json-string">"24h"</span>,<br>
-                                <span class="json-key">corsOrigins</span>: [
-                                <div class="json-node">
-                                    <span class="json-string">"https://example.com"</span>,<br>
-                                    <span class="json-string">"https://app.example.com"</span>
-                                </div>
-                                ]
-                            </div>
-                            }
-                        </div>
-                    </div>
+                <div class="comparison-result" id="comparisonResult">
+                    <!-- 比较结果将在这里显示 -->
                 </div>
             </div>
             
-            <!-- API响应JSON -->
-            <div class="card" data-type="api">
-                <div class="card-header">
-                    <h3>API响应</h3>
-                    <span class="card-type">响应结构</span>
-                </div>
-                <div class="card-body">
-                    <div class="json-code">
-{
-  "success": true,
-  "message": "数据获取成功",
-  "data": {
-    "users": [
-      {
-        "id": 1,
-        "name": "张三",
-        "email": "zhangsan@example.com",
-        "role": "admin"
-      },
-      {
-        "id": 2,
-        "name": "李四",
-        "email": "lisi@example.com",
-        "role": "user"
-      }
-    ],
-    "pagination": {
-      "page": 1,
-      "limit": 10,
-      "total": 2,
-      "pages": 1
-    }
-  },
-  "timestamp": "2023-05-15T14:30:00Z",
-  "requestId": "req_123456789"
-}
-                    </div>
-                    <div class="json-visual">
-                        <div class="json-node">
-                            <span class="json-key">success</span>: <span class="json-boolean">true</span>,<br>
-                            <span class="json-key">message</span>: <span class="json-string">"数据获取成功"</span>,<br>
-                            <span class="json-key">data</span>: {
-                            <div class="json-node">
-                                <span class="json-key">users</span>: [
-                                <div class="json-node">
-                                    {<br>
-                                    <div class="json-node">
-                                        <span class="json-key">id</span>: <span class="json-number">1</span>,<br>
-                                        <span class="json-key">name</span>: <span class="json-string">"张三"</span>,<br>
-                                        <span class="json-key">email</span>: <span class="json-string">"zhangsan@example.com"</span>,<br>
-                                        <span class="json-key">role</span>: <span class="json-string">"admin"</span>
-                                    </div>
-                                    },<br>
-                                    {<br>
-                                    <div class="json-node">
-                                        <span class="json-key">id</span>: <span class="json-number">2</span>,<br>
-                                        <span class="json-key">name</span>: <span class="json-string">"李四"</span>,<br>
-                                        <span class="json-key">email</span>: <span class="json-string">"lisi@example.com"</span>,<br>
-                                        <span class="json-key">role</span>: <span class="json-string">"user"</span>
-                                    </div>
-                                    }
-                                </div>
-                                ],<br>
-                                <span class="json-key">pagination</span>: {
-                                <div class="json-node">
-                                    <span class="json-key">page</span>: <span class="json-number">1</span>,<br>
-                                    <span class="json-key">limit</span>: <span class="json-number">10</span>,<br>
-                                    <span class="json-key">total</span>: <span class="json-number">2</span>,<br>
-                                    <span class="json-key">pages</span>: <span class="json-number">1</span>
-                                </div>
-                                }
-                            </div>
-                            },<br>
-                            <span class="json-key">timestamp</span>: <span class="json-string">"2023-05-15T14:30:00Z"</span>,<br>
-                            <span class="json-key">requestId</span>: <span class="json-string">"req_123456789"</span>
-                        </div>
-                    </div>
+            <div class="tab-content" id="visualization">
+                <h3>数据可视化</h3>
+                <select id="vizFileSelector">
+                    <!-- 可视化文件选择器 -->
+                </select>
+                <div id="visualizationContainer">
+                    <!-- 可视化图表将在这里显示 -->
                 </div>
             </div>
-        </div>
+        </section>
+        
+        <footer>
+            <p>JSON文件分析解构工具 &copy; 2023 - 使用纯HTML、CSS和JavaScript构建</p>
+        </footer>
     </div>
-    
-    <footer>
-        <p>JSON数据结构展示 &copy; 2023 - 学习JSON的绝佳资源</p>
-    </footer>
-    
+
     <script>
-        // 视图切换功能
-        document.getElementById('code-view').addEventListener('click', function() {
-            document.querySelectorAll('.json-code').forEach(el => {
-                el.style.display = 'block';
-            });
-            document.querySelectorAll('.json-visual').forEach(el => {
-                el.style.display = 'none';
-            });
-            document.getElementById('code-view').classList.add('active');
-            document.getElementById('visual-view').classList.remove('active');
-        });
+        // 全局变量
+        let uploadedFiles = [];
         
-        document.getElementById('visual-view').addEventListener('click', function() {
-            document.querySelectorAll('.json-code').forEach(el => {
-                el.style.display = 'none';
-            });
-            document.querySelectorAll('.json-visual').forEach(el => {
-                el.style.display = 'block';
-            });
-            document.getElementById('visual-view').classList.add('active');
-            document.getElementById('code-view').classList.remove('active');
-        });
+        // DOM元素
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const fileList = document.getElementById('fileList');
+        const analysisSection = document.getElementById('analysisSection');
+        const tabs = document.querySelectorAll('.tab');
+        const tabContents = document.querySelectorAll('.tab-content');
+        const fileSelector = document.getElementById('fileSelector');
+        const jsonTree = document.getElementById('jsonTree');
+        const compareFile1 = document.getElementById('compareFile1');
+        const compareFile2 = document.getElementById('compareFile2');
+        const compareBtn = document.getElementById('compareBtn');
+        const comparisonResult = document.getElementById('comparisonResult');
+        const vizFileSelector = document.getElementById('vizFileSelector');
+        const visualizationContainer = document.getElementById('visualizationContainer');
+        const statsGrid = document.getElementById('statsGrid');
+        const overviewContent = document.getElementById('overviewContent');
         
-        // 搜索功能
-        document.querySelector('.search-box').addEventListener('input', function(e) {
-            const searchTerm = e.target.value.toLowerCase();
-            document.querySelectorAll('.card').forEach(card => {
-                const type = card.getAttribute('data-type').toLowerCase();
-                const title = card.querySelector('h3').textContent.toLowerCase();
+        // 事件监听器
+        uploadBtn.addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', handleFileSelect);
+        uploadArea.addEventListener('dragover', handleDragOver);
+        uploadArea.addEventListener('dragleave', handleDragLeave);
+        uploadArea.addEventListener('drop', handleDrop);
+        
+        // 标签页切换
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const tabId = tab.getAttribute('data-tab');
                 
-                if (type.includes(searchTerm) || title.includes(searchTerm)) {
-                    card.style.display = 'block';
-                } else {
-                    card.style.display = 'none';
+                // 移除所有活动标签
+                tabs.forEach(t => t.classList.remove('active'));
+                tabContents.forEach(c => c.classList.remove('active'));
+                
+                // 激活当前标签
+                tab.classList.add('active');
+                document.getElementById(tabId).classList.add('active');
+                
+                // 根据标签更新内容
+                if (tabId === 'structure') {
+                    updateFileSelector();
+                    displayJsonStructure();
+                } else if (tabId === 'comparison') {
+                    updateComparisonSelectors();
+                } else if (tabId === 'visualization') {
+                    updateVizFileSelector();
+                    displayVisualization();
+                } else if (tabId === 'overview') {
+                    displayOverview();
                 }
             });
         });
+        
+        // 文件比较
+        compareBtn.addEventListener('click', compareFiles);
+        
+        // 文件选择处理
+        function handleFileSelect(e) {
+            const files = e.target.files;
+            processFiles(files);
+        }
+        
+        // 拖放处理
+        function handleDragOver(e) {
+            e.preventDefault();
+            uploadArea.classList.add('drag-over');
+        }
+        
+        function handleDragLeave(e) {
+            e.preventDefault();
+            uploadArea.classList.remove('drag-over');
+        }
+        
+        function handleDrop(e) {
+            e.preventDefault();
+            uploadArea.classList.remove('drag-over');
+            const files = e.dataTransfer.files;
+            processFiles(files);
+        }
+        
+        // 处理上传的文件
+        function processFiles(files) {
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                
+                // 检查文件类型
+                if (file.type !== 'application/json' && !file.name.endsWith('.json')) {
+                    alert(`文件 "${file.name}" 不是有效的JSON文件`);
+                    continue;
+                }
+                
+                // 检查文件大小 (限制10MB)
+                if (file.size > 10 * 1024 * 1024) {
+                    alert(`文件 "${file.name}" 太大，请选择小于10MB的文件`);
+                    continue;
+                }
+                
+                // 读取文件内容
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    try {
+                        const content = JSON.parse(e.target.result);
+                        
+                        // 添加到上传文件列表
+                        uploadedFiles.push({
+                            name: file.name,
+                            content: content,
+                            size: file.size,
+                            lastModified: file.lastModified
+                        });
+                        
+                        // 更新文件列表显示
+                        updateFileList();
+                        
+                        // 显示分析区域
+                        analysisSection.style.display = 'block';
+                        
+                        // 更新概览
+                        displayOverview();
+                    } catch (error) {
+                        alert(`解析文件 "${file.name}" 时出错: ${error.message}`);
+                    }
+                };
+                reader.readAsText(file);
+            }
+            
+            // 重置文件输入，允许重复选择相同文件
+            fileInput.value = '';
+        }
+        
+        // 更新文件列表显示
+        function updateFileList() {
+            fileList.innerHTML = '';
+            
+            uploadedFiles.forEach((file, index) => {
+                const fileItem = document.createElement('div');
+                fileItem.className = 'file-item';
+                
+                fileItem.innerHTML = `
+                    <div class="file-name">${file.name}</div>
+                    <div class="file-actions">
+                        <button class="view-btn" data-index="${index}">查看</button>
+                        <button class="remove-btn" data-index="${index}">移除</button>
+                    </div>
+                `;
+                
+                fileList.appendChild(fileItem);
+            });
+            
+            // 添加查看和移除按钮的事件监听器
+            document.querySelectorAll('.view-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const index = e.target.getAttribute('data-index');
+                    // 切换到结构分析标签并显示选中的文件
+                    tabs.forEach(t => t.classList.remove('active'));
+                    tabContents.forEach(c => c.classList.remove('active'));
+                    
+                    document.querySelector('[data-tab="structure"]').classList.add('active');
+                    document.getElementById('structure').classList.add('active');
+                    
+                    // 设置文件选择器
+                    updateFileSelector();
+                    fileSelector.value = index;
+                    displayJsonStructure();
+                });
+            });
+            
+            document.querySelectorAll('.remove-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const index = e.target.getAttribute('data-index');
+                    uploadedFiles.splice(index, 1);
+                    updateFileList();
+                    
+                    // 如果没有文件了，隐藏分析区域
+                    if (uploadedFiles.length === 0) {
+                        analysisSection.style.display = 'none';
+                    } else {
+                        // 更新其他部分
+                        displayOverview();
+                    }
+                });
+            });
+        }
+        
+        // 更新文件选择器
+        function updateFileSelector() {
+            fileSelector.innerHTML = '';
+            
+            uploadedFiles.forEach((file, index) => {
+                const option = document.createElement('option');
+                option.value = index;
+                option.textContent = file.name;
+                fileSelector.appendChild(option);
+            });
+            
+            fileSelector.addEventListener('change', displayJsonStructure);
+        }
+        
+        // 更新比较选择器
+        function updateComparisonSelectors() {
+            compareFile1.innerHTML = '';
+            compareFile2.innerHTML = '';
+            
+            uploadedFiles.forEach((file, index) => {
+                const option1 = document.createElement('option');
+                option1.value = index;
+                option1.textContent = file.name;
+                compareFile1.appendChild(option1);
+                
+                const option2 = document.createElement('option');
+                option2.value = index;
+                option2.textContent = file.name;
+                compareFile2.appendChild(option2);
+            });
+            
+            // 默认选择不同的文件进行比较
+            if (uploadedFiles.length > 1) {
+                compareFile2.value = 1;
+            }
+        }
+        
+        // 更新可视化文件选择器
+        function updateVizFileSelector() {
+            vizFileSelector.innerHTML = '';
+            
+            uploadedFiles.forEach((file, index) => {
+                const option = document.createElement('option');
+                option.value = index;
+                option.textContent = file.name;
+                vizFileSelector.appendChild(option);
+            });
+            
+            vizFileSelector.addEventListener('change', displayVisualization);
+        }
+        
+        // 显示JSON结构
+        function displayJsonStructure() {
+            const selectedIndex = fileSelector.value;
+            if (selectedIndex === '' || !uploadedFiles[selectedIndex]) return;
+            
+            const file = uploadedFiles[selectedIndex];
+            jsonTree.textContent = JSON.stringify(file.content, null, 2);
+        }
+        
+        // 显示概览
+        function displayOverview() {
+            // 更新统计信息
+            statsGrid.innerHTML = '';
+            
+            if (uploadedFiles.length === 0) return;
+            
+            // 总文件数
+            const totalFilesCard = document.createElement('div');
+            totalFilesCard.className = 'stat-card';
+            totalFilesCard.innerHTML = `
+                <div class="stat-value">${uploadedFiles.length}</div>
+                <div class="stat-label">文件数量</div>
+            `;
+            statsGrid.appendChild(totalFilesCard);
+            
+            // 平均文件大小
+            const totalSize = uploadedFiles.reduce((sum, file) => sum + file.size, 0);
+            const avgSize = totalSize / uploadedFiles.length;
+            const avgSizeCard = document.createElement('div');
+            avgSizeCard.className = 'stat-card';
+            avgSizeCard.innerHTML = `
+                <div class="stat-value">${formatFileSize(avgSize)}</div>
+                <div class="stat-label">平均大小</div>
+            `;
+            statsGrid.appendChild(avgSizeCard);
+            
+            // 最深层级
+            let maxDepth = 0;
+            uploadedFiles.forEach(file => {
+                const depth = calculateDepth(file.content);
+                if (depth > maxDepth) maxDepth = depth;
+            });
+            
+            const depthCard = document.createElement('div');
+            depthCard.className = 'stat-card';
+            depthCard.innerHTML = `
+                <div class="stat-value">${maxDepth}</div>
+                <div class="stat-label">最深层级</div>
+            `;
+            statsGrid.appendChild(depthCard);
+            
+            // 键数量最多的文件
+            let maxKeys = 0;
+            let maxKeysFile = '';
+            uploadedFiles.forEach(file => {
+                const keyCount = countKeys(file.content);
+                if (keyCount > maxKeys) {
+                    maxKeys = keyCount;
+                    maxKeysFile = file.name;
+                }
+            });
+            
+            const keysCard = document.createElement('div');
+            keysCard.className = 'stat-card';
+            keysCard.innerHTML = `
+                <div class="stat-value">${maxKeys}</div>
+                <div class="stat-label">最多键数量</div>
+            `;
+            statsGrid.appendChild(keysCard);
+            
+            // 显示文件列表和基本信息
+            overviewContent.innerHTML = '<h4>文件详情</h4>';
+            
+            uploadedFiles.forEach(file => {
+                const fileInfo = document.createElement('div');
+                fileInfo.className = 'file-item';
+                fileInfo.innerHTML = `
+                    <div class="file-name">${file.name}</div>
+                    <div class="file-details">
+                        <span>大小: ${formatFileSize(file.size)}</span>
+                        <span>键数量: ${countKeys(file.content)}</span>
+                        <span>深度: ${calculateDepth(file.content)}</span>
+                    </div>
+                `;
+                overviewContent.appendChild(fileInfo);
+            });
+        }
+        
+        // 比较文件
+        function compareFiles() {
+            const index1 = compareFile1.value;
+            const index2 = compareFile2.value;
+            
+            if (index1 === index2) {
+                comparisonResult.innerHTML = '<p>请选择两个不同的文件进行比较</p>';
+                return;
+            }
+            
+            const file1 = uploadedFiles[index1];
+            const file2 = uploadedFiles[index2];
+            
+            // 简单的差异检测
+            const differences = findDifferences(file1.content, file2.content);
+            
+            comparisonResult.innerHTML = '';
+            
+            if (differences.length === 0) {
+                comparisonResult.innerHTML = '<p>两个文件内容相同</p>';
+                return;
+            }
+            
+            differences.forEach(diff => {
+                const diffItem = document.createElement('div');
+                diffItem.className = `diff-item ${diff.type}`;
+                
+                if (diff.type === 'added') {
+                    diffItem.innerHTML = `<strong>新增:</strong> ${diff.path} = ${JSON.stringify(diff.value)}`;
+                } else if (diff.type === 'removed') {
+                    diffItem.innerHTML = `<strong>删除:</strong> ${diff.path} = ${JSON.stringify(diff.value)}`;
+                } else if (diff.type === 'modified') {
+                    diffItem.innerHTML = `<strong>修改:</strong> ${diff.path} 从 ${JSON.stringify(diff.oldValue)} 变为 ${JSON.stringify(diff.newValue)}`;
+                }
+                
+                comparisonResult.appendChild(diffItem);
+            });
+        }
+        
+        // 显示可视化
+        function displayVisualization() {
+            const selectedIndex = vizFileSelector.value;
+            if (selectedIndex === '' || !uploadedFiles[selectedIndex]) return;
+            
+            const file = uploadedFiles[selectedIndex];
+            
+            // 简单的可视化 - 显示键的类型分布
+            const typeCounts = countValueTypes(file.content);
+            
+            visualizationContainer.innerHTML = `
+                <h4>${file.name} 数据类型分布</h4>
+                <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px;">
+                    ${Object.entries(typeCounts).map(([type, count]) => `
+                        <div style="background: var(--primary-color); color: white; padding: 10px; border-radius: 5px;">
+                            ${type}: ${count}
+                        </div>
+                    `).join('')}
+                </div>
+                <div style="margin-top: 30px;">
+                    <h4>数据结构预览</h4>
+                    <div style="background: #f0f0f0; padding: 15px; border-radius: 5px; max-height: 300px; overflow-y: auto;">
+                        <pre>${JSON.stringify(file.content, null, 2)}</pre>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // 辅助函数
+        
+        // 格式化文件大小
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+        
+        // 计算JSON深度
+        function calculateDepth(obj, currentDepth = 0) {
+            if (typeof obj !== 'object' || obj === null) return currentDepth;
+            
+            let maxDepth = currentDepth;
+            for (let key in obj) {
+                if (obj.hasOwnProperty(key)) {
+                    const depth = calculateDepth(obj[key], currentDepth + 1);
+                    if (depth > maxDepth) maxDepth = depth;
+                }
+            }
+            
+            return maxDepth;
+        }
+        
+        // 计算键的数量
+        function countKeys(obj) {
+            if (typeof obj !== 'object' || obj === null) return 0;
+            
+            let count = Object.keys(obj).length;
+            for (let key in obj) {
+                if (obj.hasOwnProperty(key) && typeof obj[key] === 'object' && obj[key] !== null) {
+                    count += countKeys(obj[key]);
+                }
+            }
+            
+            return count;
+        }
+        
+        // 查找差异
+        function findDifferences(obj1, obj2, path = '') {
+            const differences = [];
+            
+            // 获取所有键
+            const allKeys = new Set([...Object.keys(obj1), ...Object.keys(obj2)]);
+            
+            allKeys.forEach(key => {
+                const currentPath = path ? `${path}.${key}` : key;
+                const val1 = obj1[key];
+                const val2 = obj2[key];
+                
+                // 键在obj1中但不在obj2中
+                if (key in obj1 && !(key in obj2)) {
+                    differences.push({
+                        type: 'removed',
+                        path: currentPath,
+                        value: val1
+                    });
+                }
+                // 键在obj2中但不在obj1中
+                else if (!(key in obj1) && key in obj2) {
+                    differences.push({
+                        type: 'added',
+                        path: currentPath,
+                        value: val2
+                    });
+                }
+                // 键在两个对象中，但值不同
+                else if (JSON.stringify(val1) !== JSON.stringify(val2)) {
+                    // 如果都是对象，递归比较
+                    if (typeof val1 === 'object' && val1 !== null && 
+                        typeof val2 === 'object' && val2 !== null) {
+                        differences.push(...findDifferences(val1, val2, currentPath));
+                    } else {
+                        differences.push({
+                            type: 'modified',
+                            path: currentPath,
+                            oldValue: val1,
+                            newValue: val2
+                        });
+                    }
+                }
+            });
+            
+            return differences;
+        }
+        
+        // 统计值类型
+        function countValueTypes(obj, counts = {}) {
+            if (!counts.string) counts.string = 0;
+            if (!counts.number) counts.number = 0;
+            if (!counts.boolean) counts.boolean = 0;
+            if (!counts.object) counts.object = 0;
+            if (!counts.array) counts.array = 0;
+            if (!counts.null) counts.null = 0;
+            
+            for (let key in obj) {
+                if (obj.hasOwnProperty(key)) {
+                    const value = obj[key];
+                    const type = Array.isArray(value) ? 'array' : 
+                                 value === null ? 'null' : 
+                                 typeof value;
+                    
+                    if (counts[type] !== undefined) {
+                        counts[type]++;
+                    }
+                    
+                    // 递归处理对象和数组
+                    if (typeof value === 'object' && value !== null) {
+                        countValueTypes(value, counts);
+                    }
+                }
+            }
+            
+            return counts;
+        }
     </script>
 </body>
 </html>
