@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>对话加密与解密工具</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            color: #fff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: rgba(0, 0, 0, 0.7);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(to right, #fdbb2d, #b21f1f);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            color: #ccc;
+        }
+        
+        .input-section, .output-section {
+            margin-bottom: 25px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+        
+        textarea {
+            width: 100%;
+            height: 120px;
+            padding: 15px;
+            border: 2px solid #444;
+            border-radius: 8px;
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 16px;
+            resize: vertical;
+            transition: border-color 0.3s;
+        }
+        
+        textarea:focus {
+            outline: none;
+            border-color: #fdbb2d;
+        }
+        
+        .buttons {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        #encrypt-btn {
+            background: linear-gradient(to right, #1a2a6c, #b21f1f);
+            color: white;
+        }
+        
+        #decrypt-btn {
+            background: linear-gradient(to right, #b21f1f, #1a2a6c);
+            color: white;
+        }
+        
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        button:active {
+            transform: translateY(1px);
+        }
+        
+        .info-box {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        
+        .info-box h3 {
+            margin-bottom: 10px;
+            color: #fdbb2d;
+        }
+        
+        .info-box ul {
+            padding-left: 20px;
+        }
+        
+        .info-box li {
+            margin-bottom: 8px;
+            line-height: 1.5;
+        }
+        
+        .language-indicator {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            margin-left: 10px;
+        }
+        
+        .english {
+            background-color: #1a2a6c;
+        }
+        
+        .chinese {
+            background-color: #b21f1f;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #ccc;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 600px) {
+            .buttons {
+                flex-direction: column;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>对话加密与解密工具</h1>
+            <p class="subtitle">安全地加密和解密您的英文和中文对话</p>
+        </header>
+        
+        <div class="input-section">
+            <label for="input-text">输入文本 <span id="lang-indicator" class="language-indicator english">英文</span></label>
+            <textarea id="input-text" placeholder="请输入要加密或解密的文本..."></textarea>
+        </div>
+        
+        <div class="buttons">
+            <button id="encrypt-btn">加密文本</button>
+            <button id="decrypt-btn">解密文本</button>
+        </div>
+        
+        <div class="output-section">
+            <label for="output-text">结果</label>
+            <textarea id="output-text" readonly placeholder="加密或解密后的文本将显示在这里..."></textarea>
+        </div>
+        
+        <div class="info-box">
+            <h3>使用说明</h3>
+            <ul>
+                <li><strong>英文加密</strong>: 字母对称变化 + 101001大小写转换 + 二进制取反</li>
+                <li><strong>中文加密</strong>: 添加引号 + UTF-8转16进制 + 二进制前后添加01001011 + 取反</li>
+                <li>系统会自动检测输入文本的语言类型</li>
+                <li>加密后的文本可以复制并发送给接收方，使用相同工具解密</li>
+            </ul>
+        </div>
+        
+        <footer>
+            <p>对话加密工具 &copy; 2023 | 安全通信解决方案</p>
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const inputText = document.getElementById('input-text');
+            const outputText = document.getElementById('output-text');
+            const encryptBtn = document.getElementById('encrypt-btn');
+            const decryptBtn = document.getElementById('decrypt-btn');
+            const langIndicator = document.getElementById('lang-indicator');
+            
+            // 检测文本语言
+            function detectLanguage(text) {
+                // 检测是否包含中文字符
+                if (/[\u4e00-\u9fff]/.test(text)) {
+                    return 'chinese';
+                } else {
+                    return 'english';
+                }
+            }
+            
+            // 更新语言指示器
+            function updateLanguageIndicator(text) {
+                const lang = detectLanguage(text);
+                langIndicator.textContent = lang === 'chinese' ? '中文' : '英文';
+                langIndicator.className = 'language-indicator ' + lang;
+            }
+            
+            // 输入文本变化时更新语言指示器
+            inputText.addEventListener('input', function() {
+                updateLanguageIndicator(this.value);
+            });
+            
+            // 英文加密函数
+            function encryptEnglish(text) {
+                // 步骤1: Atbash转换（26字母对称）
+                let atbashText = '';
+                for (let i = 0; i < text.length; i++) {
+                    const char = text[i];
+                    if (char >= 'A' && char <= 'Z') {
+                        atbashText += String.fromCharCode('Z'.charCodeAt(0) - (char.charCodeAt(0) - 'A'.charCodeAt(0)));
+                    } else if (char >= 'a' && char <= 'z') {
+                        atbashText += String.fromCharCode('z'.charCodeAt(0) - (char.charCodeAt(0) - 'a'.charCodeAt(0)));
+                    } else {
+                        atbashText += char;
+                    }
+                }
+
+                // 步骤2: 大小写转换模式101001（循环）
+                const pattern = "101001";
+                let patternIndex = 0;
+                let caseConvertedText = '';
+                for (let i = 0; i < atbashText.length; i++) {
+                    let char = atbashText[i];
+                    if ((char >= 'A' && char <= 'Z') || (char >= 'a' && char <= 'z')) {
+                        if (pattern[patternIndex] === '1') {
+                            if (char === char.toUpperCase()) {
+                                char = char.toLowerCase();
+                            } else {
+                                char = char.toUpperCase();
+                            }
+                        }
+                        patternIndex = (patternIndex + 1) % pattern.length;
+                    }
+                    caseConvertedText += char;
+                }
+
+                // 步骤3: 将每个字符转换为ASCII二进制（8位）
+                let binaryText = '';
+                for (let i = 0; i < caseConvertedText.length; i++) {
+                    const charCode = caseConvertedText.charCodeAt(i);
+                    const binary = charCode.toString(2).padStart(8, '0');
+                    binaryText += binary;
+                }
+
+                // 步骤4: 对二进制字符串取反
+                let invertedBinary = '';
+                for (let i = 0; i < binaryText.length; i++) {
+                    invertedBinary += binaryText[i] === '0' ? '1' : '0';
+                }
+
+                // 步骤5: 将取反后的二进制转换为字符
+                let outputText = '';
+                for (let i = 0; i < invertedBinary.length; i += 8) {
+                    const byte = invertedBinary.substring(i, i + 8);
+                    const charCode = parseInt(byte, 2);
+                    outputText += String.fromCharCode(charCode);
+                }
+
+                return outputText;
+            }
+
+            // 英文解密函数
+            function decryptEnglish(text) {
+                // 步骤1: 将每个字符转换为ASCII二进制（8位）
+                let binaryText = '';
+                for (let i = 0; i < text.length; i++) {
+                    const charCode = text.charCodeAt(i);
+                    const binary = charCode.toString(2).padStart(8, '0');
+                    binaryText += binary;
+                }
+
+                // 步骤2: 对二进制字符串取反（与加密相同）
+                let invertedBinary = '';
+                for (let i = 0; i < binaryText.length; i++) {
+                    invertedBinary += binaryText[i] === '0' ? '1' : '0';
+                }
+
+                // 步骤3: 将取反后的二进制转换为字符
+                let caseConvertedText = '';
+                for (let i = 0; i < invertedBinary.length; i += 8) {
+                    const byte = invertedBinary.substring(i, i + 8);
+                    const charCode = parseInt(byte, 2);
+                    caseConvertedText += String.fromCharCode(charCode);
+                }
+
+                // 步骤4: 大小写转换模式101001（循环）- 与加密相同
+                const pattern = "101001";
+                let patternIndex = 0;
+                let atbashText = '';
+                for (let i = 0; i < caseConvertedText.length; i++) {
+                    let char = caseConvertedText[i];
+                    if ((char >= 'A' && char <= 'Z') || (char >= 'a' && char <= 'z')) {
+                        if (pattern[patternIndex] === '1') {
+                            if (char === char.toUpperCase()) {
+                                char = char.toLowerCase();
+                            } else {
+                                char = char.toUpperCase();
+                            }
+                        }
+                        patternIndex = (patternIndex + 1) % pattern.length;
+                    }
+                    atbashText += char;
+                }
+
+                // 步骤5: Atbash转换（26字母对称）- 与加密相同
+                let outputText = '';
+                for (let i = 0; i < atbashText.length; i++) {
+                    const char = atbashText[i];
+                    if (char >= 'A' && char <= 'Z') {
+                        outputText += String.fromCharCode('Z'.charCodeAt(0) - (char.charCodeAt(0) - 'A'.charCodeAt(0)));
+                    } else if (char >= 'a' && char <= 'z') {
+                        outputText += String.fromCharCode('z'.charCodeAt(0) - (char.charCodeAt(0) - 'a'.charCodeAt(0)));
+                    } else {
+                        outputText += char;
+                    }
+                }
+
+                return outputText;
+            }
+
+            // 中文加密函数
+            function encryptChinese(text) {
+                // 步骤1: 在中文文本前后添加双引号
+                const quotedText = '"' + text + '"';
+
+                // 步骤2: 将字符串转换为UTF-8编码的16进制
+                const encoder = new TextEncoder();
+                const bytes = encoder.encode(quotedText);
+                let hexString = '';
+                for (let i = 0; i < bytes.length; i++) {
+                    const hex = bytes[i].toString(16).padStart(2, '0');
+                    hexString += hex;
+                }
+
+                // 步骤3: 将16进制转换为二进制
+                let binaryString = '';
+                for (let i = 0; i < hexString.length; i++) {
+                    const hexChar = hexString[i];
+                    const binary = parseInt(hexChar, 16).toString(2).padStart(4, '0');
+                    binaryString += binary;
+                }
+
+                // 步骤4: 在二进制字符串前后添加"01001011"
+                binaryString = '01001011' + binaryString + '01001011';
+
+                // 步骤5: 对整个二进制字符串取反
+                let invertedBinary = '';
+                for (let i = 0; i < binaryString.length; i++) {
+                    invertedBinary += binaryString[i] === '0' ? '1' : '0';
+                }
+
+                // 步骤6: 将取反后的二进制转换为16进制
+                let hexResult = '';
+                for (let i = 0; i < invertedBinary.length; i += 8) {
+                    const byte = invertedBinary.substring(i, i + 8);
+                    const byteValue = parseInt(byte, 2);
+                    hexResult += byteValue.toString(16).padStart(2, '0');
+                }
+
+                // 步骤7: 将16进制字符串解码为UTF-8字符串
+                const byteArray = [];
+                for (let i = 0; i < hexResult.length; i += 2) {
+                    const byteStr = hexResult.substring(i, i + 2);
+                    byteArray.push(parseInt(byteStr, 16));
+                }
+                const decoder = new TextDecoder();
+                const outputText = decoder.decode(new Uint8Array(byteArray));
+
+                return outputText;
+            }
+
+            // 中文解密函数
+            function decryptChinese(text) {
+                // 步骤1: 将字符串转换为UTF-8编码的16进制
+                const encoder = new TextEncoder();
+                const bytes = encoder.encode(text);
+                let hexString = '';
+                for (let i = 0; i < bytes.length; i++) {
+                    const hex = bytes[i].toString(16).padStart(2, '0');
+                    hexString += hex;
+                }
+
+                // 步骤2: 将16进制转换为二进制
+                let binaryString = '';
+                for (let i = 0; i < hexString.length; i++) {
+                    const hexChar = hexString[i];
+                    const binary = parseInt(hexChar, 16).toString(2).padStart(4, '0');
+                    binaryString += binary;
+                }
+
+                // 步骤3: 去掉二进制字符串前后的"01001011"
+                if (binaryString.startsWith('01001011') && binaryString.endsWith('01001011')) {
+                    binaryString = binaryString.substring(8, binaryString.length - 8);
+                } else {
+                    throw new Error("无效的加密文本格式");
+                }
+
+                // 步骤4: 对整个二进制字符串取反
+                let invertedBinary = '';
+                for (let i = 0; i < binaryString.length; i++) {
+                    invertedBinary += binaryString[i] === '0' ? '1' : '0';
+                }
+
+                // 步骤5: 将取反后的二进制转换为16进制
+                let hexResult = '';
+                for (let i = 0; i < invertedBinary.length; i += 8) {
+                    const byte = invertedBinary.substring(i, i + 8);
+                    const byteValue = parseInt(byte, 2);
+                    hexResult += byteValue.toString(16).padStart(2, '0');
+                }
+
+                // 步骤6: 将16进制字符串解码为UTF-8字符串
+                const byteArray = [];
+                for (let i = 0; i < hexResult.length; i += 2) {
+                    const byteStr = hexResult.substring(i, i + 2);
+                    byteArray.push(parseInt(byteStr, 16));
+                }
+                const decoder = new TextDecoder();
+                let outputText = decoder.decode(new Uint8Array(byteArray));
+
+                // 步骤7: 去掉前后的双引号
+                if (outputText.startsWith('"') && outputText.endsWith('"')) {
+                    outputText = outputText.substring(1, outputText.length - 1);
+                }
+
+                return outputText;
+            }
+
+            // 加密按钮点击事件
+            encryptBtn.addEventListener('click', function() {
+                const input = inputText.value.trim();
+                if (!input) {
+                    alert('请输入要加密的文本');
+                    return;
+                }
+
+                try {
+                    const lang = detectLanguage(input);
+                    let result;
+                    
+                    if (lang === 'english') {
+                        result = encryptEnglish(input);
+                    } else {
+                        result = encryptChinese(input);
+                    }
+                    
+                    outputText.value = result;
+                } catch (error) {
+                    alert('加密过程中出现错误: ' + error.message);
+                }
+            });
+
+            // 解密按钮点击事件
+            decryptBtn.addEventListener('click', function() {
+                const input = inputText.value.trim();
+                if (!input) {
+                    alert('请输入要解密的文本');
+                    return;
+                }
+
+                try {
+                    let result;
+                    
+                    // 尝试英文解密
+                    try {
+                        result = decryptEnglish(input);
+                        // 如果解密结果看起来像有效文本，则使用它
+                        if (result && result.length > 0) {
+                            outputText.value = result;
+                            return;
+                        }
+                    } catch (e) {
+                        // 英文解密失败，尝试中文解密
+                    }
+                    
+                    // 尝试中文解密
+                    try {
+                        result = decryptChinese(input);
+                        outputText.value = result;
+                    } catch (e) {
+                        alert('解密失败：无法识别加密格式或文本已损坏');
+                    }
+                } catch (error) {
+                    alert('解密过程中出现错误: ' + error.message);
+                }
+            });
+            
+            // 初始化语言指示器
+            updateLanguageIndicator(inputText.value);
+        });
+    </script>
+</body>
+</html>
