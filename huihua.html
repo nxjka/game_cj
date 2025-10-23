@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>简易绘图板</title>
+    <title>绘图工具</title>
     <style>
         * {
             margin: 0;
@@ -22,7 +22,7 @@
         }
         
         .container {
-            max-width: 1000px;
+            max-width: 1200px;
             width: 100%;
             background-color: white;
             border-radius: 15px;
@@ -60,6 +60,8 @@
             background-color: #f8f9fa;
             border-radius: 10px;
             margin-right: 20px;
+            max-height: 600px;
+            overflow-y: auto;
         }
         
         .tool-section {
@@ -142,6 +144,14 @@
             width: 100%;
         }
         
+        select {
+            width: 100%;
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            background-color: white;
+        }
+        
         .canvas-container {
             flex: 3;
             min-width: 300px;
@@ -149,12 +159,101 @@
             border-radius: 10px;
             overflow: hidden;
             box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            position: relative;
+            height: 600px;
         }
         
         canvas {
             display: block;
             background-color: white;
             cursor: crosshair;
+        }
+        
+        .text-input-container {
+            position: absolute;
+            display: none;
+            border: 2px dashed #4d7cfe;
+            padding: 5px;
+            background-color: rgba(255, 255, 255, 0.9);
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        
+        .text-input {
+            width: 100%;
+            height: 100%;
+            border: none;
+            outline: none;
+            background: transparent;
+            resize: none;
+            font-family: Arial, sans-serif;
+            font-size: 16px;
+        }
+        
+        .zoom-controls {
+            position: absolute;
+            bottom: 15px;
+            right: 15px;
+            display: flex;
+            gap: 10px;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 8px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .zoom-btn {
+            width: 36px;
+            height: 36px;
+            border: none;
+            border-radius: 50%;
+            background-color: #4d7cfe;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        
+        .zoom-level {
+            display: flex;
+            align-items: center;
+            padding: 0 10px;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .pan-controls {
+            position: absolute;
+            bottom: 15px;
+            left: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 8px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .pan-btn {
+            width: 36px;
+            height: 36px;
+            border: none;
+            border-radius: 50%;
+            background-color: #4d7cfe;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        
+        .pan-btn:hover {
+            background-color: #3a6ae0;
         }
         
         .actions {
@@ -191,6 +290,23 @@
             box-shadow: 0 6px 15px rgba(255, 65, 108, 0.4);
         }
         
+        .shortcuts {
+            margin-top: 20px;
+            font-size: 0.85rem;
+            color: #666;
+        }
+        
+        .shortcuts h4 {
+            margin-bottom: 10px;
+            color: #444;
+        }
+        
+        .shortcut-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+        
         footer {
             margin-top: 20px;
             text-align: center;
@@ -213,8 +329,8 @@
 <body>
     <div class="container">
         <header>
-            <h1>简易绘图板</h1>
-            <p class="subtitle">使用HTML5 Canvas实现的在线绘图工具</p>
+            <h1>绘图工具</h1>
+            <p class="subtitle">多彩绘图</p>
         </header>
         
         <div class="app-body">
@@ -223,10 +339,28 @@
                     <h3>绘图工具</h3>
                     <div class="tools">
                         <button class="tool-btn active" id="pencil" title="画笔">✏️</button>
-                        <button class="tool-btn" id="eraser" title="橡皮擦">🧽</button>
+                        <button class="tool-btn" id="eraser" title="橡皮擦">🩽</button>
                         <button class="tool-btn" id="line" title="直线">📏</button>
                         <button class="tool-btn" id="rectangle" title="矩形">⬜</button>
                         <button class="tool-btn" id="circle" title="圆形">⭕</button>
+                        <button class="tool-btn" id="text" title="文本">T</button>
+                        <button class="tool-btn" id="mindmap" title="思维导图">🧠</button>
+                        <button class="tool-btn" id="pan" title="移动画布">✋</button>
+                    </div>
+                </div>
+
+                <div class="tool-section">
+                    <h3>导出设置</h3>
+                    <div style="display:flex;gap:8px;align-items:center;">
+                        <input type="checkbox" id="watermarkToggle">
+                        <label for="watermarkToggle">添加水印</label>
+                    </div>
+                    <div style="margin-top:8px;">
+                        <input type="text" id="watermarkText" placeholder="水印文本（例如: © 我）" style="width:100%;padding:6px;border-radius:4px;border:1px solid #ddd;">
+                    </div>
+                    <div style="margin-top:8px;display:flex;gap:8px;align-items:center;">
+                        <label for="watermarkOpacity">透明度</label>
+                        <input id="watermarkOpacity" type="range" min="0" max="1" step="0.1" value="0.5" style="flex:1;">
                     </div>
                 </div>
                 
@@ -243,6 +377,15 @@
                         <div class="color-option" style="background-color: #8e8e93;" data-color="#8e8e93"></div>
                     </div>
                 </div>
+
+                <div class="tool-section" id="layersSection">
+                    <h3>图层</h3>
+                    <div style="display:flex;gap:8px;margin-bottom:8px;">
+                        <button id="addLayerBtn" class="tool-btn" style="width:auto;padding:6px 8px;">添加图层</button>
+                        <button id="removeLayerBtn" class="tool-btn" style="width:auto;padding:6px 8px;">删除图层</button>
+                    </div>
+                    <div id="layersList" style="max-height:180px;overflow:auto;border:1px solid #eee;padding:6px;background:#fff;"></div>
+                </div>
                 
                 <div class="tool-section">
                     <h3>画笔设置</h3>
@@ -251,21 +394,100 @@
                         <input type="range" id="brushSize" min="1" max="50" value="5">
                     </div>
                 </div>
+                
+                <div class="tool-section" id="textSettings">
+                    <h3>文本设置</h3>
+                    <div class="slider-container">
+                        <label for="fontSize">字体大小: <span id="fontSizeValue">16</span>px</label>
+                        <input type="range" id="fontSize" min="10" max="72" value="16">
+                    </div>
+                    <div style="margin-top: 15px;">
+                        <label for="fontFamily">字体类型:</label>
+                        <select id="fontFamily">
+                            <option value="Arial">Arial</option>
+                            <option value="Helvetica">Helvetica</option>
+                            <option value="Times New Roman">Times New Roman</option>
+                            <option value="Georgia">Georgia</option>
+                            <option value="Courier New">Courier New</option>
+                            <option value="Verdana">Verdana</option>
+                            <option value="Impact">Impact</option>
+                            <option value="Comic Sans MS">Comic Sans MS</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="tool-section shortcuts">
+                    <h4>快捷键</h4>
+                    <div class="shortcut-item">
+                        <span>移动画布</span>
+                        <span>空格键 + 拖拽 或 选择移动工具</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <span>放大</span>
+                        <span>Ctrl + + 或 鼠标滚轮向上</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <span>缩小</span>
+                        <span>Ctrl + - 或 鼠标滚轮向下</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <span>重置缩放</span>
+                        <span>Ctrl + 0</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <span>保存</span>
+                        <span>Ctrl + S</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <span>清空</span>
+                        <span>Ctrl + D</span>
+                    </div>
+                </div>
+            </div>
+            <div class="tool-section" id="historySection">
+                <h3>操作历史</h3>
+                <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px;">
+                    <button id="clearHistoryBtn" class="tool-btn" title="清空历史" style="width:auto;padding:6px 8px;">清空历史</button>
+                    <div style="font-size:0.85rem;color:#666;">点击历史项可以回到该步</div>
+                </div>
+                <div id="historyList" style="max-height:200px;overflow:auto;border:1px solid #eee;padding:6px;background:#fff;"></div>
             </div>
             
             <div class="canvas-container">
-                <canvas id="drawingCanvas" width="800" height="500"></canvas>
+                <canvas id="drawingCanvas"></canvas>
+                <div class="text-input-container" id="textInputContainer">
+                    <textarea class="text-input" id="textInput" placeholder="输入文本..."></textarea>
+                </div>
+                <div class="zoom-controls">
+                    <button class="zoom-btn" id="zoomOut">-</button>
+                    <div class="zoom-level"><span id="zoomLevel">100%</span></div>
+                    <button class="zoom-btn" id="zoomIn">+</button>
+                </div>
+                <div class="pan-controls">
+                    <button class="pan-btn" id="panUp">↑</button>
+                    <div style="display: flex; gap: 5px;">
+                        <button class="pan-btn" id="panLeft">←</button>
+                        <button class="pan-btn" id="panReset">↺</button>
+                        <button class="pan-btn" id="panRight">→</button>
+                    </div>
+                    <button class="pan-btn" id="panDown">↓</button>
+                </div>
             </div>
         </div>
         
         <div class="actions">
             <button class="action-btn" id="saveBtn">保存图片</button>
+            <button class="action-btn" id="saveViewportBtn">保存视口</button>
+            <button class="action-btn" id="undoBtn">撤销</button>
+            <button class="action-btn" id="redoBtn">重做</button>
+                    <button class="action-btn" id="deleteNodeBtn">删除节点</button>
+                    <button class="action-btn" id="autoLayoutBtn">自动布局</button>
             <button class="action-btn clear" id="clearBtn">清空画布</button>
         </div>
     </div>
     
     <footer>
-        <p>简易绘图板 &copy; 2023 - 无需后端支持，所有操作均在浏览器中完成</p>
+        <p>绘图工具 &copy; 2025</p>
     </footer>
 
     <script>
@@ -274,188 +496,1450 @@
             const ctx = canvas.getContext('2d');
             const brushSize = document.getElementById('brushSize');
             const brushSizeValue = document.getElementById('brushSizeValue');
+            const fontSize = document.getElementById('fontSize');
+            const fontSizeValue = document.getElementById('fontSizeValue');
+            const fontFamily = document.getElementById('fontFamily');
             const colorOptions = document.querySelectorAll('.color-option');
             const toolButtons = document.querySelectorAll('.tool-btn');
             const saveBtn = document.getElementById('saveBtn');
             const clearBtn = document.getElementById('clearBtn');
-            
-            // 设置画布尺寸适应容器
-            function resizeCanvas() {
+            const textInputContainer = document.getElementById('textInputContainer');
+            const textInput = document.getElementById('textInput');
+            const zoomInBtn = document.getElementById('zoomIn');
+            const zoomOutBtn = document.getElementById('zoomOut');
+            const zoomLevel = document.getElementById('zoomLevel');
+            const panUpBtn = document.getElementById('panUp');
+            const panDownBtn = document.getElementById('panDown');
+            const panLeftBtn = document.getElementById('panLeft');
+            const panRightBtn = document.getElementById('panRight');
+            const panResetBtn = document.getElementById('panReset');
+
+            // 逻辑（超大）画布尺寸（设置为很大以模拟“无限”）
+            const LOGICAL_WIDTH = 16000; // 可根据需要放大
+            const LOGICAL_HEIGHT = 9000;
+
+            // 矢量存储：每个 stroke 表示一笔或一个对象
+            // stroke = { tool: 'pencil'|'eraser'|'line'|'rectangle'|'circle'|'text', color, lineWidth, points: [{x,y}], start:{x,y}, end:{x,y}, text, fontSize, fontFamily }
+            const strokes = [];
+            let currentStroke = null;
+
+            // 思维导图数据
+            // node = { id, x, y, w, h, text }
+            // edge = { from, to }
+            const mindNodes = [];
+            const mindEdges = [];
+            let mindNextId = 1;
+            let draggingNode = null;
+            let dragStartPos = null; // {x,y}
+            let dragOffset = { x: 0, y: 0 };
+            let creatingEdgeFrom = null;
+
+            // 水印 UI 元素
+            const watermarkToggle = document.getElementById('watermarkToggle');
+            const watermarkTextInput = document.getElementById('watermarkText');
+
+            // 图层系统
+            // layer = { id, name, visible: true, locked: false }
+            const layers = [];
+            let currentLayerId = null;
+
+            function createLayer(name) {
+                const id = 'layer_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
+                const layer = { id, name: name || '图层 ' + (layers.length + 1), visible: true, locked: false };
+                layers.push(layer);
+                if (!currentLayerId) currentLayerId = id;
+                renderLayersPanel();
+                return layer;
+            }
+
+            function removeLayer(id) {
+                const idx = layers.findIndex(l => l.id === id);
+                if (idx === -1) return false;
+                layers.splice(idx, 1);
+                if (currentLayerId === id) currentLayerId = layers.length ? layers[0].id : null;
+                renderLayersPanel();
+                return true;
+            }
+
+            function toggleLayerVisibility(id) {
+                const l = layers.find(x => x.id === id); if (!l) return; l.visible = !l.visible; renderLayersPanel(); invalidateStaticCache(); redrawCanvas();
+            }
+
+            function toggleLayerLock(id) { const l = layers.find(x => x.id === id); if (!l) return; l.locked = !l.locked; renderLayersPanel(); }
+
+            function selectLayer(id) { if (!layers.find(l => l.id === id)) return; currentLayerId = id; renderLayersPanel(); }
+
+            const layersListEl = document.getElementById('layersList');
+            const addLayerBtn = document.getElementById('addLayerBtn');
+            const removeLayerBtn = document.getElementById('removeLayerBtn');
+
+            function renderLayersPanel() {
+                layersListEl.innerHTML = '';
+                for (let i = 0; i < layers.length; i++) {
+                    const l = layers[i];
+                    const row = document.createElement('div');
+                    row.style.display = 'flex'; row.style.alignItems = 'center'; row.style.gap = '8px'; row.style.padding = '6px'; row.style.borderBottom = '1px solid #f1f1f1';
+                    // color swatch
+                    const sw = document.createElement('div'); sw.style.width='18px'; sw.style.height='18px'; sw.style.borderRadius='4px'; sw.style.background = l.color || '#ffffff'; sw.title='图层颜色'; sw.style.border='1px solid #ddd';
+                    sw.style.cursor = 'pointer';
+                    sw.addEventListener('click', function(){
+                        // 使用原生 color input 提供更好体验（仅支持 hex）
+                        const colorInput = document.createElement('input'); colorInput.type = 'color';
+                        // 若已有 hex 值则使用，否则默认白色
+                        try { colorInput.value = (l.color && l.color.startsWith && l.color.startsWith('#')) ? l.color : '#ffffff'; } catch(e) { colorInput.value = '#ffffff'; }
+                        colorInput.style.display = 'none'; document.body.appendChild(colorInput);
+                        colorInput.addEventListener('input', function() {
+                            l.color = colorInput.value; renderLayersPanel(); invalidateStaticCache(); redrawCanvas();
+                            // cleanup
+                            if (colorInput.parentNode) colorInput.parentNode.removeChild(colorInput);
+                        });
+                        colorInput.click();
+                    });
+                    row.appendChild(sw);
+                    // visibility checkbox
+                    const vis = document.createElement('input'); vis.type='checkbox'; vis.checked = !!l.visible; vis.addEventListener('change', function(){ toggleLayerVisibility(l.id); }); row.appendChild(vis);
+                    // lock checkbox
+                    const lock = document.createElement('input'); lock.type='checkbox'; lock.title='锁定'; lock.checked = !!l.locked; lock.addEventListener('change', function(){ toggleLayerLock(l.id); }); row.appendChild(lock);
+                    const label = document.createElement('div'); label.textContent = l.name; label.style.flex='1'; label.style.cursor='pointer'; if (l.id === currentLayerId) label.style.fontWeight='700'; label.addEventListener('click', function(){ selectLayer(l.id); }); row.appendChild(label);
+                    // rename button
+                    const renameBtn = document.createElement('button'); renameBtn.className='tool-btn'; renameBtn.style.width='auto'; renameBtn.style.padding='4px 6px'; renameBtn.textContent='重命名'; renameBtn.addEventListener('click', function(){ const nm = prompt('图层新名称：', l.name); if (nm !== null) { l.name = nm; renderLayersPanel(); pushHistory('重命名图层'); } }); row.appendChild(renameBtn);
+                    // move up/down
+                    const upBtn = document.createElement('button'); upBtn.className='tool-btn'; upBtn.style.width='auto'; upBtn.style.padding='4px 6px'; upBtn.textContent='↑'; upBtn.addEventListener('click', function(){ if (i === 0) return; layers.splice(i,1); layers.splice(i-1,0,l); renderLayersPanel(); invalidateStaticCache(); redrawCanvas(); pushHistory('上移图层'); }); row.appendChild(upBtn);
+                    const downBtn = document.createElement('button'); downBtn.className='tool-btn'; downBtn.style.width='auto'; downBtn.style.padding='4px 6px'; downBtn.textContent='↓'; downBtn.addEventListener('click', function(){ if (i === layers.length -1) return; layers.splice(i,1); layers.splice(i+1,0,l); renderLayersPanel(); invalidateStaticCache(); redrawCanvas(); pushHistory('下移图层'); }); row.appendChild(downBtn);
+                    layersListEl.appendChild(row);
+                }
+            }
+
+            // 初始化默认图层
+            createLayer('默认图层');
+            renderLayersPanel();
+
+            // 图层按钮逻辑
+            addLayerBtn.addEventListener('click', function(){ const name = prompt('图层名称（可选）：','新图层'); const l = createLayer(name || undefined); pushHistory('添加图层'); invalidateStaticCache(); });
+            removeLayerBtn.addEventListener('click', function(){ if (!currentLayerId) return alert('没有可删除的图层');
+                if (!confirm('删除当前图层？你可以选择将该图层内容迁移到另一个图层，或直接删除。是否继续？')) return;
+                // 记录删除前完整快照，以支持撤销
+                const prevSnapshot = { strokes: deepClone(strokes), mindNodes: deepClone(mindNodes), layers: deepClone(layers), currentLayerId };
+                // 选择迁移目标
+                const other = layers.filter(x => x.id !== currentLayerId);
+                let migrateTo = null;
+                if (other.length > 0) {
+                    const opts = other.map((o,idx) => `${idx+1}. ${o.name}`).join('\n');
+                    const sel = prompt('输入要迁移到的图层序号，留空则删除元素：\n' + opts, '');
+                    if (sel !== null && sel.trim() !== '') {
+                        const idx = parseInt(sel, 10) - 1;
+                        if (idx >= 0 && idx < other.length) migrateTo = other[idx].id;
+                    }
+                }
+                // 执行迁移或删除
+                if (migrateTo) {
+                    for (let i = 0; i < strokes.length; i++) if (strokes[i].layerId === currentLayerId) strokes[i].layerId = migrateTo;
+                    for (let i = 0; i < mindNodes.length; i++) if (mindNodes[i].layerId === currentLayerId) mindNodes[i].layerId = migrateTo;
+                } else {
+                    for (let i = strokes.length - 1; i >= 0; i--) if (strokes[i].layerId === currentLayerId) strokes.splice(i,1);
+                    for (let i = mindNodes.length - 1; i >= 0; i--) if (mindNodes[i].layerId === currentLayerId) mindNodes.splice(i,1);
+                }
+                // 执行图层删除
+                const removedLayerId = currentLayerId;
+                removeLayer(removedLayerId);
+                const nextSnapshot = { strokes: deepClone(strokes), mindNodes: deepClone(mindNodes), layers: deepClone(layers), currentLayerId };
+                // 将操作压入 undo 栈，支持撤销恢复为 prevSnapshot
+                undoStack.push({ type: 'layer-delete', prev: prevSnapshot, next: nextSnapshot });
+                redoStack.length = 0; updateUndoRedoButtons();
+                pushHistory('删除/迁移图层'); invalidateStaticCache(); redrawCanvas(); });
+
+
+            // 视口与交互状态
+            let currentZoom = 1; // 缩放比例
+            let viewX = 0, viewY = 0; // 视口左上角在逻辑坐标系的位置
+            let isPanning = false;
+            let lastPanX = 0, lastPanY = 0;
+            // 分层缓存：静态视口快照，用于加速 redraw
+            const staticCache = document.createElement('canvas');
+            const staticCacheCtx = staticCache.getContext('2d');
+            let staticCacheValid = false;
+            let staticCacheView = { viewX: 0, viewY: 0, zoom: 1, w: 0, h: 0 };
+
+            function invalidateStaticCache() {
+                staticCacheValid = false;
+                scheduleRedraw();
+            }
+
+            // 减少重复重绘：使用 requestAnimationFrame 批量调度 redraw
+            let scheduled = false;
+            function scheduleRedraw() {
+                if (scheduled) return;
+                scheduled = true;
+                requestAnimationFrame(() => { scheduled = false; redrawCanvas(); });
+            }
+
+            function setupCanvas() {
                 const container = canvas.parentElement;
-                canvas.width = container.clientWidth;
-                canvas.height = container.clientHeight;
-                
-                // 重新绘制白色背景
-                ctx.fillStyle = 'white';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                const newWidth = Math.max(300, container.clientWidth);
+                const newHeight = Math.max(200, container.clientHeight);
+                canvas.width = newWidth;
+                canvas.height = newHeight;
+
+                // 限制视口
+                viewX = Math.min(Math.max(0, viewX), LOGICAL_WIDTH - canvas.width / currentZoom);
+                viewY = Math.min(Math.max(0, viewY), LOGICAL_HEIGHT - canvas.height / currentZoom);
+                redrawCanvas();
             }
-            
-            // 初始调整尺寸
-            resizeCanvas();
-            window.addEventListener('resize', resizeCanvas);
-            
-            // 绘图状态变量
-            let isDrawing = false;
-            let lastX = 0;
-            let lastY = 0;
-            let currentTool = 'pencil';
-            let currentColor = '#000000';
-            let startX, startY;
-            
-            // 设置初始画笔样式
-            ctx.lineJoin = 'round';
-            ctx.lineCap = 'round';
-            ctx.lineWidth = brushSize.value;
-            ctx.strokeStyle = currentColor;
-            
-            // 更新画笔大小显示
-            brushSize.addEventListener('input', function() {
-                brushSizeValue.textContent = this.value;
-                ctx.lineWidth = this.value;
-            });
-            
-            // 颜色选择
-            colorOptions.forEach(option => {
-                option.addEventListener('click', function() {
-                    colorOptions.forEach(opt => opt.classList.remove('active'));
-                    this.classList.add('active');
-                    currentColor = this.getAttribute('data-color');
-                    ctx.strokeStyle = currentColor;
-                    ctx.fillStyle = currentColor;
-                });
-            });
-            
-            // 工具选择
-            toolButtons.forEach(button => {
-                button.addEventListener('click', function() {
-                    toolButtons.forEach(btn => btn.classList.remove('active'));
-                    this.classList.add('active');
-                    currentTool = this.id;
-                });
-            });
-            
-            // 鼠标/触摸事件处理
-            function startDrawing(e) {
-                isDrawing = true;
-                [lastX, lastY] = getEventCoordinates(e);
-                [startX, startY] = [lastX, lastY];
-                
-                if (currentTool === 'pencil' || currentTool === 'eraser') {
-                    ctx.beginPath();
-                    ctx.moveTo(lastX, lastY);
+
+            function drawGrid() {
+                const gridSize = 20;
+                ctx.save();
+                ctx.strokeStyle = '#f0f0f0';
+                ctx.lineWidth = 1;
+
+                const startX = Math.floor(viewX / gridSize) * gridSize;
+                const startY = Math.floor(viewY / gridSize) * gridSize;
+                const endX = viewX + canvas.width / currentZoom + gridSize;
+                const endY = viewY + canvas.height / currentZoom + gridSize;
+
+                ctx.beginPath();
+                for (let x = startX; x < endX; x += gridSize) {
+                    const sx = (x - viewX) * currentZoom;
+                    ctx.moveTo(sx, (startY - viewY) * currentZoom);
+                    ctx.lineTo(sx, (endY - viewY) * currentZoom);
                 }
-            }
-            
-            function draw(e) {
-                if (!isDrawing) return;
-                
-                const [x, y] = getEventCoordinates(e);
-                
-                switch(currentTool) {
-                    case 'pencil':
-                        ctx.globalCompositeOperation = 'source-over';
-                        ctx.strokeStyle = currentColor;
-                        ctx.lineTo(x, y);
-                        ctx.stroke();
-                        [lastX, lastY] = [x, y];
-                        break;
-                        
-                    case 'eraser':
-                        ctx.globalCompositeOperation = 'destination-out';
-                        ctx.lineTo(x, y);
-                        ctx.stroke();
-                        [lastX, lastY] = [x, y];
-                        break;
-                        
-                    case 'line':
-                    case 'rectangle':
-                    case 'circle':
-                        // 这些工具在停止绘制时完成
-                        break;
+                for (let y = startY; y < endY; y += gridSize) {
+                    const sy = (y - viewY) * currentZoom;
+                    ctx.moveTo((startX - viewX) * currentZoom, sy);
+                    ctx.lineTo((endX - viewX) * currentZoom, sy);
                 }
+                ctx.stroke();
+                ctx.restore();
             }
-            
-            function stopDrawing(e) {
-                if (!isDrawing) return;
-                isDrawing = false;
-                
-                const [x, y] = getEventCoordinates(e);
-                
-                switch(currentTool) {
-                    case 'line':
-                        ctx.globalCompositeOperation = 'source-over';
-                        ctx.strokeStyle = currentColor;
-                        ctx.beginPath();
-                        ctx.moveTo(startX, startY);
-                        ctx.lineTo(x, y);
-                        ctx.stroke();
-                        break;
-                        
-                    case 'rectangle':
-                        ctx.globalCompositeOperation = 'source-over';
-                        ctx.strokeStyle = currentColor;
-                        const width = x - startX;
-                        const height = y - startY;
-                        ctx.strokeRect(startX, startY, width, height);
-                        break;
-                        
-                    case 'circle':
-                        ctx.globalCompositeOperation = 'source-over';
-                        ctx.strokeStyle = currentColor;
-                        const radius = Math.sqrt(Math.pow(x - startX, 2) + Math.pow(y - startY, 2));
-                        ctx.beginPath();
-                        ctx.arc(startX, startY, radius, 0, Math.PI * 2);
-                        ctx.stroke();
-                        break;
-                }
+
+            // 将 screen (canvas 像素) 转为逻辑坐标
+            function screenToLogical(rawX, rawY) {
+                return [viewX + rawX / currentZoom, viewY + rawY / currentZoom];
             }
-            
-            // 获取事件坐标（支持触摸事件）
+
             function getEventCoordinates(e) {
                 let clientX, clientY;
-                
-                if (e.type.includes('touch')) {
+                if (e.type && e.type.includes('touch')) {
                     clientX = e.touches[0].clientX;
                     clientY = e.touches[0].clientY;
                 } else {
                     clientX = e.clientX;
                     clientY = e.clientY;
                 }
-                
                 const rect = canvas.getBoundingClientRect();
-                const x = clientX - rect.left;
-                const y = clientY - rect.top;
-                
-                return [x, y];
+                return [clientX - rect.left, clientY - rect.top];
             }
-            
-            // 事件监听器
-            canvas.addEventListener('mousedown', startDrawing);
-            canvas.addEventListener('mousemove', draw);
-            canvas.addEventListener('mouseup', stopDrawing);
-            canvas.addEventListener('mouseout', stopDrawing);
-            
-            // 触摸事件支持
-            canvas.addEventListener('touchstart', startDrawing);
-            canvas.addEventListener('touchmove', draw);
-            canvas.addEventListener('touchend', stopDrawing);
-            
-            // 保存图片
-            saveBtn.addEventListener('click', function() {
-                const dataURL = canvas.toDataURL('image/png');
-                const link = document.createElement('a');
-                link.download = '我的绘图.png';
-                link.href = dataURL;
-                link.click();
+
+            // 绘制单个 stroke 到任意 ctx。若提供 view/zoom 参数则按视口转换绘制，否则按逻辑坐标直接绘制（用于导出）
+            function drawStrokeToCtx(targetCtx, stroke, opts = {}) {
+                const isExport = !!opts.export;
+                const vx = opts.viewX || 0;
+                const vy = opts.viewY || 0;
+                const zoom = opts.zoom || 1;
+
+                targetCtx.save();
+                targetCtx.lineJoin = 'round';
+                targetCtx.lineCap = 'round';
+                targetCtx.lineWidth = stroke.lineWidth || 1;
+                if (stroke.tool === 'eraser') {
+                    targetCtx.globalCompositeOperation = 'destination-out';
+                    targetCtx.strokeStyle = 'rgba(0,0,0,1)';
+                } else {
+                    targetCtx.globalCompositeOperation = 'source-over';
+                    targetCtx.strokeStyle = stroke.color || '#000';
+                }
+
+                if (stroke.tool === 'pencil' || stroke.tool === 'eraser') {
+                    const pts = stroke.points || [];
+                    if (pts.length === 1) {
+                        const x = (pts[0].x - vx) * zoom;
+                        const y = (pts[0].y - vy) * zoom;
+                        targetCtx.beginPath();
+                        targetCtx.arc(x, y, (stroke.lineWidth || 1) / 2 * zoom, 0, Math.PI * 2);
+                        targetCtx.fillStyle = stroke.color || '#000';
+                        if (stroke.tool === 'eraser') {
+                            targetCtx.globalCompositeOperation = 'destination-out';
+                            targetCtx.fill();
+                        } else {
+                            targetCtx.fill();
+                        }
+                    } else if (pts.length > 1) {
+                        targetCtx.beginPath();
+                        for (let i = 0; i < pts.length; i++) {
+                            const p = pts[i];
+                            const x = (p.x - vx) * zoom;
+                            const y = (p.y - vy) * zoom;
+                            if (i === 0) targetCtx.moveTo(x, y);
+                            else targetCtx.lineTo(x, y);
+                        }
+                        targetCtx.stroke();
+                    }
+                } else if (stroke.tool === 'line') {
+                    const sx = (stroke.start.x - vx) * zoom;
+                    const sy = (stroke.start.y - vy) * zoom;
+                    const ex = (stroke.end.x - vx) * zoom;
+                    const ey = (stroke.end.y - vy) * zoom;
+                    targetCtx.beginPath(); targetCtx.moveTo(sx, sy); targetCtx.lineTo(ex, ey); targetCtx.stroke();
+                } else if (stroke.tool === 'rectangle') {
+                    const sx = (stroke.start.x - vx) * zoom;
+                    const sy = (stroke.start.y - vy) * zoom;
+                    const w = (stroke.end.x - stroke.start.x) * zoom;
+                    const h = (stroke.end.y - stroke.start.y) * zoom;
+                    targetCtx.strokeRect(sx, sy, w, h);
+                } else if (stroke.tool === 'circle') {
+                    const cx = (stroke.start.x - vx) * zoom;
+                    const cy = (stroke.start.y - vy) * zoom;
+                    const r = Math.sqrt(Math.pow(stroke.end.x - stroke.start.x, 2) + Math.pow(stroke.end.y - stroke.start.y, 2)) * zoom;
+                    targetCtx.beginPath(); targetCtx.arc(cx, cy, r, 0, Math.PI * 2); targetCtx.stroke();
+                } else if (stroke.tool === 'text') {
+                    const tx = (stroke.x - vx) * zoom;
+                    const ty = (stroke.y - vy) * zoom;
+                    const fSize = (stroke.fontSize || 16) * (isExport ? 1 : zoom);
+                    targetCtx.fillStyle = stroke.color || '#000';
+                    targetCtx.font = `${fSize}px ${stroke.fontFamily || 'Arial'}`;
+                    targetCtx.textBaseline = 'top';
+                    targetCtx.fillText(stroke.text || '', tx, ty);
+                }
+
+                targetCtx.restore();
+            }
+
+            function redrawCanvas() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = 'white';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                drawGrid();
+
+                // 绘制已有的矢量笔画（使用静态缓存以提升性能）
+                // 当视口或画布尺寸变化或数据变更时需要重建缓存
+                if (!staticCacheValid || staticCacheView.viewX !== viewX || staticCacheView.viewY !== viewY || staticCacheView.zoom !== currentZoom || staticCacheView.w !== canvas.width || staticCacheView.h !== canvas.height) {
+                    // 重建静态缓存：大小与主 canvas 相同（表示当前视口）
+                    staticCache.width = canvas.width;
+                    staticCache.height = canvas.height;
+                    staticCacheCtx.clearRect(0, 0, staticCache.width, staticCache.height);
+                    staticCacheCtx.fillStyle = 'white';
+                    staticCacheCtx.fillRect(0, 0, staticCache.width, staticCache.height);
+                    // 按图层顺序绘制笔画到静态缓存（仅绘制可见图层且仅绘制可见的部分）
+                    for (let li = 0; li < layers.length; li++) {
+                        const layer = layers[li];
+                        if (!layer.visible) continue;
+                        for (let i = 0; i < strokes.length; i++) {
+                            const s = strokes[i];
+                            if (s.layerId !== layer.id) continue;
+                            if (!isStrokeVisible(s, viewX, viewY, canvas.width / currentZoom, canvas.height / currentZoom)) continue;
+                            drawStrokeToCtx(staticCacheCtx, s, { viewX, viewY, zoom: currentZoom });
+                        }
+                    }
+                    staticCacheValid = true;
+                    staticCacheView = { viewX, viewY, zoom: currentZoom, w: canvas.width, h: canvas.height };
+                }
+                // 将静态缓存绘制到主 ctx
+                ctx.drawImage(staticCache, 0, 0);
+
+                // 绘制思维导图边和节点，按图层顺序绘制以保证正确遮挡
+                for (let li = 0; li < layers.length; li++) {
+                    const layer = layers[li];
+                    if (!layer.visible) continue;
+                    // edges 层级过滤：仅绘制属于当前图层中节点的边（若边的两端节点都在可见图层）
+                    ctx.save();
+                    ctx.strokeStyle = '#444';
+                    ctx.lineWidth = 2 * currentZoom;
+                    for (let e of mindEdges) {
+                        const from = mindNodes.find(n => n.id === e.from);
+                        const to = mindNodes.find(n => n.id === e.to);
+                        if (!from || !to) continue;
+                        // 若边所属图层不在当前 layer（以 from.node 的 layer 为准）则跳过
+                        if (from.layerId !== layer.id && to.layerId !== layer.id) continue;
+                        const fx = (from.x - viewX) * currentZoom;
+                        const fy = (from.y - viewY) * currentZoom;
+                        const tx = (to.x - viewX) * currentZoom;
+                        const ty = (to.y - viewY) * currentZoom;
+                        ctx.beginPath(); ctx.moveTo(fx, fy); ctx.lineTo(tx, ty); ctx.stroke();
+                    }
+                    ctx.restore();
+
+                    // nodes
+                    for (let n of mindNodes) {
+                        if (n.layerId !== layer.id) continue;
+                        const nx = (n.x - viewX) * currentZoom;
+                        const ny = (n.y - viewY) * currentZoom;
+                        const w = (n.w || 120) * currentZoom;
+                        const h = (n.h || 40) * currentZoom;
+                        ctx.save();
+                        ctx.fillStyle = '#fff8dc';
+                        ctx.strokeStyle = '#333';
+                        ctx.lineWidth = 1;
+                        roundRect(ctx, nx - w/2, ny - h/2, w, h, 8 * currentZoom, true, true);
+                        ctx.restore();
+                        ctx.save();
+                        ctx.fillStyle = '#111';
+                        ctx.font = `${14 * currentZoom}px Arial`;
+                        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                        ctx.fillText(n.text || ('节点 ' + n.id), nx, ny);
+                        ctx.restore();
+                    }
+                }
+
+                // 绘制当前正在绘制的 stroke 作为预览
+                if (currentStroke) {
+                    // 如果是图形型，使用虚线预览
+                    ctx.save();
+                    if (currentStroke.tool === 'line' || currentStroke.tool === 'rectangle' || currentStroke.tool === 'circle') {
+                        ctx.setLineDash([6, 4]);
+                    }
+                    drawStrokeToCtx(ctx, currentStroke, { viewX, viewY, zoom: currentZoom });
+                    ctx.restore();
+                }
+
+                // 如果正在创建连线，显示预览线
+                if (creatingEdgeFrom) {
+                    const fromNode = mindNodes.find(n => n.id === creatingEdgeFrom.id);
+                    if (fromNode) {
+                        const fx = (fromNode.x - viewX) * currentZoom;
+                        const fy = (fromNode.y - viewY) * currentZoom;
+                        ctx.save(); ctx.strokeStyle = '#666'; ctx.setLineDash([4,4]); ctx.beginPath(); ctx.moveTo(fx, fy);
+                        const m = lastPointerPos || { x: fx, y: fy };
+                        ctx.lineTo(m.x, m.y); ctx.stroke(); ctx.restore();
+                    }
+                }
+            }
+
+            // helper: draw rounded rect
+            function roundRect(ctx, x, y, width, height, radius, fill, stroke) {
+                if (typeof stroke === 'undefined') { stroke = true; }
+                if (typeof radius === 'undefined') { radius = 5; }
+                ctx.beginPath();
+                ctx.moveTo(x + radius, y);
+                ctx.arcTo(x + width, y, x + width, y + height, radius);
+                ctx.arcTo(x + width, y + height, x, y + height, radius);
+                ctx.arcTo(x, y + height, x, y, radius);
+                ctx.arcTo(x, y, x + width, y, radius);
+                ctx.closePath();
+                if (fill) ctx.fill();
+                if (stroke) ctx.stroke();
+            }
+
+            // 初始化
+            setupCanvas();
+            window.addEventListener('resize', setupCanvas);
+
+            // 绘制状态
+            let isDrawing = false;
+            let lastX = 0, lastY = 0;
+            let startX = 0, startY = 0;
+            let currentTool = 'pencil';
+            let currentColor = '#000000';
+            let lastPointerPos = null;
+
+            // UI 控件同步
+            brushSizeValue.textContent = brushSize.value;
+            fontSizeValue.textContent = fontSize.value;
+            brushSize.addEventListener('input', () => brushSizeValue.textContent = brushSize.value);
+            fontSize.addEventListener('input', () => fontSizeValue.textContent = fontSize.value);
+
+            colorOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    colorOptions.forEach(opt => opt.classList.remove('active'));
+                    this.classList.add('active');
+                    currentColor = this.getAttribute('data-color');
+                });
             });
-            
-            // 清空画布
-            clearBtn.addEventListener('click', function() {
-                if (confirm('确定要清空画布吗？')) {
-                    ctx.fillStyle = 'white';
-                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            toolButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    toolButtons.forEach(btn => btn.classList.remove('active'));
+                    this.classList.add('active');
+                    currentTool = this.id;
+                    if (currentTool !== 'text') hideTextInput();
+                    if (currentTool === 'text') canvas.style.cursor = 'text';
+                    else if (currentTool === 'pan') canvas.style.cursor = 'grab';
+                    else canvas.style.cursor = 'crosshair';
+                });
+            });
+
+            function startDrawing(e) {
+                if (currentTool === 'text') { showTextInput(e); return; }
+                if (currentTool === 'pan') { isPanning = true; [lastPanX, lastPanY] = getEventCoordinates(e); canvas.style.cursor = 'grabbing'; return; }
+                if (currentTool === 'mindmap') {
+                    const [rawX, rawY] = getEventCoordinates(e);
+                    const [x, y] = screenToLogical(rawX, rawY);
+                    // 检查是否点击在节点上
+                    const node = findNodeAtLogical(x, y);
+                    if (node) {
+                        // 如果节点所在图层被锁定，阻止拖动/编辑
+                        const nodeLayer = layers.find(l => l.id === node.layerId);
+                        if (nodeLayer && nodeLayer.locked) {
+                            alert('该图层已锁定，无法移动/编辑节点');
+                            return;
+                        }
+                        // 开始拖动节点
+                        draggingNode = node;
+                        dragStartPos = { x, y };
+                        dragOffset = { x: x - node.x, y: y - node.y };
+                        return;
+                    } else {
+                        // 创建新节点（检查当前图层锁定）
+                        const curLayer = layers.find(l => l.id === currentLayerId);
+                        if (curLayer && curLayer.locked) { alert('当前图层已锁定，无法添加节点'); return; }
+                        const newNode = createMindNode(x, y);
+                        undoStack.push({ type: 'mind-add-node', node: deepClone(newNode) });
+                        redoStack.length = 0;
+                        updateUndoRedoButtons();
+                        pushHistory('思维导图：添加节点');
+                        redrawCanvas();
+                        return;
+                    }
+                }
+
+                const [rawX, rawY] = getEventCoordinates(e);
+                const [x, y] = screenToLogical(rawX, rawY);
+                isDrawing = true; startX = x; startY = y; lastX = x; lastY = y;
+
+                if (currentTool === 'pencil' || currentTool === 'eraser') {
+                    const layer = layers.find(l => l.id === currentLayerId);
+                    if (layer && layer.locked) { isDrawing = false; return; }
+                    currentStroke = {
+                        tool: currentTool,
+                        color: currentColor,
+                        lineWidth: parseFloat(brushSize.value),
+                        points: [{ x, y }],
+                        layerId: currentLayerId
+                    };
+                } else if (currentTool === 'line' || currentTool === 'rectangle' || currentTool === 'circle') {
+                    const layer = layers.find(l => l.id === currentLayerId);
+                    if (layer && layer.locked) { isDrawing = false; return; }
+                    currentStroke = {
+                        tool: currentTool,
+                        color: currentColor,
+                        lineWidth: parseFloat(brushSize.value),
+                        start: { x, y },
+                        end: { x, y },
+                        layerId: currentLayerId
+                    };
+                }
+                redrawCanvas();
+            }
+
+            function drawing(e) {
+                // update lastPointerPos for mindmap preview
+                const [prx, pry] = getEventCoordinates(e);
+                lastPointerPos = { x: prx, y: pry };
+
+                if (isPanning) {
+                    const [sx, sy] = getEventCoordinates(e);
+                    viewX -= (sx - lastPanX) / currentZoom;
+                    viewY -= (sy - lastPanY) / currentZoom;
+                    lastPanX = sx; lastPanY = sy;
+                    viewX = Math.max(0, Math.min(viewX, LOGICAL_WIDTH - canvas.width / currentZoom));
+                    viewY = Math.max(0, Math.min(viewY, LOGICAL_HEIGHT - canvas.height / currentZoom));
+                    redrawCanvas();
+                    return;
+                }
+                if (currentTool === 'mindmap' && draggingNode) {
+                    const [rawX, rawY] = getEventCoordinates(e);
+                    const [x, y] = screenToLogical(rawX, rawY);
+                    // 移动节点位置
+                    const prev = { x: draggingNode.x, y: draggingNode.y };
+                    draggingNode.x = x - dragOffset.x;
+                    draggingNode.y = y - dragOffset.y;
+                    // 记录移动操作（实时不记录到 undo，停下时记录一次）
+                    redrawCanvas();
+                    return;
+                }
+                if (!isDrawing || currentTool === 'text') return;
+
+                const [rawX, rawY] = getEventCoordinates(e);
+                const [x, y] = screenToLogical(rawX, rawY);
+
+                if (currentTool === 'pencil' || currentTool === 'eraser') {
+                    if (currentStroke && currentStroke.points) {
+                        currentStroke.points.push({ x, y });
+                    }
+                } else if (currentTool === 'line' || currentTool === 'rectangle' || currentTool === 'circle') {
+                    if (currentStroke) currentStroke.end = { x, y };
+                }
+                lastX = x; lastY = y;
+                redrawCanvas();
+            }
+
+            function stopDrawing(e) {
+                if (isPanning) { isPanning = false; canvas.style.cursor = 'grab'; return; }
+                // mindmap 特殊处理：停止拖动节点或完成连线
+                if (currentTool === 'mindmap') {
+                    if (draggingNode) {
+                        // 记录节点移动到 undo（记录 from/to）
+                        const node = deepClone(draggingNode);
+                        // for simplicity, we push a move op with previous pos stored in op.prev
+                        // (we need previous pos - assume dragStartPos stores start)
+                        undoStack.push({ type: 'mind-move-node', id: node.id, from: dragStartPos, to: { x: node.x, y: node.y } });
+                        redoStack.length = 0;
+                        updateUndoRedoButtons();
+                        pushHistory('思维导图：移动节点');
+                        draggingNode = null; dragStartPos = null;
+                        redrawCanvas();
+                        return;
+                    }
+                    // 如果正在创建连线，尝试结束连线
+                    if (creatingEdgeFrom) {
+                        const [rawX, rawY] = getEventCoordinates(e);
+                        const [x, y] = screenToLogical(rawX, rawY);
+                        const targetNode = findNodeAtLogical(x, y);
+                        if (targetNode && targetNode.id !== creatingEdgeFrom.id) {
+                            // 创建边
+                            mindEdges.push({ from: creatingEdgeFrom.id, to: targetNode.id });
+                            undoStack.push({ type: 'mind-add-edge', edge: deepClone({ from: creatingEdgeFrom.id, to: targetNode.id }) });
+                            redoStack.length = 0;
+                            updateUndoRedoButtons();
+                            pushHistory('思维导图：添加连线');
+                            invalidateStaticCache();
+                        }
+                        creatingEdgeFrom = null; redrawCanvas(); return;
+                    }
+                    return;
+                }
+
+                if (!isDrawing || currentTool === 'text') return;
+                isDrawing = false;
+
+                const [rawX, rawY] = getEventCoordinates(e);
+                const [x, y] = screenToLogical(rawX, rawY);
+
+                if (currentStroke) {
+                    // 对于线和图形，更新末端坐标
+                    if (currentStroke.start) currentStroke.end = { x, y };
+                    // 提交为一个新的笔画（通过 pushStroke 以记录 undo）
+                    pushStroke(currentStroke);
+                    currentStroke = null;
+                }
+                redrawCanvas();
+            }
+
+            // 事件绑定
+            canvas.addEventListener('mousedown', function(e) { if (e.button !== 0) return; startDrawing(e); });
+            canvas.addEventListener('mousemove', drawing);
+            window.addEventListener('mouseup', stopDrawing);
+            canvas.addEventListener('touchstart', function(e){ e.preventDefault(); startDrawing(e); }, { passive: false });
+            canvas.addEventListener('touchmove', function(e){ e.preventDefault(); drawing(e); }, { passive: false });
+            window.addEventListener('touchend', function(e){ e.preventDefault(); stopDrawing(e); }, { passive: false });
+
+            // 缩放/平移/快捷键
+            function updateZoomDisplay() { zoomLevel.textContent = Math.round(currentZoom * 100) + '%'; }
+            zoomInBtn.addEventListener('click', function() {
+                const prevZoom = currentZoom; currentZoom = Math.min(currentZoom * 1.2, 5);
+                const cx = canvas.width / 2, cy = canvas.height / 2;
+                viewX += (cx / prevZoom) - (cx / currentZoom);
+                viewY += (cy / prevZoom) - (cy / currentZoom);
+                viewX = Math.max(0, Math.min(viewX, LOGICAL_WIDTH - canvas.width / currentZoom));
+                viewY = Math.max(0, Math.min(viewY, LOGICAL_HEIGHT - canvas.height / currentZoom));
+                updateZoomDisplay(); redrawCanvas();
+            });
+            zoomOutBtn.addEventListener('click', function() {
+                const prevZoom = currentZoom; currentZoom = Math.max(currentZoom / 1.2, 0.2);
+                const cx = canvas.width / 2, cy = canvas.height / 2;
+                viewX += (cx / prevZoom) - (cx / currentZoom);
+                viewY += (cy / prevZoom) - (cy / currentZoom);
+                viewX = Math.max(0, Math.min(viewX, LOGICAL_WIDTH - canvas.width / currentZoom));
+                viewY = Math.max(0, Math.min(viewY, LOGICAL_HEIGHT - canvas.height / currentZoom));
+                updateZoomDisplay(); redrawCanvas();
+            });
+
+            panUpBtn.addEventListener('click', function(){ viewY = Math.max(0, viewY - 50 / currentZoom); redrawCanvas(); });
+            panDownBtn.addEventListener('click', function(){ viewY = Math.min(LOGICAL_HEIGHT - canvas.height / currentZoom, viewY + 50 / currentZoom); redrawCanvas(); });
+            panLeftBtn.addEventListener('click', function(){ viewX = Math.max(0, viewX - 50 / currentZoom); redrawCanvas(); });
+            panRightBtn.addEventListener('click', function(){ viewX = Math.min(LOGICAL_WIDTH - canvas.width / currentZoom, viewX + 50 / currentZoom); redrawCanvas(); });
+            panResetBtn.addEventListener('click', function(){ viewX = 0; viewY = 0; redrawCanvas(); });
+
+            canvas.addEventListener('wheel', function(e){
+                e.preventDefault();
+                const rect = canvas.getBoundingClientRect();
+                const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+                const prevZoom = currentZoom;
+                const delta = e.deltaY > 0 ? 0.9 : 1.1;
+                currentZoom = Math.max(0.2, Math.min(5, currentZoom * delta));
+                const logicalX = viewX + mx / prevZoom;
+                const logicalY = viewY + my / prevZoom;
+                viewX = logicalX - mx / currentZoom;
+                viewY = logicalY - my / currentZoom;
+                viewX = Math.max(0, Math.min(viewX, LOGICAL_WIDTH - canvas.width / currentZoom));
+                viewY = Math.max(0, Math.min(viewY, LOGICAL_HEIGHT - canvas.height / currentZoom));
+                updateZoomDisplay(); redrawCanvas();
+            });
+
+            // 文本输入处理：在显示时记录逻辑坐标，提交时将文本存为 stroke
+            function showTextInput(e) {
+                const [rawX, rawY] = getEventCoordinates(e);
+                const [x, y] = screenToLogical(rawX, rawY);
+                // 在屏幕上定位输入框（相对于 canvas）
+                textInputContainer.style.left = rawX + 'px';
+                textInputContainer.style.top = rawY + 'px';
+                textInputContainer.style.width = '200px'; textInputContainer.style.height = '100px'; textInputContainer.style.display = 'block';
+                textInput.style.fontSize = fontSize.value + 'px'; textInput.style.fontFamily = fontFamily.value; textInput.style.color = currentColor;
+                // 保存逻辑坐标到容器 dataset，以便提交时使用
+                textInputContainer.dataset.logicalX = x;
+                textInputContainer.dataset.logicalY = y;
+                textInput.focus();
+            }
+
+            function hideTextInput() {
+                if (textInputContainer.style.display === 'block') {
+                    if (textInput.value.trim() !== '') {
+                        const x = parseFloat(textInputContainer.dataset.logicalX);
+                        const y = parseFloat(textInputContainer.dataset.logicalY);
+                        const stroke = {
+                            tool: 'text', x, y,
+                            text: textInput.value,
+                            color: currentColor,
+                            fontSize: parseInt(fontSize.value, 10),
+                            fontFamily: fontFamily.value,
+                            layerId: currentLayerId
+                        };
+                        pushStroke(stroke);
+                        redrawCanvas();
+                    }
+                    textInputContainer.style.display = 'none'; textInput.value = '';
+                }
+            }
+
+            document.addEventListener('click', function(e){ if (currentTool === 'text' && !textInputContainer.contains(e.target) && e.target !== canvas) hideTextInput(); });
+            textInput.addEventListener('keydown', function(e){ if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); hideTextInput(); } });
+
+            // 快捷键：空格 + 拖动 平移，Ctrl 保存/清空/缩放等
+            let isSpacePressed = false;
+            document.addEventListener('keydown', function(e){
+                if (e.code === 'Space') { isSpacePressed = true; if (currentTool !== 'pan') canvas.style.cursor = 'grab'; }
+                if (e.ctrlKey || e.metaKey) {
+                    switch(e.key) {
+                        case 's': e.preventDefault(); saveImage(); break;
+                        case 'd': e.preventDefault(); clearCanvas(); break;
+                        case '0': e.preventDefault(); currentZoom = 1; viewX = 0; viewY = 0; updateZoomDisplay(); redrawCanvas(); break;
+                        case '=': case '+': e.preventDefault(); currentZoom = Math.min(currentZoom * 1.2, 5); updateZoomDisplay(); redrawCanvas(); break;
+                        case '-': e.preventDefault(); currentZoom = Math.max(currentZoom / 1.2, 0.2); updateZoomDisplay(); redrawCanvas(); break;
+                    }
                 }
             });
+            document.addEventListener('keyup', function(e){ if (e.code === 'Space') { isSpacePressed = false; if (currentTool !== 'pan') canvas.style.cursor = 'crosshair'; } });
+
+            canvas.addEventListener('mousedown', function(e){
+                if (isSpacePressed) { isPanning = true; [lastPanX, lastPanY] = getEventCoordinates(e); canvas.style.cursor = 'grabbing'; e.preventDefault(); }
+            });
+            window.addEventListener('mouseup', function(e){ if (isPanning) { isPanning = false; canvas.style.cursor = isSpacePressed ? 'grab' : 'crosshair'; e.preventDefault(); } });
+
+            // Undo/Redo 栈（更完整的实现）
+            const undoStack = [];
+            const redoStack = [];
+
+            // 历史面板（简要描述 + 快照索引）
+            const historyListEl = document.getElementById('historyList');
+            const history = []; // { desc, type, ts, snapshot }
+            const MAX_HISTORY = 200;
+
+            // 生成历史项缩略图的辅助（返回 dataURL）
+            function renderHistoryThumbnail(snapshot, w = 160, h = 80) {
+                try {
+                    const tmp = document.createElement('canvas');
+                    tmp.width = w; tmp.height = h;
+                    const tctx = tmp.getContext('2d');
+                    tctx.fillStyle = 'white'; tctx.fillRect(0,0,w,h);
+                    // snapshot 中坐标为逻辑坐标；我们需要把它缩放以适配缩略图
+                    // 计算 bbox
+                    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+                    const nodes = snapshot.mindNodes || [];
+                    const strokesS = snapshot.strokes || [];
+                    for (let n of nodes) {
+                        minX = Math.min(minX, n.x - (n.w||120)/2);
+                        minY = Math.min(minY, n.y - (n.h||40)/2);
+                        maxX = Math.max(maxX, n.x + (n.w||120)/2);
+                        maxY = Math.max(maxY, n.y + (n.h||40)/2);
+                    }
+                    for (let s of strokesS) {
+                        if (s.points && s.points.length) {
+                            for (let p of s.points) { minX = Math.min(minX, p.x); minY = Math.min(minY, p.y); maxX = Math.max(maxX, p.x); maxY = Math.max(maxY, p.y); }
+                        } else if (s.start && s.end) {
+                            minX = Math.min(minX, s.start.x, s.end.x); minY = Math.min(minY, s.start.y, s.end.y);
+                            maxX = Math.max(maxX, s.start.x, s.end.x); maxY = Math.max(maxY, s.start.y, s.end.y);
+                        } else if (s.x && s.y) { minX = Math.min(minX, s.x); minY = Math.min(minY, s.y); maxX = Math.max(maxX, s.x); maxY = Math.max(maxY, s.y); }
+                    }
+                    if (!isFinite(minX)) { minX = 0; minY = 0; maxX = Math.max(200, w); maxY = Math.max(100, h); }
+                    const pad = 20;
+                    minX -= pad; minY -= pad; maxX += pad; maxY += pad;
+                    const sw = maxX - minX; const sh = maxY - minY;
+                    const scale = Math.min(w / sw, h / sh);
+                    const vx = minX, vy = minY, zoom = scale;
+                    const snapLayers = snapshot.layers || [];
+                    function layerVisible(layerId) { if (!snapLayers || !snapLayers.length) return true; const l = snapLayers.find(x=>x.id===layerId); return l ? !!l.visible : true; }
+                    if (snapLayers && snapLayers.length) {
+                        for (let li = 0; li < snapLayers.length; li++) {
+                            const layer = snapLayers[li]; if (!layerVisible(layer.id)) continue;
+                            for (let s of strokesS) {
+                                if ((s.layerId || null) !== layer.id) continue;
+                                drawStrokeToCtx(tctx, s, { export: true, viewX: vx, viewY: vy, zoom });
+                            }
+                        }
+                        drawMindmapToCtx(tctx, { export: true, viewX: vx, viewY: vy, zoom, canvasW: w, canvasH: h, snapLayers });
+                    } else {
+                        for (let s of strokesS) {
+                            drawStrokeToCtx(tctx, s, { export: true, viewX: vx, viewY: vy, zoom });
+                        }
+                        drawMindmapToCtx(tctx, { export: true, viewX: vx, viewY: vy, zoom, canvasW: w, canvasH: h });
+                    }
+                    return tmp.toDataURL('image/png');
+                } catch (e) {
+                    return null;
+                }
+            }
+
+            function pushHistory(desc, type = 'op') {
+                // 截取当前快照（仅序列化必要部分）
+                const snap = {
+                    strokes: strokes.map(s => deepClone(s)),
+                    mindNodes: deepClone(mindNodes),
+                    mindEdges: deepClone(mindEdges),
+                    layers: deepClone(layers),
+                    currentLayerId
+                };
+                const entry = { desc, type, ts: Date.now(), snapshot: snap };
+                history.push(entry);
+                // 限制最大历史长度
+                if (history.length > MAX_HISTORY) history.shift();
+                renderHistoryPanel();
+            }
+
+            function renderHistoryPanel() {
+                historyListEl.innerHTML = '';
+                for (let i = 0; i < history.length; i++) {
+                    (function(idx){
+                        const entry = history[idx];
+                        const row = document.createElement('div');
+                        row.style.display = 'flex'; row.style.alignItems = 'center'; row.style.gap = '8px'; row.style.padding = '6px'; row.style.borderBottom = '1px solid #f1f1f1'; row.style.cursor = 'pointer';
+                        // color tag for type
+                        const tag = document.createElement('div'); tag.style.width = '8px'; tag.style.height = '32px'; tag.style.borderRadius='4px';
+                        if (entry.type === 'op') tag.style.background='#6a11cb'; else if (entry.type === 'undo') tag.style.background='#ff9500'; else tag.style.background='#4cd964';
+                        row.appendChild(tag);
+                        // thumbnail
+                        const thumb = document.createElement('img'); thumb.style.width='120px'; thumb.style.height='60px'; thumb.style.objectFit='cover'; thumb.style.border='1px solid #eee'; thumb.style.background='#fff';
+                        const dataURL = renderHistoryThumbnail(entry.snapshot, 120, 60);
+                        if (dataURL) thumb.src = dataURL; else { thumb.style.display='none'; }
+                        row.appendChild(thumb);
+                        // desc + ts
+                        const meta = document.createElement('div');
+                        const title = document.createElement('div'); title.textContent = (idx + 1) + '. ' + entry.desc; title.style.fontSize='12px'; title.style.color='#111';
+                        const time = document.createElement('div'); time.textContent = new Date(entry.ts).toLocaleString(); time.style.fontSize='11px'; time.style.color='#777';
+                        meta.appendChild(title); meta.appendChild(time);
+                        row.appendChild(meta);
+                        row.addEventListener('click', function(){ jumpToHistory(idx); });
+                        historyListEl.appendChild(row);
+                    })(i);
+                }
+            }
+
+            // jumpToHistory 支持一个可选参数 opts，避免在内部调用时重复记录 undo
+            function jumpToHistory(index, opts = { recordUndo: true }) {
+                if (index < 0 || index >= history.length) return;
+                // 若需要记录 undo 操作，则先把当前状态作为 jumpFrom 保存到 undo 栈
+                if (opts.recordUndo) {
+                    const currSnap = { strokes: deepClone(strokes), mindNodes: deepClone(mindNodes), mindEdges: deepClone(mindEdges), layers: deepClone(layers), currentLayerId };
+                    // 保存 undo op，其中包含恢复到跳转前状态的快照，以及 redo 所需的目标快照
+                    const targetSnap = deepClone(history[index].snapshot);
+                    undoStack.push({ type: 'history-jump', from: currSnap, to: targetSnap });
+                    // 点击历史跳转会清空 redo 栈（保持线性历史）
+                    redoStack.length = 0;
+                }
+                const snap = history[index].snapshot;
+                strokes.length = 0; (snap.strokes || []).forEach(s => strokes.push(deepClone(s)));
+                mindNodes.length = 0; (snap.mindNodes || []).forEach(n => mindNodes.push(deepClone(n)));
+                mindEdges.length = 0; (snap.mindEdges || []).forEach(e => mindEdges.push(deepClone(e)));
+                // 恢复图层信息
+                if (snap.layers) {
+                    layers.length = 0; snap.layers.forEach(l => layers.push(deepClone(l)));
+                    currentLayerId = snap.currentLayerId && layers.find(l => l.id === snap.currentLayerId) ? snap.currentLayerId : (layers[0] ? layers[0].id : null);
+                    renderLayersPanel();
+                }
+                invalidateStaticCache();
+                redrawCanvas(); updateUndoRedoButtons();
+            }
+
+            function deepClone(obj) {
+                return JSON.parse(JSON.stringify(obj));
+            }
+
+            function strokeEqual(a, b) {
+                try { return JSON.stringify(a) === JSON.stringify(b); } catch (e) { return false; }
+            }
+
+            function pushStroke(stroke) {
+                // 使用深拷贝，保证记录的快照不会被后续修改污染
+                const s = deepClone(stroke);
+                strokes.push(s);
+                undoStack.push({ type: 'add', stroke: s });
+                redoStack.length = 0;
+                pushHistory('添加笔画');
+                invalidateStaticCache();
+                redrawCanvas();
+            }
+
+            function undo() {
+                if (undoStack.length === 0) return;
+                const op = undoStack.pop();
+                // 支持历史跳转的撤销
+                // 支持图层删除的撤销
+                if (op.type === 'layer-delete') {
+                    const prev = op.prev || { strokes: [], mindNodes: [], layers: [], currentLayerId: null };
+                    const currSnapshot = { strokes: deepClone(strokes), mindNodes: deepClone(mindNodes), layers: deepClone(layers), currentLayerId };
+                    // 恢复 prev
+                    strokes.length = 0; prev.strokes.forEach(s => strokes.push(deepClone(s)));
+                    mindNodes.length = 0; prev.mindNodes.forEach(n => mindNodes.push(deepClone(n)));
+                    layers.length = 0; (prev.layers || []).forEach(l => layers.push(deepClone(l)));
+                    currentLayerId = prev.currentLayerId;
+                    renderLayersPanel();
+                    // 将重做操作压入 redo
+                    redoStack.push({ type: 'layer-delete', prev: currSnapshot, next: deepClone(prev) });
+                    invalidateStaticCache(); redrawCanvas(); updateUndoRedoButtons(); pushHistory('撤销：图层删除/迁移');
+                    return;
+                }
+                if (op.type === 'history-jump') {
+                    // 恢复跳转前的快照
+                    const prev = op.from || { strokes: [], mindNodes: [], mindEdges: [] };
+                    const currSnapshot = { strokes: deepClone(strokes), mindNodes: deepClone(mindNodes), mindEdges: deepClone(mindEdges) };
+                    // 应用 prev
+                    strokes.length = 0; prev.strokes.forEach(s => strokes.push(deepClone(s)));
+                    mindNodes.length = 0; prev.mindNodes.forEach(n => mindNodes.push(deepClone(n)));
+                    mindEdges.length = 0; prev.mindEdges.forEach(e => mindEdges.push(deepClone(e)));
+                    // 将可重做的动作压入 redo（恢复到跳转后的状态）
+                    redoStack.push({ type: 'history-jump', from: currSnapshot, to: op.to ? deepClone(op.to) : currSnapshot });
+                    invalidateStaticCache(); redrawCanvas(); updateUndoRedoButtons(); pushHistory('撤销：历史跳转');
+                    return;
+                }
+                if (op.type === 'add') {
+                    // 按内容查找并移除最后一个匹配的笔画
+                    for (let i = strokes.length - 1; i >= 0; i--) {
+                        if (strokeEqual(strokes[i], op.stroke)) {
+                            const removed = strokes.splice(i, 1)[0];
+                            redoStack.push({ type: 'add', stroke: deepClone(removed) });
+                            invalidateStaticCache();
+                            redrawCanvas();
+                            updateUndoRedoButtons();
+                            pushHistory('撤销：移除笔画');
+                            return;
+                        }
+                    }
+                } else if (op.type === 'clear') {
+                    // 恢复之前的笔画
+                    const prev = op.prev || [];
+                    const currSnapshot = strokes.map(s => deepClone(s));
+                    strokes.length = 0;
+                    prev.forEach(p => strokes.push(deepClone(p)));
+                    redoStack.push({ type: 'clear', prev: currSnapshot });
+                    invalidateStaticCache();
+                    redrawCanvas();
+                    updateUndoRedoButtons();
+                    pushHistory('撤销：恢复清空前内容');
+                }
+            }
+
+            function redo() {
+                if (redoStack.length === 0) return;
+                const op = redoStack.pop();
+                if (op.type === 'layer-delete') {
+                    const target = op.next || { strokes: [], mindNodes: [], layers: [], currentLayerId: null };
+                    const currSnapshot = { strokes: deepClone(strokes), mindNodes: deepClone(mindNodes), layers: deepClone(layers), currentLayerId };
+                    // 应用 target
+                    strokes.length = 0; (target.strokes || []).forEach(s => strokes.push(deepClone(s)));
+                    mindNodes.length = 0; (target.mindNodes || []).forEach(n => mindNodes.push(deepClone(n)));
+                    layers.length = 0; (target.layers || []).forEach(l => layers.push(deepClone(l)));
+                    currentLayerId = target.currentLayerId;
+                    renderLayersPanel();
+                    // 把反向动作放回 undo
+                    undoStack.push({ type: 'layer-delete', prev: currSnapshot, next: deepClone(target) });
+                    invalidateStaticCache(); redrawCanvas(); updateUndoRedoButtons(); pushHistory('重做：图层删除/迁移');
+                    return;
+                }
+                // 支持历史跳转的重做
+                if (op.type === 'history-jump') {
+                    const target = op.to || { strokes: [], mindNodes: [], mindEdges: [] };
+                    const currSnapshot = { strokes: deepClone(strokes), mindNodes: deepClone(mindNodes), mindEdges: deepClone(mindEdges) };
+                    // 应用 target
+                    strokes.length = 0; target.strokes.forEach(s => strokes.push(deepClone(s)));
+                    mindNodes.length = 0; target.mindNodes.forEach(n => mindNodes.push(deepClone(n)));
+                    mindEdges.length = 0; target.mindEdges.forEach(e => mindEdges.push(deepClone(e)));
+                    // 将反向动作放回 undo
+                    undoStack.push({ type: 'history-jump', from: currSnapshot, to: deepClone(target) });
+                    invalidateStaticCache(); redrawCanvas(); updateUndoRedoButtons(); pushHistory('重做：历史跳转');
+                    return;
+                }
+                if (op.type === 'add') {
+                    strokes.push(deepClone(op.stroke));
+                    undoStack.push({ type: 'add', stroke: deepClone(op.stroke) });
+                    invalidateStaticCache();
+                    redrawCanvas();
+                    updateUndoRedoButtons();
+                    pushHistory('重做：恢复笔画');
+                } else if (op.type === 'clear') {
+                    const currSnapshot = strokes.map(s => deepClone(s));
+                    strokes.length = 0;
+                    undoStack.push({ type: 'clear', prev: currSnapshot });
+                    invalidateStaticCache();
+                    redrawCanvas();
+                    updateUndoRedoButtons();
+                    pushHistory('重做：清空画布');
+                }
+            }
+
+            // 保存：将矢量渲染到临时 canvas 导出 PNG（注意：逻辑画布可能很大）
+            function saveImage(centerMindmap = false) {
+                const temp = document.createElement('canvas');
+                const tctx = temp.getContext('2d');
+                // 保持与逻辑画布同样大小（保持向后兼容）。注意：逻辑画布很大时导出可能消耗大量内存。
+                temp.width = LOGICAL_WIDTH; temp.height = LOGICAL_HEIGHT;
+                tctx.fillStyle = 'white'; tctx.fillRect(0, 0, temp.width, temp.height);
+
+                // 如果要求居中导出（自动缩放以适配输出画布），我们需要为笔画和思维导图使用相同的 view/zoom/偏移。
+                if (centerMindmap && mindNodes.length > 0) {
+                    // 计算节点和笔画的包围盒（逻辑坐标）
+                    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+                    for (let n of mindNodes) {
+                        minX = Math.min(minX, n.x - (n.w||120)/2);
+                        minY = Math.min(minY, n.y - (n.h||40)/2);
+                        maxX = Math.max(maxX, n.x + (n.w||120)/2);
+                        maxY = Math.max(maxY, n.y + (n.h||40)/2);
+                    }
+                    for (let s of strokes) {
+                        if (s.points && s.points.length) {
+                            for (let p of s.points) { minX = Math.min(minX, p.x); minY = Math.min(minY, p.y); maxX = Math.max(maxX, p.x); maxY = Math.max(maxY, p.y); }
+                        } else if (s.start && s.end) {
+                            minX = Math.min(minX, s.start.x, s.end.x); minY = Math.min(minY, s.start.y, s.end.y);
+                            maxX = Math.max(maxX, s.start.x, s.end.x); maxY = Math.max(maxY, s.start.y, s.end.y);
+                        } else if (s.x && s.y) { minX = Math.min(minX, s.x); minY = Math.min(minY, s.y); maxX = Math.max(maxX, s.x); maxY = Math.max(maxY, s.y); }
+                    }
+                    if (!isFinite(minX)) { minX = 0; minY = 0; maxX = Math.max(200, temp.width); maxY = Math.max(100, temp.height); }
+
+                    // padding（逻辑单位）与宽高
+                    const pad = 20;
+                    minX -= pad; minY -= pad; maxX += pad; maxY += pad;
+                    const sw = maxX - minX; const sh = maxY - minY;
+
+                    // 计算缩放因子，使包围盒在导出画布内最大化但留有一点边距
+                    const scale = Math.min(temp.width / sw, temp.height / sh) * 0.95;
+
+                    // 视口左上角（逻辑）以及用于 drawStrokeToCtx 的 zoom
+                    const vx = minX; const vy = minY; const zoom = scale;
+
+                    // 计算像素偏移量，使包围盒中心位于导出画布中心
+                    const bboxCenterX = (minX + maxX) / 2; const bboxCenterY = (minY + maxY) / 2;
+                    const bboxCenterPixelX = (bboxCenterX - vx) * zoom; const bboxCenterPixelY = (bboxCenterY - vy) * zoom;
+                    const tempOffsetX = temp.width / 2 - bboxCenterPixelX;
+                    const tempOffsetY = temp.height / 2 - bboxCenterPixelY;
+
+                    // 在绘制笔画时应用相同的变换（平移->缩放由 drawStrokeToCtx 内处理），使用 canvas translate 来应用偏移
+                    tctx.save();
+                    tctx.translate(tempOffsetX, tempOffsetY);
+                    // 按图层顺序绘制
+                    for (let li = 0; li < layers.length; li++) {
+                        const layer = layers[li]; if (!layer.visible) continue;
+                        for (let i = 0; i < strokes.length; i++) {
+                            const s = strokes[i];
+                            if (s.layerId !== layer.id) continue;
+                            if (!isStrokeVisible(s, vx, vy, sw, sh)) continue;
+                            drawStrokeToCtx(tctx, s, { export: true, viewX: vx, viewY: vy, zoom });
+                        }
+                    }
+                    tctx.restore();
+
+                    // 绘制思维导图（使用预计算的偏移避免重复计算），传入当前 layers
+                    drawMindmapToCtx(tctx, { export: true, viewX: vx, viewY: vy, zoom, canvasW: temp.width, canvasH: temp.height, centerMindmap: true, offsetX: tempOffsetX, offsetY: tempOffsetY, snapLayers: layers });
+
+                    // 可选水印
+                    applyWatermarkToCtx(tctx, temp.width, temp.height);
+                    const dataURL = temp.toDataURL('image/png'); const link = document.createElement('a'); link.download = '我的绘图.png'; link.href = dataURL; link.click();
+                    return;
+                }
+
+                // 默认行为：按逻辑坐标整体导出（不进行自动缩放/居中）
+                // 默认按图层顺序绘制所有笔画
+                for (let li = 0; li < layers.length; li++) {
+                    const layer = layers[li]; if (!layer.visible) continue;
+                    for (let i = 0; i < strokes.length; i++) {
+                        const s = strokes[i]; if (s.layerId !== layer.id) continue;
+                        drawStrokeToCtx(tctx, s, { export: true, zoom: 1 });
+                    }
+                }
+                // 绘制思维导图（整图导出需考虑居中与字体缩放），传入 layers
+                drawMindmapToCtx(tctx, { export: true, canvasW: temp.width, canvasH: temp.height, centerMindmap, snapLayers: layers });
+                // 可选水印
+                applyWatermarkToCtx(tctx, temp.width, temp.height);
+                const dataURL = temp.toDataURL('image/png'); const link = document.createElement('a'); link.download = '我的绘图.png'; link.href = dataURL; link.click();
+            }
+
+            // 保存当前视口（只导出当前可见区域）
+            function saveViewport() {
+                const temp = document.createElement('canvas');
+                const tctx = temp.getContext('2d');
+                // 导出尺寸为 visible canvas 在逻辑坐标的大小乘以当前缩放以保留像素密度
+                const vw = Math.ceil(canvas.width);
+                const vh = Math.ceil(canvas.height);
+                temp.width = vw; temp.height = vh;
+                // 白底
+                tctx.fillStyle = 'white'; tctx.fillRect(0, 0, vw, vh);
+                // 绘制 strokes 到 temp：传入 viewX/viewY 与 zoom 为 currentZoom 的反向（这里我们把逻辑 -> 视口 映射）
+                // 只绘制可见的笔画以节省时间
+                // 按图层顺序绘制当前可见图层中的可见笔画
+                for (let li = 0; li < layers.length; li++) {
+                    const layer = layers[li]; if (!layer.visible) continue;
+                    for (let i = 0; i < strokes.length; i++) {
+                        const s = strokes[i]; if (s.layerId !== layer.id) continue;
+                        if (!isStrokeVisible(s, viewX, viewY, canvas.width / currentZoom, canvas.height / currentZoom)) continue;
+                        drawStrokeToCtx(tctx, s, { viewX, viewY, zoom: currentZoom });
+                    }
+                }
+                // 绘制思维导图到导出视口，传入 layers
+                drawMindmapToCtx(tctx, { export: true, viewX, viewY, zoom: currentZoom, canvasW: temp.width, canvasH: temp.height, snapLayers: layers });
+                // 可选水印
+                applyWatermarkToCtx(tctx, temp.width, temp.height);
+                const dataURL = temp.toDataURL('image/png'); const link = document.createElement('a'); link.download = 'viewport.png'; link.href = dataURL; link.click();
+            }
+
+            function clearCanvas() {
+                if (confirm('确定要清空整个画布吗？(这将清空所有矢量笔画)')) {
+                    // 记录当前快照以支持撤销
+                    const prevSnapshot = strokes.map(s => deepClone(s));
+                    // 执行清空
+                    strokes.length = 0; currentStroke = null;
+                    // 将 clear 操作记录到 undo 栈，redo 清空
+                    undoStack.push({ type: 'clear', prev: prevSnapshot });
+                    redoStack.length = 0;
+                    pushHistory('清空画布');
+                    invalidateStaticCache();
+                    redrawCanvas();
+                    updateUndoRedoButtons();
+                }
+            }
+
+            // 按钮绑定（新增）
+            const saveViewportBtn = document.getElementById('saveViewportBtn');
+            const undoBtn = document.getElementById('undoBtn');
+            const redoBtn = document.getElementById('redoBtn');
+            const deleteNodeBtn = document.getElementById('deleteNodeBtn');
+            const autoLayoutBtn = document.getElementById('autoLayoutBtn');
+            const clearHistoryBtn = document.getElementById('clearHistoryBtn');
+            const nodeEditorInput = document.createElement('input');
+            nodeEditorInput.type = 'text'; nodeEditorInput.style.position = 'absolute'; nodeEditorInput.style.display = 'none'; nodeEditorInput.style.zIndex = 9999; nodeEditorInput.id = 'nodeEditorInput';
+            document.body.appendChild(nodeEditorInput);
+            saveBtn.addEventListener('click', function(){
+                const doCenter = confirm('是否在导出时将思维导图居中显示？\n点击“确定”：居中导出；点击“取消”：按逻辑坐标导出。');
+                saveImage(doCenter);
+            });
+            clearHistoryBtn && clearHistoryBtn.addEventListener('click', function(){ if (confirm('清空历史记录？此操作无法撤销。')) { history.length = 0; renderHistoryPanel(); invalidateStaticCache(); updateUndoRedoButtons(); } });
+            saveViewportBtn.addEventListener('click', saveViewport);
+            clearBtn.addEventListener('click', clearCanvas);
+            undoBtn.addEventListener('click', undo);
+            redoBtn.addEventListener('click', redo);
+            deleteNodeBtn.addEventListener('click', function(){ if (selectedNode) deleteSelectedNode(); });
+            autoLayoutBtn.addEventListener('click', function(){ autoLayout(); undoStack.push({ type: 'mind-auto-layout', prev: deepClone({ nodes: mindNodes, edges: mindEdges }) }); redoStack.length = 0; updateUndoRedoButtons(); pushHistory('思维导图：自动布局'); });
+
+            // 水印元素已存在: watermarkToggle, watermarkText
+            function applyWatermarkToCtx(tctx, canvasWidth, canvasHeight) {
+                if (!watermarkToggle.checked) return;
+                const text = watermarkTextInput.value || '©';
+                tctx.save();
+                tctx.globalAlpha = parseFloat(document.getElementById('watermarkOpacity')?.value || 0.5);
+                tctx.fillStyle = 'rgba(0,0,0,0.4)';
+                tctx.font = '24px Arial';
+                tctx.textAlign = 'right';
+                tctx.fillText(text, canvasWidth - 10, canvasHeight - 10);
+                tctx.restore();
+            }
+
+            // 选中节点 & 删除
+            let selectedNode = null;
+            function selectNode(node) {
+                selectedNode = node;
+                if (!node) {
+                    nodeEditorInput.style.display = 'none';
+                    return;
+                }
+                // 在屏幕上放置编辑输入框
+                const screenX = (node.x - viewX) * currentZoom + canvas.getBoundingClientRect().left;
+                const screenY = (node.y - viewY) * currentZoom + canvas.getBoundingClientRect().top;
+                nodeEditorInput.style.left = (screenX - 60) + 'px';
+                nodeEditorInput.style.top = (screenY - 12) + 'px';
+                nodeEditorInput.style.width = '120px';
+                nodeEditorInput.value = node.text || '';
+                nodeEditorInput.style.display = 'block';
+                nodeEditorInput.focus();
+            }
+
+            nodeEditorInput.addEventListener('blur', function(){
+                if (selectedNode) {
+                    // 如果节点所在图层被锁定，则不允许保存编辑
+                    const nodeLayer = layers.find(l => l.id === selectedNode.layerId);
+                    if (nodeLayer && nodeLayer.locked) {
+                        alert('该图层已锁定，编辑无效');
+                        nodeEditorInput.style.display = 'none'; selectedNode = null; return;
+                    }
+                    const prev = deepClone(selectedNode);
+                    selectedNode.text = nodeEditorInput.value;
+                    undoStack.push({ type: 'mind-edit-node', id: selectedNode.id, prev: prev, next: deepClone(selectedNode) });
+                    redoStack.length = 0; updateUndoRedoButtons(); pushHistory('思维导图：编辑节点'); invalidateStaticCache(); redrawCanvas();
+                }
+                nodeEditorInput.style.display='none';
+            });
+
+            function deleteSelectedNode() {
+                if (!selectedNode) return;
+                const id = selectedNode.id;
+                const prevNodes = deepClone(mindNodes);
+                const prevEdges = deepClone(mindEdges);
+                // remove node and connected edges
+                for (let i = mindNodes.length - 1; i >= 0; i--) if (mindNodes[i].id === id) mindNodes.splice(i,1);
+                for (let i = mindEdges.length - 1; i >= 0; i--) if (mindEdges[i].from === id || mindEdges[i].to === id) mindEdges.splice(i,1);
+                undoStack.push({ type: 'mind-delete-node', prevNodes, prevEdges });
+                redoStack.length = 0; updateUndoRedoButtons();
+                pushHistory('思维导图：删除节点');
+                invalidateStaticCache();
+                selectedNode = null; nodeEditorInput.style.display = 'none'; redrawCanvas();
+            }
+
+            function autoLayout() {
+                // 简单环形布局
+                const centerX = LOGICAL_WIDTH / 2;
+                const centerY = LOGICAL_HEIGHT / 2;
+                const r = Math.min(LOGICAL_WIDTH, LOGICAL_HEIGHT) / 4;
+                const n = mindNodes.length;
+                for (let i = 0; i < n; i++) {
+                    const a = (i / n) * Math.PI * 2;
+                    mindNodes[i].x = centerX + r * Math.cos(a);
+                    mindNodes[i].y = centerY + r * Math.sin(a);
+                }
+                invalidateStaticCache();
+                redrawCanvas();
+            }
+
+            // 在 undo/redo 变化后更新按钮可用性
+            function updateUndoRedoButtons() {
+                undoBtn.disabled = undoStack.length === 0;
+                redoBtn.disabled = redoStack.length === 0;
+            }
+
+            // wrap push into helper that updates buttons
+            const originalPushStroke = pushStroke;
+            pushStroke = function(stroke) { originalPushStroke(stroke); updateUndoRedoButtons(); };
+
+            // mindmap tool bindings: click node with ctrl to start edge create, or drag to move
+            function createMindNode(x, y) {
+                const node = { id: mindNextId++, x, y, w: 140, h: 48, text: '新节点', layerId: currentLayerId };
+                mindNodes.push(node);
+                return node;
+            }
+
+            function findNodeAtLogical(x, y) {
+                for (let i = mindNodes.length - 1; i >= 0; i--) {
+                    const n = mindNodes[i];
+                    const halfW = (n.w || 120) / 2;
+                    const halfH = (n.h || 40) / 2;
+                    if (x >= n.x - halfW && x <= n.x + halfW && y >= n.y - halfH && y <= n.y + halfH) return n;
+                }
+                return null;
+            }
+
+            // 判断笔画是否和视口相交（粗略包围盒）
+            function isStrokeVisible(s, vx, vy, vw, vh) {
+                if (s.points && s.points.length) {
+                    for (let p of s.points) {
+                        if (p.x >= vx && p.x <= vx + vw && p.y >= vy && p.y <= vy + vh) return true;
+                    }
+                    return false;
+                }
+                if (s.start && s.end) {
+                    const minx = Math.min(s.start.x, s.end.x), maxx = Math.max(s.start.x, s.end.x);
+                    const miny = Math.min(s.start.y, s.end.y), maxy = Math.max(s.start.y, s.end.y);
+                    return !(maxx < vx || minx > vx + vw || maxy < vy || miny > vy + vh);
+                }
+                if (s.x && s.y) {
+                    return s.x >= vx && s.x <= vx + vw && s.y >= vy && s.y <= vy + vh;
+                }
+                return true;
+            }
+
+            // 在任意 ctx 上绘制思维导图（支持导出和视口模式）
+            function drawMindmapToCtx(tctx, opts = {}) {
+                const isExport = !!opts.export;
+                const vx = opts.viewX || 0;
+                const vy = opts.viewY || 0;
+                const zoom = opts.zoom || 1;
+                const canvasW = opts.canvasW || (canvas.width);
+                const canvasH = opts.canvasH || (canvas.height);
+                const centerMindmap = !!opts.centerMindmap;
+
+                // 如果要求居中导出，计算节点包围盒并决定一个临时偏移，用于绘制到导出画布中心
+                let tempOffsetX = 0, tempOffsetY = 0;
+                // 如果外部传入了预计算的偏移（例如 saveImage），优先使用
+                if (typeof opts.offsetX === 'number' && typeof opts.offsetY === 'number') {
+                    tempOffsetX = opts.offsetX; tempOffsetY = opts.offsetY;
+                } else if (centerMindmap && mindNodes.length > 0) {
+                    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+                    for (let n of mindNodes) {
+                        minX = Math.min(minX, n.x - (n.w||120)/2);
+                        minY = Math.min(minY, n.y - (n.h||40)/2);
+                        maxX = Math.max(maxX, n.x + (n.w||120)/2);
+                        maxY = Math.max(maxY, n.y + (n.h||40)/2);
+                    }
+                    const nodesW = maxX - minX;
+                    const nodesH = maxY - minY;
+                    // 目标中心（画布中心）在像素坐标中
+                    const canvasCenterX = canvasW / 2;
+                    const canvasCenterY = canvasH / 2;
+                    // 计算当前包围盒中心在逻辑坐标系下
+                    const bboxCenterX = (minX + maxX) / 2;
+                    const bboxCenterY = (minY + maxY) / 2;
+                    // 将 bboxCenter 映射到导出像素坐标： (bboxCenter - vx) * zoom
+                    const bboxCenterPixelX = (bboxCenterX - vx) * zoom;
+                    const bboxCenterPixelY = (bboxCenterY - vy) * zoom;
+                    // 需要的像素偏移量 = canvasCenter - bboxCenterPixel
+                    tempOffsetX = canvasCenterX - bboxCenterPixelX;
+                    tempOffsetY = canvasCenterY - bboxCenterPixelY;
+                }
+
+                // 支持按图层绘制：优先使用 opts.snapLayers（导出/历史缩略图提供），否则使用全局 layers
+                const useLayers = opts.snapLayers || layers;
+                const layerVisible = (layerId) => {
+                    if (!useLayers || !useLayers.length) return true;
+                    const l = useLayers.find(x => x.id === layerId);
+                    return l ? !!l.visible : true;
+                };
+
+                for (let li = 0; li < useLayers.length; li++) {
+                    const layer = useLayers[li]; if (!layer || !layer.visible) continue;
+                    // edges
+                    tctx.save();
+                    tctx.strokeStyle = '#444';
+                    tctx.lineWidth = 2 * zoom;
+                    for (let e of mindEdges) {
+                        const from = mindNodes.find(n => n.id === e.from);
+                        const to = mindNodes.find(n => n.id === e.to);
+                        if (!from || !to) continue;
+                        // 仅当边任一端点属于当前 layer 时绘制（保持简洁）
+                        if (from.layerId !== layer.id && to.layerId !== layer.id) continue;
+                        if (opts.viewX !== undefined && !((from.x >= vx && from.x <= vx + canvasW/zoom) || (to.x >= vx && to.x <= vx + canvasW/zoom))) continue;
+                        const fx = (from.x - vx) * zoom + tempOffsetX;
+                        const fy = (from.y - vy) * zoom + tempOffsetY;
+                        const tx = (to.x - vx) * zoom + tempOffsetX;
+                        const ty = (to.y - vy) * zoom + tempOffsetY;
+                        tctx.beginPath(); tctx.moveTo(fx, fy); tctx.lineTo(tx, ty); tctx.stroke();
+                    }
+                    tctx.restore();
+
+                    // nodes
+                    for (let n of mindNodes) {
+                        if (n.layerId !== layer.id) continue;
+                        if (opts.viewX !== undefined) {
+                            if (n.x < vx - 100/zoom || n.x > vx + canvasW/zoom + 100/zoom || n.y < vy - 60/zoom || n.y > vy + canvasH/zoom + 60/zoom) continue;
+                        }
+                        const nx = (n.x - vx) * zoom + tempOffsetX;
+                        const ny = (n.y - vy) * zoom + tempOffsetY;
+                        const w = (n.w || 120) * zoom;
+                        const h = (n.h || 40) * zoom;
+                        tctx.save();
+                        tctx.fillStyle = '#fff8dc';
+                        tctx.strokeStyle = '#333';
+                        tctx.lineWidth = 1;
+                        tctx.shadowColor = 'rgba(0,0,0,0.08)'; tctx.shadowBlur = 8;
+                        roundRect(tctx, nx - w/2, ny - h/2, w, h, 8 * zoom, true, true);
+                        tctx.restore();
+                        tctx.save();
+                        let baseFont;
+                        if (isExport) {
+                            const gw = (n.w || 120);
+                            baseFont = Math.max(12, Math.min(28, gw / 6));
+                        } else {
+                            baseFont = Math.max(10, Math.min(24, 14 * zoom));
+                        }
+                        tctx.fillStyle = '#111';
+                        tctx.font = `${baseFont}px Arial`;
+                        tctx.textAlign = 'center'; tctx.textBaseline = 'middle';
+                        tctx.fillText(n.text || ('节点 ' + n.id), nx, ny);
+                        tctx.restore();
+                    }
+                }
+            }
+
+            // Shift 为连线快捷键：按下 Shift 并点击节点开始连线
+            let shiftEdgeStart = null;
+
+            // 当工具切换到 mindmap 时，允许在节点上按 Ctrl 开始连线
+            canvas.addEventListener('dblclick', function(e) {
+                if (currentTool !== 'mindmap') return;
+                const [rawX, rawY] = getEventCoordinates(e);
+                const [x, y] = screenToLogical(rawX, rawY);
+                const n = findNodeAtLogical(x, y);
+                if (n) {
+                    const nodeLayer = layers.find(l => l.id === n.layerId);
+                    if (nodeLayer && nodeLayer.locked) { alert('该图层已锁定，无法编辑节点'); return; }
+                    // 修改节点文本（简单实现：prompt）
+                    const t = prompt('编辑节点文本：', n.text || '');
+                    if (t !== null) {
+                        const prev = deepClone(n);
+                        n.text = t;
+                        undoStack.push({ type: 'mind-edit-node', id: n.id, prev: prev, next: deepClone(n) });
+                        redoStack.length = 0;
+                        updateUndoRedoButtons();
+                        pushHistory('思维导图：编辑节点');
+                        redrawCanvas();
+                    }
+                }
+            });
+
+            // 右键在节点上开始创建边（保留旧交互），以及 Shift + 点击/释放 用于更直观的连线
+            canvas.addEventListener('contextmenu', function(e) {
+                if (currentTool !== 'mindmap') return;
+                e.preventDefault();
+                const [rawX, rawY] = getEventCoordinates(e);
+                const [x, y] = screenToLogical(rawX, rawY);
+                const n = findNodeAtLogical(x, y);
+                if (n) {
+                    creatingEdgeFrom = n;
+                }
+            });
+
+            // Shift 键连线 UX：mousedown 在节点上且 shiftKey 则记为连线开始，mouseup 在目标节点则完成
+            canvas.addEventListener('mousedown', function(e) {
+                if (currentTool !== 'mindmap') return;
+                const [rawX, rawY] = getEventCoordinates(e);
+                const [x, y] = screenToLogical(rawX, rawY);
+                if (e.shiftKey) {
+                    const n = findNodeAtLogical(x, y);
+                    if (n) {
+                        shiftEdgeStart = n;
+                        creatingEdgeFrom = n;
+                    }
+                }
+            });
+
+            canvas.addEventListener('mouseup', function(e) {
+                if (currentTool !== 'mindmap') return;
+                if (!shiftEdgeStart) return;
+                const [rawX, rawY] = getEventCoordinates(e);
+                const [x, y] = screenToLogical(rawX, rawY);
+                const target = findNodeAtLogical(x, y);
+                if (target && target.id !== shiftEdgeStart.id) {
+                    mindEdges.push({ from: shiftEdgeStart.id, to: target.id });
+                    undoStack.push({ type: 'mind-add-edge', edge: deepClone({ from: shiftEdgeStart.id, to: target.id }) });
+                    redoStack.length = 0; updateUndoRedoButtons(); pushHistory('思维导图：添加连线');
+                    invalidateStaticCache();
+                    redrawCanvas();
+                }
+                shiftEdgeStart = null; creatingEdgeFrom = null;
+            });
+
+            // 快捷键扩展：Ctrl+Z / Ctrl+Y
+            document.addEventListener('keydown', function(e) {
+                if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') { e.preventDefault(); undo(); }
+                if ((e.ctrlKey || e.metaKey) && (e.key.toLowerCase() === 'y' || (e.shiftKey && e.key.toLowerCase() === 'z'))) { e.preventDefault(); redo(); }
+            });
+
+            // 初始显示
+            updateZoomDisplay();
+            // 初始化历史与撤销/重做按钮状态
+            pushHistory('初始状态');
+            updateUndoRedoButtons();
         });
     </script>
 </body>
