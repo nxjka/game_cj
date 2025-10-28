@@ -324,6 +324,89 @@
                 margin-bottom: 20px;
             }
         }
+        
+        .fullscreen-mode {
+            position: fixed !important;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            z-index: 9999;
+            background: #fff;
+            box-shadow: none;
+            border-radius: 0;
+            max-width: none;
+            overflow: hidden;
+            display: flex !important;
+            flex-direction: column;
+        }
+        .fullscreen-toolbar-collapsed {
+            width: 48px !important;
+            min-width: 0 !important;
+            padding: 0 !important;
+            overflow: hidden !important;
+            transition: width 0.2s;
+        }
+        .fullscreen-toolbar-expanded {
+            width: 260px !important;
+            min-width: 200px !important;
+            transition: width 0.2s;
+        }
+        .fullscreen-actions-collapsed {
+            height: 48px !important;
+            overflow: hidden !important;
+            transition: height 0.2s;
+        }
+        .fullscreen-actions-expanded {
+            height: auto !important;
+            transition: height 0.2s;
+        }
+        .fullscreen-toggle-btn {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            z-index: 10001;
+            background: #2575fc;
+            color: #fff;
+            border: none;
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            font-size: 22px;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .fullscreen-actions-toggle-btn {
+            position: absolute;
+            bottom: 8px;
+            right: 8px;
+            z-index: 10001;
+            background: #2575fc;
+            color: #fff;
+            border: none;
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            font-size: 22px;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* 历史折叠样式 */
+        #historyContent.collapsed { display: none; }
+        #historySection h3 { display:flex; align-items:center; justify-content:space-between; gap:8px; }
+        .history-toggle-btn {
+            padding:6px 8px;
+            font-size:0.9rem;
+            border-radius:6px;
+            background: #f1f3f8;
+            border: 1px solid #e2e6ef;
+            cursor: pointer;
+        }
+        .history-toggle-btn:hover { background:#e8ecff; }
     </style>
 </head>
 <body>
@@ -362,11 +445,30 @@
                         <label for="watermarkOpacity">透明度</label>
                         <input id="watermarkOpacity" type="range" min="0" max="1" step="0.1" value="0.5" style="flex:1;">
                     </div>
+                    <div style="margin-top:8px;display:flex;gap:8px;align-items:center;">
+                        <label for="watermarkColor">颜色</label>
+                        <input id="watermarkColor" type="color" value="#000000" style="width:40px;height:30px;">
+                    </div>
+                    <div style="margin-top:8px;display:flex;gap:8px;align-items:center;">
+                        <label for="watermarkFontSize">字号</label>
+                        <input id="watermarkFontSize" type="range" min="12" max="80" value="24" style="flex:1;">
+                        <span id="watermarkFontSizeValue">24</span>px
+                    </div>
+                    <div style="margin-top:8px;display:flex;gap:8px;align-items:center;">
+                        <label for="watermarkPosition">位置</label>
+                        <select id="watermarkPosition" style="flex:1;">
+                            <option value="right-bottom">右下</option>
+                            <option value="left-bottom">左下</option>
+                            <option value="right-top">右上</option>
+                            <option value="left-top">左上</option>
+                            <option value="center">居中</option>
+                        </select>
+                    </div>
                 </div>
                 
                 <div class="tool-section">
                     <h3>颜色选择</h3>
-                    <div class="color-palette">
+                    <div class="color-palette" id="colorPalette">
                         <div class="color-option active" style="background-color: #000000;" data-color="#000000"></div>
                         <div class="color-option" style="background-color: #ff3b30;" data-color="#ff3b30"></div>
                         <div class="color-option" style="background-color: #4cd964;" data-color="#4cd964"></div>
@@ -375,6 +477,7 @@
                         <div class="color-option" style="background-color: #ff9500;" data-color="#ff9500"></div>
                         <div class="color-option" style="background-color: #ffcc00;" data-color="#ffcc00"></div>
                         <div class="color-option" style="background-color: #8e8e93;" data-color="#8e8e93"></div>
+                        <button id="addCustomColorBtn" style="width:30px;height:30px;border-radius:50%;border:2px dashed #aaa;background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;">+</button>
                     </div>
                 </div>
 
@@ -383,6 +486,11 @@
                     <div style="display:flex;gap:8px;margin-bottom:8px;">
                         <button id="addLayerBtn" class="tool-btn" style="width:auto;padding:6px 8px;">添加图层</button>
                         <button id="removeLayerBtn" class="tool-btn" style="width:auto;padding:6px 8px;">删除图层</button>
+                        <button id="uploadLayerBtn" class="tool-btn" style="width:auto;padding:6px 8px;">上传图层</button>
+                    </div>
+                    <div style="margin-bottom:8px;">
+                        <label for="backgroundColorPicker" style="font-size:0.95em;">背景颜色：</label>
+                        <input type="color" id="backgroundColorPicker" value="#ffffff" style="width:40px;height:30px;">
                     </div>
                     <div id="layersList" style="max-height:180px;overflow:auto;border:1px solid #eee;padding:6px;background:#fff;"></div>
                 </div>
@@ -445,12 +553,19 @@
                 </div>
             </div>
             <div class="tool-section" id="historySection">
-                <h3>操作历史</h3>
-                <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px;">
-                    <button id="clearHistoryBtn" class="tool-btn" title="清空历史" style="width:auto;padding:6px 8px;">清空历史</button>
-                    <div style="font-size:0.85rem;color:#666;">点击历史项可以回到该步</div>
+                <h3>
+                    <span>操作历史</span>
+                    <div style="display:flex;align-items:center;gap:8px;">
+                        <button id="historyToggleBtn" class="history-toggle-btn" title="折叠/展开历史">折叠</button>
+                    </div>
+                </h3>
+                <div id="historyContent">
+                    <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px;">
+                        <button id="clearHistoryBtn" class="tool-btn" title="清空历史" style="width:auto;padding:6px 8px;">清空历史</button>
+                        <div style="font-size:0.85rem;color:#666;">点击历史项可以回到该步</div>
+                    </div>
+                    <div id="historyList" style="max-height:200px;overflow:auto;border:1px solid #eee;padding:6px;background:#fff;"></div>
                 </div>
-                <div id="historyList" style="max-height:200px;overflow:auto;border:1px solid #eee;padding:6px;background:#fff;"></div>
             </div>
             
             <div class="canvas-container">
@@ -480,9 +595,10 @@
             <button class="action-btn" id="saveViewportBtn">保存视口</button>
             <button class="action-btn" id="undoBtn">撤销</button>
             <button class="action-btn" id="redoBtn">重做</button>
-                    <button class="action-btn" id="deleteNodeBtn">删除节点</button>
-                    <button class="action-btn" id="autoLayoutBtn">自动布局</button>
+            <button class="action-btn" id="deleteNodeBtn">删除节点</button>
+            <button class="action-btn" id="autoLayoutBtn">自动布局</button>
             <button class="action-btn clear" id="clearBtn">清空画布</button>
+            <button class="action-btn" id="fullscreenBtn" style="background:linear-gradient(90deg,#2575fc 0%,#6a11cb 100%);">全屏</button>
         </div>
     </div>
     
@@ -492,6 +608,69 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // 自定义颜色添加逻辑
+            const colorPalette = document.getElementById('colorPalette');
+            const addCustomColorBtn = document.getElementById('addCustomColorBtn');
+            if (addCustomColorBtn) {
+                addCustomColorBtn.addEventListener('click', function() {
+                    const colorInput = document.createElement('input');
+                    colorInput.type = 'color';
+                    colorInput.style.display = 'none';
+                    document.body.appendChild(colorInput);
+                    colorInput.addEventListener('input', function() {
+                        const newColor = colorInput.value;
+                        // 创建新的颜色选项容器
+                        const optionWrapper = document.createElement('div');
+                        optionWrapper.style.position = 'relative';
+                        optionWrapper.style.display = 'inline-block';
+                        // 颜色圆点
+                        const newOption = document.createElement('div');
+                        newOption.className = 'color-option';
+                        newOption.style.backgroundColor = newColor;
+                        newOption.setAttribute('data-color', newColor);
+                        // 删除按钮
+                        const delBtn = document.createElement('span');
+                        delBtn.textContent = '×';
+                        delBtn.title = '删除此颜色';
+                        delBtn.style.position = 'absolute';
+                        delBtn.style.top = '-8px';
+                        delBtn.style.right = '-8px';
+                        delBtn.style.width = '18px';
+                        delBtn.style.height = '18px';
+                        delBtn.style.background = '#fff';
+                        delBtn.style.color = '#d00';
+                        delBtn.style.borderRadius = '50%';
+                        delBtn.style.fontSize = '14px';
+                        delBtn.style.display = 'flex';
+                        delBtn.style.alignItems = 'center';
+                        delBtn.style.justifyContent = 'center';
+                        delBtn.style.cursor = 'pointer';
+                        delBtn.style.border = '1px solid #eee';
+                        delBtn.style.boxShadow = '0 1px 4px rgba(0,0,0,0.08)';
+                        delBtn.addEventListener('click', function(e) {
+                            e.stopPropagation();
+                            if (optionWrapper.parentNode) optionWrapper.parentNode.removeChild(optionWrapper);
+                        });
+                        // 绑定点击事件
+                        newOption.addEventListener('click', function() {
+                            document.querySelectorAll('.color-option').forEach(opt => opt.classList.remove('active'));
+                            newOption.classList.add('active');
+                            currentColor = newColor;
+                        });
+                        optionWrapper.appendChild(newOption);
+                        optionWrapper.appendChild(delBtn);
+                        // 插入到自定义按钮前
+                        colorPalette.insertBefore(optionWrapper, addCustomColorBtn);
+                        // 自动选中
+                        document.querySelectorAll('.color-option').forEach(opt => opt.classList.remove('active'));
+                        newOption.classList.add('active');
+                        currentColor = newColor;
+                        // 清理
+                        if (colorInput.parentNode) colorInput.parentNode.removeChild(colorInput);
+                    });
+                    colorInput.click();
+                });
+            }
             const canvas = document.getElementById('drawingCanvas');
             const ctx = canvas.getContext('2d');
             const brushSize = document.getElementById('brushSize');
@@ -533,10 +712,15 @@
             let dragStartPos = null; // {x,y}
             let dragOffset = { x: 0, y: 0 };
             let creatingEdgeFrom = null;
+            
 
             // 水印 UI 元素
             const watermarkToggle = document.getElementById('watermarkToggle');
             const watermarkTextInput = document.getElementById('watermarkText');
+            const watermarkColorInput = document.getElementById('watermarkColor');
+            const watermarkFontSizeInput = document.getElementById('watermarkFontSize');
+            const watermarkFontSizeValue = document.getElementById('watermarkFontSizeValue');
+            const watermarkPositionSelect = document.getElementById('watermarkPosition');
 
             // 图层系统
             // layer = { id, name, visible: true, locked: false }
@@ -545,7 +729,7 @@
 
             function createLayer(name) {
                 const id = 'layer_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
-                const layer = { id, name: name || '图层 ' + (layers.length + 1), visible: true, locked: false };
+                const layer = { id, name: name || '图层 ' + (layers.length + 1), visible: true, locked: false, color: '#ffffff', image: null };
                 layers.push(layer);
                 if (!currentLayerId) currentLayerId = id;
                 renderLayersPanel();
@@ -572,7 +756,42 @@
             const layersListEl = document.getElementById('layersList');
             const addLayerBtn = document.getElementById('addLayerBtn');
             const removeLayerBtn = document.getElementById('removeLayerBtn');
+            const uploadLayerBtn = document.getElementById('uploadLayerBtn');
 
+            // 上传图层按钮逻辑
+            uploadLayerBtn.addEventListener('click', function() {
+                const fileInput = document.createElement('input');
+                fileInput.type = 'file';
+                fileInput.accept = 'image/*';
+                fileInput.style.display = 'none';
+                document.body.appendChild(fileInput);
+                fileInput.addEventListener('change', function() {
+                    const file = fileInput.files[0];
+                    if (!file) return;
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const img = new Image();
+                        img.onload = function() {
+                            // 新建图层，image字段赋值
+                            const name = prompt('输入图层名称（可选）：', '图片图层');
+                            const layer = createLayer(name || '图片图层');
+                            layer.image = img;
+                            // 可选：设置图层颜色
+                            const color = prompt('设置图层颜色（如 #ff0000，可空）：', '#ffffff');
+                            if (color && /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(color)) layer.color = color;
+                            pushHistory('上传自定义图层');
+                            invalidateStaticCache();
+                            redrawCanvas();
+                        };
+                        img.src = e.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                    if (fileInput.parentNode) fileInput.parentNode.removeChild(fileInput);
+                });
+                fileInput.click();
+            });
+
+            // 图层面板渲染，显示图片预览和悬停预览
             function renderLayersPanel() {
                 layersListEl.innerHTML = '';
                 for (let i = 0; i < layers.length; i++) {
@@ -583,19 +802,26 @@
                     const sw = document.createElement('div'); sw.style.width='18px'; sw.style.height='18px'; sw.style.borderRadius='4px'; sw.style.background = l.color || '#ffffff'; sw.title='图层颜色'; sw.style.border='1px solid #ddd';
                     sw.style.cursor = 'pointer';
                     sw.addEventListener('click', function(){
-                        // 使用原生 color input 提供更好体验（仅支持 hex）
                         const colorInput = document.createElement('input'); colorInput.type = 'color';
-                        // 若已有 hex 值则使用，否则默认白色
                         try { colorInput.value = (l.color && l.color.startsWith && l.color.startsWith('#')) ? l.color : '#ffffff'; } catch(e) { colorInput.value = '#ffffff'; }
                         colorInput.style.display = 'none'; document.body.appendChild(colorInput);
                         colorInput.addEventListener('input', function() {
                             l.color = colorInput.value; renderLayersPanel(); invalidateStaticCache(); redrawCanvas();
-                            // cleanup
                             if (colorInput.parentNode) colorInput.parentNode.removeChild(colorInput);
                         });
                         colorInput.click();
                     });
                     row.appendChild(sw);
+                    // 图片预览
+                    if (l.image) {
+                        const imgThumb = document.createElement('img');
+                        imgThumb.src = l.image.src;
+                        imgThumb.style.width = '32px';
+                        imgThumb.style.height = '32px';
+                        imgThumb.style.objectFit = 'cover';
+                        imgThumb.title = '图层图片预览';
+                        row.appendChild(imgThumb);
+                    }
                     // visibility checkbox
                     const vis = document.createElement('input'); vis.type='checkbox'; vis.checked = !!l.visible; vis.addEventListener('change', function(){ toggleLayerVisibility(l.id); }); row.appendChild(vis);
                     // lock checkbox
@@ -606,6 +832,15 @@
                     // move up/down
                     const upBtn = document.createElement('button'); upBtn.className='tool-btn'; upBtn.style.width='auto'; upBtn.style.padding='4px 6px'; upBtn.textContent='↑'; upBtn.addEventListener('click', function(){ if (i === 0) return; layers.splice(i,1); layers.splice(i-1,0,l); renderLayersPanel(); invalidateStaticCache(); redrawCanvas(); pushHistory('上移图层'); }); row.appendChild(upBtn);
                     const downBtn = document.createElement('button'); downBtn.className='tool-btn'; downBtn.style.width='auto'; downBtn.style.padding='4px 6px'; downBtn.textContent='↓'; downBtn.addEventListener('click', function(){ if (i === layers.length -1) return; layers.splice(i,1); layers.splice(i+1,0,l); renderLayersPanel(); invalidateStaticCache(); redrawCanvas(); pushHistory('下移图层'); }); row.appendChild(downBtn);
+                    // 悬停预览
+                    row.addEventListener('mouseenter', function() {
+                        previewLayerId = l.id;
+                        redrawCanvas();
+                    });
+                    row.addEventListener('mouseleave', function() {
+                        previewLayerId = null;
+                        redrawCanvas();
+                    });
                     layersListEl.appendChild(row);
                 }
             }
@@ -615,7 +850,14 @@
             renderLayersPanel();
 
             // 图层按钮逻辑
-            addLayerBtn.addEventListener('click', function(){ const name = prompt('图层名称（可选）：','新图层'); const l = createLayer(name || undefined); pushHistory('添加图层'); invalidateStaticCache(); });
+            addLayerBtn.addEventListener('click', function(){
+	// 弹窗返回 null 表示用户点击了 取消，取消时不创建图层
+	const name = prompt('图层名称（可选）：','新图层');
+	if (name === null) return; // 用户取消，直接返回
+	const l = createLayer(name.trim() ? name.trim() : undefined);
+	pushHistory('添加图层');
+	invalidateStaticCache();
+});
             removeLayerBtn.addEventListener('click', function(){ if (!currentLayerId) return alert('没有可删除的图层');
                 if (!confirm('删除当前图层？你可以选择将该图层内容迁移到另一个图层，或直接删除。是否继续？')) return;
                 // 记录删除前完整快照，以支持撤销
@@ -731,16 +973,18 @@
             }
 
             // 绘制单个 stroke 到任意 ctx。若提供 view/zoom 参数则按视口转换绘制，否则按逻辑坐标直接绘制（用于导出）
+
             function drawStrokeToCtx(targetCtx, stroke, opts = {}) {
                 const isExport = !!opts.export;
                 const vx = opts.viewX || 0;
                 const vy = opts.viewY || 0;
-                const zoom = opts.zoom || 1;
+                const zoom = typeof opts.zoom === 'number' ? opts.zoom : 1;
 
                 targetCtx.save();
                 targetCtx.lineJoin = 'round';
                 targetCtx.lineCap = 'round';
-                targetCtx.lineWidth = stroke.lineWidth || 1;
+                // 将笔宽按当前 zoom 缩放（在导出或传入特定 zoom 时会正确表现）
+                targetCtx.lineWidth = (stroke.lineWidth || 1) * zoom;
                 if (stroke.tool === 'eraser') {
                     targetCtx.globalCompositeOperation = 'destination-out';
                     targetCtx.strokeStyle = 'rgba(0,0,0,1)';
@@ -758,6 +1002,7 @@
                         targetCtx.arc(x, y, (stroke.lineWidth || 1) / 2 * zoom, 0, Math.PI * 2);
                         targetCtx.fillStyle = stroke.color || '#000';
                         if (stroke.tool === 'eraser') {
+                            // 对于橡皮使用擦除复合模式
                             targetCtx.globalCompositeOperation = 'destination-out';
                             targetCtx.fill();
                         } else {
@@ -804,25 +1049,48 @@
                 targetCtx.restore();
             }
 
+            // 背景色
+            let backgroundColor = "#ffffff";
+            const backgroundColorPicker = document.getElementById('backgroundColorPicker');
+            backgroundColorPicker.addEventListener('input', function() {
+                backgroundColor = backgroundColorPicker.value;
+                invalidateStaticCache();
+                redrawCanvas();
+            });
+
+            // 图层悬停预览相关变量
+            let previewLayerId = null;
+
             function redrawCanvas() {
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
-                ctx.fillStyle = 'white';
+                ctx.fillStyle = backgroundColor;
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
                 drawGrid();
 
-                // 绘制已有的矢量笔画（使用静态缓存以提升性能）
-                // 当视口或画布尺寸变化或数据变更时需要重建缓存
+                // 静态缓存重建
                 if (!staticCacheValid || staticCacheView.viewX !== viewX || staticCacheView.viewY !== viewY || staticCacheView.zoom !== currentZoom || staticCacheView.w !== canvas.width || staticCacheView.h !== canvas.height) {
-                    // 重建静态缓存：大小与主 canvas 相同（表示当前视口）
                     staticCache.width = canvas.width;
                     staticCache.height = canvas.height;
                     staticCacheCtx.clearRect(0, 0, staticCache.width, staticCache.height);
-                    staticCacheCtx.fillStyle = 'white';
+                    staticCacheCtx.fillStyle = backgroundColor;
                     staticCacheCtx.fillRect(0, 0, staticCache.width, staticCache.height);
-                    // 按图层顺序绘制笔画到静态缓存（仅绘制可见图层且仅绘制可见的部分）
                     for (let li = 0; li < layers.length; li++) {
                         const layer = layers[li];
+                        // 悬停预览时只显示当前悬停图层
+                        if (previewLayerId && layer.id !== previewLayerId) continue;
                         if (!layer.visible) continue;
+                        if (layer.image) {
+                            const imgW = layer.image.width;
+                            const imgH = layer.image.height;
+                            const sx = Math.max(0, (0 - viewX) * currentZoom);
+                            const sy = Math.max(0, (0 - viewY) * currentZoom);
+                            const sw = imgW * currentZoom;
+                            const sh = imgH * currentZoom;
+                            staticCacheCtx.save();
+                            staticCacheCtx.globalAlpha = 0.85;
+                            staticCacheCtx.drawImage(layer.image, sx, sy, sw, sh);
+                            staticCacheCtx.restore();
+                        }
                         for (let i = 0; i < strokes.length; i++) {
                             const s = strokes[i];
                             if (s.layerId !== layer.id) continue;
@@ -833,9 +1101,7 @@
                     staticCacheValid = true;
                     staticCacheView = { viewX, viewY, zoom: currentZoom, w: canvas.width, h: canvas.height };
                 }
-                // 将静态缓存绘制到主 ctx
                 ctx.drawImage(staticCache, 0, 0);
-
                 // 绘制思维导图边和节点，按图层顺序绘制以保证正确遮挡
                 for (let li = 0; li < layers.length; li++) {
                     const layer = layers[li];
@@ -925,6 +1191,11 @@
 
             // 绘制状态
             let isDrawing = false;
+            // 捏合缩放状态（触控）
+            let isPinching = false;
+            let pinchStartDist = 0;
+            let pinchStartZoom = 1;
+            let pinchCenter = { x: 0, y: 0 };
             let lastX = 0, lastY = 0;
             let startX = 0, startY = 0;
             let currentTool = 'pencil';
@@ -932,6 +1203,10 @@
             let lastPointerPos = null;
 
             // UI 控件同步
+            // 水印字号同步
+            watermarkFontSizeInput.addEventListener('input', function() {
+                watermarkFontSizeValue.textContent = watermarkFontSizeInput.value;
+            });
             brushSizeValue.textContent = brushSize.value;
             fontSizeValue.textContent = fontSize.value;
             brushSize.addEventListener('input', () => brushSizeValue.textContent = brushSize.value);
@@ -1118,9 +1393,74 @@
             canvas.addEventListener('mousedown', function(e) { if (e.button !== 0) return; startDrawing(e); });
             canvas.addEventListener('mousemove', drawing);
             window.addEventListener('mouseup', stopDrawing);
-            canvas.addEventListener('touchstart', function(e){ e.preventDefault(); startDrawing(e); }, { passive: false });
-            canvas.addEventListener('touchmove', function(e){ e.preventDefault(); drawing(e); }, { passive: false });
-            window.addEventListener('touchend', function(e){ e.preventDefault(); stopDrawing(e); }, { passive: false });
+            // 触摸支持：单指绘制 / 双指捏合缩放
+            canvas.addEventListener('touchstart', function(e){
+                if (e.touches && e.touches.length === 2) {
+                    // 开始捏合
+                    isPinching = true;
+                    pinchStartZoom = currentZoom;
+                    const t0 = e.touches[0];
+                    const t1 = e.touches[1];
+                    const dx = t1.clientX - t0.clientX;
+                    const dy = t1.clientY - t0.clientY;
+                    pinchStartDist = Math.hypot(dx, dy);
+                    // 捏合中心（屏幕坐标相对于 canvas）
+                    const rect = canvas.getBoundingClientRect();
+                    const cx = (t0.clientX + t1.clientX) / 2 - rect.left;
+                    const cy = (t0.clientY + t1.clientY) / 2 - rect.top;
+                    pinchCenter = { x: cx, y: cy };
+                } else {
+                    // 单指绘制
+                    startDrawing(e);
+                }
+                e.preventDefault();
+            }, { passive: false });
+
+            canvas.addEventListener('touchmove', function(e){
+                if (isPinching && e.touches && e.touches.length === 2) {
+                    const t0 = e.touches[0];
+                    const t1 = e.touches[1];
+                    const dx = t1.clientX - t0.clientX;
+                    const dy = t1.clientY - t0.clientY;
+                    const dist = Math.hypot(dx, dy);
+                    if (pinchStartDist <= 0) pinchStartDist = dist || 1;
+                    const rect = canvas.getBoundingClientRect();
+                    // 计算新的 zoom
+                    const ratio = dist / pinchStartDist;
+                    const newZoom = Math.min(5, Math.max(0.2, pinchStartZoom * ratio));
+                    // 根据捏合中心调整 viewX/viewY，使视觉中心稳定
+                    const mx = pinchCenter.x, my = pinchCenter.y;
+                    const prevZoom = currentZoom;
+                    const logicalX = viewX + mx / prevZoom;
+                    const logicalY = viewY + my / prevZoom;
+                    currentZoom = newZoom;
+                    viewX = logicalX - mx / currentZoom;
+                    viewY = logicalY - my / currentZoom;
+                    viewX = Math.max(0, Math.min(viewX, LOGICAL_WIDTH - canvas.width / currentZoom));
+                    viewY = Math.max(0, Math.min(viewY, LOGICAL_HEIGHT - canvas.height / currentZoom));
+                    updateZoomDisplay();
+                    redrawCanvas();
+                    e.preventDefault();
+                    return;
+                }
+                // 否则按常规单点处理（绘制/平移）
+                drawing(e);
+                e.preventDefault();
+            }, { passive: false });
+
+            window.addEventListener('touchend', function(e){
+                if (isPinching) {
+                    // 如果捏合结束，重置状态
+                    if (!e.touches || e.touches.length < 2) {
+                        isPinching = false;
+                        pinchStartDist = 0;
+                        pinchStartZoom = currentZoom;
+                    }
+                    e.preventDefault();
+                    return;
+                }
+                stopDrawing(e);
+            }, { passive: false });
 
             // 缩放/平移/快捷键
             function updateZoomDisplay() { zoomLevel.textContent = Math.round(currentZoom * 100) + '%'; }
@@ -1269,14 +1609,15 @@
                     function layerVisible(layerId) { if (!snapLayers || !snapLayers.length) return true; const l = snapLayers.find(x=>x.id===layerId); return l ? !!l.visible : true; }
                     if (snapLayers && snapLayers.length) {
                         for (let li = 0; li < snapLayers.length; li++) {
+                           
                             const layer = snapLayers[li]; if (!layerVisible(layer.id)) continue;
                             for (let s of strokesS) {
                                 if ((s.layerId || null) !== layer.id) continue;
                                 drawStrokeToCtx(tctx, s, { export: true, viewX: vx, viewY: vy, zoom });
-                            }
                         }
                         drawMindmapToCtx(tctx, { export: true, viewX: vx, viewY: vy, zoom, canvasW: w, canvasH: h, snapLayers });
-                    } else {
+                    }
+                   }else {
                         for (let s of strokesS) {
                             drawStrokeToCtx(tctx, s, { export: true, viewX: vx, viewY: vy, zoom });
                         }
@@ -1327,10 +1668,17 @@
                         meta.appendChild(title); meta.appendChild(time);
                         row.appendChild(meta);
                         row.addEventListener('click', function(){ jumpToHistory(idx); });
+
                         historyListEl.appendChild(row);
+                        
                     })(i);
-                }
-            }
+
+             
+                }}
+               
+            
++              
+            
 
             // jumpToHistory 支持一个可选参数 opts，避免在内部调用时重复记录 undo
             function jumpToHistory(index, opts = { recordUndo: true }) {
@@ -1380,8 +1728,6 @@
             function undo() {
                 if (undoStack.length === 0) return;
                 const op = undoStack.pop();
-                // 支持历史跳转的撤销
-                // 支持图层删除的撤销
                 if (op.type === 'layer-delete') {
                     const prev = op.prev || { strokes: [], mindNodes: [], layers: [], currentLayerId: null };
                     const currSnapshot = { strokes: deepClone(strokes), mindNodes: deepClone(mindNodes), layers: deepClone(layers), currentLayerId };
@@ -1397,15 +1743,14 @@
                     return;
                 }
                 if (op.type === 'history-jump') {
-                    // 恢复跳转前的快照
+                    // 修复 targetSnap 未定义
                     const prev = op.from || { strokes: [], mindNodes: [], mindEdges: [] };
+                    const targetSnap = op.to || { strokes: [], mindNodes: [], mindEdges: [] };
                     const currSnapshot = { strokes: deepClone(strokes), mindNodes: deepClone(mindNodes), mindEdges: deepClone(mindEdges) };
-                    // 应用 prev
                     strokes.length = 0; prev.strokes.forEach(s => strokes.push(deepClone(s)));
                     mindNodes.length = 0; prev.mindNodes.forEach(n => mindNodes.push(deepClone(n)));
                     mindEdges.length = 0; prev.mindEdges.forEach(e => mindEdges.push(deepClone(e)));
-                    // 将可重做的动作压入 redo（恢复到跳转后的状态）
-                    redoStack.push({ type: 'history-jump', from: currSnapshot, to: op.to ? deepClone(op.to) : currSnapshot });
+                    redoStack.push({ type: 'history-jump', from: currSnapshot, to: deepClone(targetSnap) });
                     invalidateStaticCache(); redrawCanvas(); updateUndoRedoButtons(); pushHistory('撤销：历史跳转');
                     return;
                 }
@@ -1510,7 +1855,7 @@
                             maxX = Math.max(maxX, s.start.x, s.end.x); maxY = Math.max(maxY, s.start.y, s.end.y);
                         } else if (s.x && s.y) { minX = Math.min(minX, s.x); minY = Math.min(minY, s.y); maxX = Math.max(maxX, s.x); maxY = Math.max(maxY, s.y); }
                     }
-                    if (!isFinite(minX)) { minX = 0; minY = 0; maxX = Math.max(200, temp.width); maxY = Math.max(100, temp.height); }
+                    if (!isFinite(minX)) { minX = 0; minY = 0; maxX = Math.max(200, w); maxY = Math.max(100, h); }
 
                     // padding（逻辑单位）与宽高
                     const pad = 20;
@@ -1535,6 +1880,19 @@
                     // 按图层顺序绘制
                     for (let li = 0; li < layers.length; li++) {
                         const layer = layers[li]; if (!layer.visible) continue;
+                        // 绘制图层图片
+                        if (layer.image) {
+                            const imgW = layer.image.width;
+                            const imgH = layer.image.height;
+                            const sx = Math.max(0, (0 - viewX) * currentZoom);
+                            const sy = Math.max(0, (0 - viewY) * currentZoom);
+                            const sw = imgW * currentZoom;
+                            const sh = imgH * currentZoom;
+                            tctx.save();
+                            tctx.globalAlpha = 0.85;
+                            tctx.drawImage(layer.image, sx, sy, sw, sh);
+                            tctx.restore();
+                        }
                         for (let i = 0; i < strokes.length; i++) {
                             const s = strokes[i];
                             if (s.layerId !== layer.id) continue;
@@ -1620,6 +1978,27 @@
             const deleteNodeBtn = document.getElementById('deleteNodeBtn');
             const autoLayoutBtn = document.getElementById('autoLayoutBtn');
             const clearHistoryBtn = document.getElementById('clearHistoryBtn');
+            const historyToggleBtn = document.getElementById('historyToggleBtn');
+            const historyContentEl = document.getElementById('historyContent');
+            // 恢复折叠状态（可选持久化）
+            let historyCollapsed = false;
+            try {
+                if (localStorage.getItem('huihua_history_collapsed') === '1') {
+                    historyCollapsed = true;
+                    historyContentEl && historyContentEl.classList.add('collapsed');
+                    historyToggleBtn && (historyToggleBtn.textContent = '展开');
+                }
+            } catch (e) {}
+            if (historyToggleBtn) {
+                historyToggleBtn.addEventListener('click', function(){
+                    historyCollapsed = !historyCollapsed;
+                    if (!historyContentEl) return;
+                    historyContentEl.classList.toggle('collapsed', historyCollapsed);
+                    historyToggleBtn.textContent = historyCollapsed ? '展开' : '折叠';
+                    try { localStorage.setItem('huihua_history_collapsed', historyCollapsed ? '1' : '0'); } catch(e) {}
+                });
+            }
+
             const nodeEditorInput = document.createElement('input');
             nodeEditorInput.type = 'text'; nodeEditorInput.style.position = 'absolute'; nodeEditorInput.style.display = 'none'; nodeEditorInput.style.zIndex = 9999; nodeEditorInput.id = 'nodeEditorInput';
             document.body.appendChild(nodeEditorInput);
@@ -1639,12 +2018,50 @@
             function applyWatermarkToCtx(tctx, canvasWidth, canvasHeight) {
                 if (!watermarkToggle.checked) return;
                 const text = watermarkTextInput.value || '©';
+                const opacity = parseFloat(document.getElementById('watermarkOpacity')?.value || 0.5);
+                const color = watermarkColorInput?.value || '#000000';
+                const fontSize = parseInt(watermarkFontSizeInput?.value || '24', 10);
+                const position = watermarkPositionSelect?.value || 'right-bottom';
                 tctx.save();
-                tctx.globalAlpha = parseFloat(document.getElementById('watermarkOpacity')?.value || 0.5);
-                tctx.fillStyle = 'rgba(0,0,0,0.4)';
-                tctx.font = '24px Arial';
-                tctx.textAlign = 'right';
-                tctx.fillText(text, canvasWidth - 10, canvasHeight - 10);
+                tctx.globalAlpha = opacity;
+                tctx.fillStyle = color;
+                tctx.font = fontSize + 'px Arial';
+                let x = 0, y = 0;
+                tctx.textBaseline = 'bottom';
+                tctx.textAlign = 'left';
+                switch(position) {
+                    case 'right-bottom':
+                        x = canvasWidth - 10;
+                        y = canvasHeight - 10;
+                        tctx.textAlign = 'right';
+                        tctx.textBaseline = 'bottom';
+                        break;
+                    case 'left-bottom':
+                        x = 10;
+                        y = canvasHeight - 10;
+                        tctx.textAlign = 'left';
+                        tctx.textBaseline = 'bottom';
+                        break;
+                    case 'right-top':
+                        x = canvasWidth - 10;
+                        y = 10 + fontSize;
+                        tctx.textAlign = 'right';
+                        tctx.textBaseline = 'top';
+                        break;
+                    case 'left-top':
+                        x = 10;
+                        y = 10 + fontSize;
+                        tctx.textAlign = 'left';
+                        tctx.textBaseline = 'top';
+                        break;
+                    case 'center':
+                        x = canvasWidth / 2;
+                        y = canvasHeight / 2;
+                        tctx.textAlign = 'center';
+                        tctx.textBaseline = 'middle';
+                        break;
+                }
+                tctx.fillText(text, x, y);
                 tctx.restore();
             }
 
@@ -1935,11 +2352,114 @@
                 if ((e.ctrlKey || e.metaKey) && (e.key.toLowerCase() === 'y' || (e.shiftKey && e.key.toLowerCase() === 'z'))) { e.preventDefault(); redo(); }
             });
 
-            // 初始显示
-            updateZoomDisplay();
-            // 初始化历史与撤销/重做按钮状态
-            pushHistory('初始状态');
-            updateUndoRedoButtons();
+            // 全屏相关
+            const fullscreenBtn = document.getElementById('fullscreenBtn');
+            const container = document.querySelector('.container');
+            const toolbar = document.querySelector('.toolbar');
+            const actions = document.querySelector('.actions');
+            const appBody = document.querySelector('.app-body');
+            const canvasContainer = document.querySelector('.canvas-container');
+            let isFullscreen = false;
+            let toolbarExpanded = false;
+            let actionsExpanded = false;
+            let toolbarToggleBtn = null;
+            let actionsToggleBtn = null;
+
+            function enterFullscreen() {
+                isFullscreen = true;
+                container.classList.add('fullscreen-mode');
+                toolbar.classList.add('fullscreen-toolbar-collapsed');
+                actions.classList.add('fullscreen-actions-collapsed');
+                canvasContainer.style.height = '100vh';
+                appBody.style.height = '100vh';
+                toolbarExpanded = false;
+                actionsExpanded = false;
+                // 添加折叠/展开按钮
+                toolbarToggleBtn = document.createElement('button');
+                toolbarToggleBtn.className = 'fullscreen-toggle-btn';
+                toolbarToggleBtn.title = '展开工具栏';
+                toolbarToggleBtn.innerHTML = '☰';
+                toolbarToggleBtn.onclick = function() {
+                    toolbarExpanded = !toolbarExpanded;
+                    if (toolbarExpanded) {
+                        toolbar.classList.remove('fullscreen-toolbar-collapsed');
+                        toolbar.classList.add('fullscreen-toolbar-expanded');
+                        toolbarToggleBtn.title = '折叠工具栏';
+                        toolbarToggleBtn.innerHTML = '⮜';
+                    } else {
+                        toolbar.classList.remove('fullscreen-toolbar-expanded');
+                        toolbar.classList.add('fullscreen-toolbar-collapsed');
+                        toolbarToggleBtn.title = '展开工具栏';
+                        toolbarToggleBtn.innerHTML = '☰';
+                    }
+                };
+                container.appendChild(toolbarToggleBtn);
+
+                actionsToggleBtn = document.createElement('button');
+                actionsToggleBtn.className = 'fullscreen-actions-toggle-btn';
+                actionsToggleBtn.title = '展开控制按钮';
+                actionsToggleBtn.innerHTML = '⬆';
+                actionsToggleBtn.onclick = function() {
+                    actionsExpanded = !actionsExpanded;
+                    if (actionsExpanded) {
+                        actions.classList.remove('fullscreen-actions-collapsed');
+                        actions.classList.add('fullscreen-actions-expanded');
+                        actionsToggleBtn.title = '折叠控制按钮';
+                        actionsToggleBtn.innerHTML = '⬇';
+                    } else {
+                        actions.classList.remove('fullscreen-actions-expanded');
+                        actions.classList.add('fullscreen-actions-collapsed');
+                        actionsToggleBtn.title = '展开控制按钮';
+                        actionsToggleBtn.innerHTML = '⬆';
+                    }
+                };
+                container.appendChild(actionsToggleBtn);
+
+                fullscreenBtn.style.display = 'none';
+                setupCanvas();
+            }
+
+            function exitFullscreen() {
+                isFullscreen = false;
+                container.classList.remove('fullscreen-mode');
+                toolbar.classList.remove('fullscreen-toolbar-collapsed');
+                toolbar.classList.remove('fullscreen-toolbar-expanded');
+                actions.classList.remove('fullscreen-actions-collapsed');
+                actions.classList.remove('fullscreen-actions-expanded');
+                canvasContainer.style.height = '';
+                appBody.style.height = '';
+                if (toolbarToggleBtn) { toolbarToggleBtn.remove(); toolbarToggleBtn = null; }
+                if (actionsToggleBtn) { actionsToggleBtn.remove(); actionsToggleBtn = null; }
+                fullscreenBtn.style.display = '';
+                setupCanvas();
+            }
+
+            fullscreenBtn.addEventListener('click', function() {
+                enterFullscreen();
+                // 浏览器全屏API
+                if (container.requestFullscreen) container.requestFullscreen();
+                else if (container.webkitRequestFullscreen) container.webkitRequestFullscreen();
+                else if (container.mozRequestFullScreen) container.mozRequestFullScreen();
+                else if (container.msRequestFullscreen) container.msRequestFullscreen();
+            });
+
+            document.addEventListener('keydown', function(e) {
+                if (isFullscreen && (e.key === 'Escape' || e.key === 'Esc')) {
+                    if (document.exitFullscreen) document.exitFullscreen();
+                    else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+                    else if (document.mozCancelFullScreen) document.mozCancelFullScreen();
+                    else if (document.msExitFullscreen) document.msExitFullscreen();
+                    exitFullscreen();
+                }
+            });
+
+            document.addEventListener('fullscreenchange', function() {
+                if (!document.fullscreenElement && isFullscreen) {
+                    exitFullscreen();
+                }
+            });
+
+            // ...existing code...
         });
     </script>
 </body>
