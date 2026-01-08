@@ -1,0 +1,1985 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>语言加密与矩阵图像转换系统 - 完整加解密</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #e6e6e6;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        h1 {
+            color: #00d4ff;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+            text-shadow: 0 0 10px rgba(0, 212, 255, 0.3);
+        }
+        
+        .subtitle {
+            color: #888;
+            font-size: 1.1em;
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        .card-title {
+            color: #00d4ff;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid rgba(0, 212, 255, 0.3);
+            font-size: 1.4em;
+        }
+        
+        textarea, input[type="text"] {
+            width: 100%;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: white;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            resize: vertical;
+            margin-bottom: 15px;
+            transition: border-color 0.3s ease;
+        }
+        
+        textarea:focus, input:focus {
+            outline: none;
+            border-color: #00d4ff;
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+        
+        button {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #00d4ff 0%, #0077ff 100%);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            flex: 1;
+            min-width: 120px;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 212, 255, 0.4);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(135deg, #666 0%, #444 100%);
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #00cc66 0%, #00994d 100%);
+        }
+        
+        .btn-warning {
+            background: linear-gradient(135deg, #ff9900 0%, #cc7700 100%);
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #ff3333 0%, #cc0000 100%);
+        }
+        
+        .result-container {
+            margin-top: 20px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            padding: 15px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .result-title {
+            color: #00ff88;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+        
+        .binary-display {
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            word-break: break-all;
+            color: #00ff88;
+        }
+        
+        .hex-display {
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            word-break: break-all;
+            color: #ff9900;
+        }
+        
+        .decrypted-display {
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            word-break: break-all;
+            color: #00ff88;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 10px;
+            border-left: 4px solid #00cc66;
+        }
+        
+        .matrix-container {
+            grid-column: 1 / -1;
+            margin-top: 20px;
+        }
+        
+        .canvas-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+            align-items: flex-start;
+        }
+        
+        .canvas-wrapper {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+        }
+        
+        .canvas-wrapper h3 {
+            color: #ff9900;
+            margin-bottom: 10px;
+        }
+        
+        canvas {
+            border-radius: 8px;
+            background: #000;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .step-indicator {
+            display: flex;
+            justify-content: space-between;
+            margin: 30px 0;
+            position: relative;
+        }
+        
+        .step {
+            text-align: center;
+            flex: 1;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .step-number {
+            width: 40px;
+            height: 40px;
+            background: #333;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 10px;
+            color: #888;
+            transition: all 0.3s ease;
+        }
+        
+        .step.active .step-number {
+            background: #00d4ff;
+            color: white;
+            box-shadow: 0 0 15px rgba(0, 212, 255, 0.5);
+        }
+        
+        .step-line {
+            position: absolute;
+            top: 20px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #333;
+            z-index: 0;
+        }
+        
+        .status-bar {
+            margin-top: 20px;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .progress-bar {
+            flex: 1;
+            height: 8px;
+            background: #333;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 0 20px;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00d4ff, #0077ff);
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-top-color: #00d4ff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .matrix-info {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .info-box {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            padding: 15px;
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .info-box h4 {
+            color: #ff9900;
+            margin-bottom: 10px;
+        }
+        
+        .pixel-grid {
+            display: grid;
+            gap: 1px;
+            margin: 20px auto;
+            max-width: 400px;
+            max-height: 400px;
+            overflow: auto;
+        }
+        
+        .pixel {
+            width: 10px;
+            height: 10px;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+        
+        .download-btn {
+            background: linear-gradient(135deg, #ff6600 0%, #cc5500 100%);
+        }
+        
+        .data-analysis {
+            margin-top: 20px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            padding: 20px;
+        }
+        
+        .analysis-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 10px;
+        }
+        
+        .analysis-item {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 6px;
+            padding: 10px 15px;
+            flex: 1;
+            min-width: 120px;
+        }
+        
+        .analysis-item .label {
+            color: #888;
+            font-size: 0.9em;
+            margin-bottom: 5px;
+        }
+        
+        .analysis-item .value {
+            color: #00d4ff;
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+        
+        .chart-container {
+            margin-top: 20px;
+            height: 200px;
+            position: relative;
+        }
+        
+        .bar-chart {
+            display: flex;
+            align-items: flex-end;
+            height: 100%;
+            gap: 2px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+        }
+        
+        .bar {
+            flex: 1;
+            background: linear-gradient(to top, #00d4ff, #0077ff);
+            border-radius: 3px 3px 0 0;
+            min-height: 1px;
+        }
+        
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .tab {
+            padding: 12px 24px;
+            background: transparent;
+            border: none;
+            color: #888;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .tab.active {
+            color: #00d4ff;
+        }
+        
+        .tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #00d4ff;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .decryption-area {
+            margin-top: 20px;
+        }
+        
+        .file-upload {
+            margin-bottom: 20px;
+            text-align: center;
+            padding: 20px;
+            border: 2px dashed rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .file-upload:hover {
+            border-color: #00d4ff;
+            background: rgba(0, 212, 255, 0.05);
+        }
+        
+        .comparison {
+            margin-top: 30px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            border-left: 4px solid #00cc66;
+        }
+        
+        .comparison h3 {
+            color: #00cc66;
+            margin-bottom: 15px;
+        }
+        
+        .comparison-row {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 15px;
+        }
+        
+        .comparison-item {
+            flex: 1;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+        }
+        
+        .comparison-label {
+            color: #888;
+            font-size: 0.9em;
+            margin-bottom: 5px;
+        }
+        
+        .comparison-value {
+            color: white;
+            font-size: 1.1em;
+            font-weight: bold;
+        }
+        
+        .match {
+            color: #00cc66;
+        }
+        
+        .mismatch {
+            color: #ff3333;
+        }
+        
+        .key-display {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 10px;
+            border-left: 4px solid #ff9900;
+        }
+        
+        .key-display h4 {
+            color: #ff9900;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔐 语言加密与矩阵图像转换系统 - 完整加解密</h1>
+            <p class="subtitle">基于GB2312编码、二进制运算和矩阵图像转换的完整加解密系统</p>
+        </header>
+        
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('encrypt')">🔒 加密</button>
+            <button class="tab" onclick="switchTab('decrypt')">🔓 解密</button>
+            <button class="tab" onclick="switchTab('compare')">⚖️ 对比</button>
+        </div>
+        
+        <div id="encrypt-tab" class="tab-content active">
+            <div class="step-indicator">
+                <div class="step-line"></div>
+                <div class="step active">
+                    <div class="step-number">1</div>
+                    <div>文本输入</div>
+                </div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div>编码转换</div>
+                </div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div>二进制加密</div>
+                </div>
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <div>矩阵图像</div>
+                </div>
+            </div>
+            
+            <div class="main-content">
+                <div class="card">
+                    <h2 class="card-title">输入区域</h2>
+                    <textarea id="inputText" placeholder="请输入要加密的文本..." rows="6">你好，世界！Hello World! 这是一个加密测试。</textarea>
+                    
+                    <div class="btn-group">
+                        <button onclick="encryptText()">🚀 开始加密</button>
+                        <button onclick="resetAll()" class="btn-secondary">🔄 重置</button>
+                        <button onclick="randomExample()" class="btn-secondary">🎲 随机示例</button>
+                        <button onclick="testLongText()" class="btn-warning">📝 长文本测试</button>
+                    </div>
+                    
+                    <div class="loading" id="loading">
+                        <div class="spinner"></div>
+                        <div>正在处理加密和图像转换...</div>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <h2 class="card-title">加密过程详情</h2>
+                    <div id="processDetails">
+                        <div class="process-step">
+                            <div class="result-title">原始文本:</div>
+                            <div id="originalText" class="binary-display">等待输入...</div>
+                        </div>
+                        <div class="process-step">
+                            <div class="result-title">GB2312 编码:</div>
+                            <div id="gb2312Encoding" class="hex-display">等待处理...</div>
+                        </div>
+                        <div class="process-step">
+                            <div class="result-title">随机二进制密钥:</div>
+                            <div id="randomKey" class="binary-display">等待生成...</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <h2 class="card-title">二进制操作结果</h2>
+                    <div class="process-step">
+                        <div class="result-title">异或运算结果(十六进制):</div>
+                        <div id="xorResult" class="hex-display">等待计算...</div>
+                    </div>
+                    <div class="process-step">
+                        <div class="result-title">最终加密数据:</div>
+                        <div id="finalEncrypted" class="hex-display">等待计算...</div>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <h2 class="card-title">矩阵图像数据</h2>
+                    <div class="process-step">
+                        <div class="result-title">十进制序列:</div>
+                        <div id="decimalSequence" class="binary-display">等待生成...</div>
+                    </div>
+                    <div class="process-step">
+                        <div class="result-title">补0后序列:</div>
+                        <div id="paddedSequenceDisplay" class="binary-display">等待计算...</div>
+                    </div>
+                    <div class="process-step">
+                        <div class="result-title">矩阵信息:</div>
+                        <div id="matrixInfo" class="binary-display">等待计算...</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card matrix-container">
+                <h2 class="card-title">矩阵图像可视化</h2>
+                
+                <div class="matrix-info">
+                    <div class="info-box">
+                        <h4>原始数据信息</h4>
+                        <div>十进制点数: <span id="dataCount">0</span></div>
+                        <div>最近平方数: <span id="nearestSquare">0</span></div>
+                        <div>补0后点数: <span id="paddedCount">0</span></div>
+                        <div>矩阵维度: <span id="matrixSize">0×0</span></div>
+                        <div>补0数量: <span id="zerosAdded">0</span></div>
+                    </div>
+                    
+                    <div class="info-box">
+                        <h4>图像参数</h4>
+                        <div>图像尺寸: <span id="imageSize">0×0 像素</span></div>
+                        <div>像素总数: <span id="pixelCount">0</span></div>
+                        <div>填充比例: <span id="fillRatio">0%</span></div>
+                        <div>数据密度: <span id="dataDensity">0%</span></div>
+                    </div>
+                    
+                    <div class="info-box">
+                        <h4>数据统计</h4>
+                        <div>平均灰度: <span id="avgGray">0</span></div>
+                        <div>最小/最大: <span id="minMax">0/0</span></div>
+                        <div>标准差: <span id="stdDev">0</span></div>
+                        <div>数据熵: <span id="dataEntropy">0</span></div>
+                    </div>
+                </div>
+                
+                <div class="data-analysis">
+                    <h4 style="color: #ff9900; margin-bottom: 15px;">数据分布分析</h4>
+                    <div class="analysis-row">
+                        <div class="analysis-item">
+                            <div class="label">非零值</div>
+                            <div class="value" id="nonZeroCount">0</div>
+                        </div>
+                        <div class="analysis-item">
+                            <div class="label">零值</div>
+                            <div class="value" id="zeroCount">0</div>
+                        </div>
+                        <div class="analysis-item">
+                            <div class="label">零值比例</div>
+                            <div class="value" id="zeroRatio">0%</div>
+                        </div>
+                        <div class="analysis-item">
+                            <div class="label">中位数</div>
+                            <div class="value" id="medianValue">0</div>
+                        </div>
+                        <div class="analysis-item">
+                            <div class="label">众数</div>
+                            <div class="value" id="modeValue">0</div>
+                        </div>
+                    </div>
+                    
+                    <div class="chart-container">
+                        <h4 style="color: #ff9900; margin-bottom: 10px;">数值分布直方图</h4>
+                        <div class="bar-chart" id="histogramChart"></div>
+                    </div>
+                </div>
+                
+                <div class="canvas-container">
+                    <div class="canvas-wrapper">
+                        <h3>原始波形</h3>
+                        <canvas id="waveformCanvas" width="500" height="350"></canvas>
+                    </div>
+                    
+                    <div class="canvas-wrapper">
+                        <h3>矩阵图像</h3>
+                        <canvas id="matrixCanvas" width="500" height="350"></canvas>
+                        <div class="controls">
+                            <button onclick="downloadImage()" class="download-btn">💾 下载图像</button>
+                            <button onclick="downloadEncryptionData()" class="btn-success">📥 下载加密数据</button>
+                            <button onclick="zoomIn()">🔍 放大</button>
+                            <button onclick="zoomOut()">🔎 缩小</button>
+                            <button onclick="toggleGrid()">📊 网格</button>
+                            <button onclick="toggleHeatmap()">🔥 热力图</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="key-display">
+                    <h4>加密密钥信息</h4>
+                    <div>密钥长度: <span id="keyLength">0</span> 位</div>
+                    <div>密钥十六进制: <span id="keyHex">等待生成...</span></div>
+                    <div>密钥哈希: <span id="keyHash">等待生成...</span></div>
+                    <div>密钥ID: <span id="keyId">等待生成...</span></div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="decrypt-tab" class="tab-content">
+            <div class="card">
+                <h2 class="card-title">解密区域</h2>
+                
+                <div class="btn-group">
+                    <button onclick="loadEncryptionData()" class="btn-success">📂 加载加密数据</button>
+                    <button onclick="loadImageData()" class="btn-warning">🖼️ 加载图像数据</button>
+                    <button onclick="decryptFromMatrix()" class="btn-danger">🔓 开始解密</button>
+                </div>
+                
+                <div class="file-upload" onclick="document.getElementById('fileInput').click()">
+                    <h3>📁 上传加密数据文件或图像文件</h3>
+                    <p>点击此处上传之前下载的加密数据文件(.json)或矩阵图像文件(.png)</p>
+                    <input type="file" id="fileInput" accept=".json,.png,.jpg,.jpeg" style="display: none;" onchange="handleFileUpload(this.files)">
+                </div>
+                
+                <div class="loading" id="decryptLoading">
+                    <div class="spinner"></div>
+                    <div>正在处理解密...</div>
+                </div>
+                
+                <div id="decryptionResult" style="display: none;">
+                    <h3 style="color: #00cc66; margin-bottom: 15px;">解密结果</h3>
+                    <div class="decrypted-display" id="decryptedText">等待解密...</div>
+                    
+                    <div class="key-display" style="margin-top: 20px;">
+                        <h4>使用的密钥信息</h4>
+                        <div>密钥长度: <span id="decryptKeyLength">0</span> 位</div>
+                        <div>密钥十六进制: <span id="decryptKeyHex">等待提取...</span></div>
+                        <div>密钥匹配: <span id="keyMatchStatus">未知</span></div>
+                    </div>
+                    
+                    <div class="result-container" style="margin-top: 20px;">
+                        <div class="result-title">解密过程详情:</div>
+                        <div id="decryptProcess" class="binary-display">等待处理...</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h2 class="card-title">解密过程可视化</h2>
+                <div class="canvas-container">
+                    <div class="canvas-wrapper">
+                        <h3>加载的图像</h3>
+                        <canvas id="loadedImageCanvas" width="400" height="300"></canvas>
+                    </div>
+                    
+                    <div class="canvas-wrapper">
+                        <h3>提取的矩阵</h3>
+                        <canvas id="extractedMatrixCanvas" width="400" height="300"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="compare-tab" class="tab-content">
+            <div class="comparison">
+                <h3>🔍 加解密对比分析</h3>
+                <div class="comparison-row">
+                    <div class="comparison-item">
+                        <div class="comparison-label">原始文本长度</div>
+                        <div class="comparison-value" id="compareOriginalLength">0 字符</div>
+                    </div>
+                    <div class="comparison-item">
+                        <div class="comparison-label">解密文本长度</div>
+                        <div class="comparison-value" id="compareDecryptedLength">0 字符</div>
+                    </div>
+                    <div class="comparison-item">
+                        <div class="comparison-label">匹配状态</div>
+                        <div class="comparison-value" id="compareMatchStatus">未测试</div>
+                    </div>
+                </div>
+                
+                <div class="comparison-row">
+                    <div class="comparison-item">
+                        <div class="comparison-label">原始文本哈希</div>
+                        <div class="comparison-value" id="compareOriginalHash">等待计算...</div>
+                    </div>
+                    <div class="comparison-item">
+                        <div class="comparison-label">解密文本哈希</div>
+                        <div class="comparison-value" id="compareDecryptedHash">等待计算...</div>
+                    </div>
+                    <div class="comparison-item">
+                        <div class="comparison-label">哈希匹配</div>
+                        <div class="comparison-value" id="compareHashMatch">未测试</div>
+                    </div>
+                </div>
+                
+                <div class="result-container" style="margin-top: 20px;">
+                    <div class="result-title">字符级对比:</div>
+                    <div id="charComparison" class="binary-display">等待对比...</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="status-bar">
+            <div id="statusText">准备就绪</div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div id="dataSize">数据大小: 0 bytes</div>
+        </div>
+    </div>
+
+    <script>
+        // 全局变量
+        let encryptionData = {
+            originalText: '',
+            gb2312Bytes: null,
+            binaryString: '',
+            randomBinary: '',
+            xorResult: '',
+            finalHex: '',
+            decimalSequence: [],
+            paddedSequence: [],
+            matrixData: null,
+            matrixSize: 0,
+            heatmapMode: false,
+            zoomLevel: 1.5,
+            showGrid: true,
+            encryptionKey: null,
+            keyId: '',
+            timestamp: null
+        };
+
+        let decryptionData = {
+            loadedImage: null,
+            extractedMatrix: null,
+            extractedSequence: [],
+            decryptedText: '',
+            decryptionKey: null,
+            success: false
+        };
+
+        // 切换标签页
+        function switchTab(tabName) {
+            // 更新标签
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // 激活选中的标签
+            document.querySelector(`[onclick="switchTab('${tabName}')"]`).classList.add('active');
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+        }
+
+        // 更新步骤指示器
+        function updateStepIndicator(step) {
+            const steps = document.querySelectorAll('.step');
+            steps.forEach((s, index) => {
+                if (index < step) {
+                    s.classList.add('active');
+                } else {
+                    s.classList.remove('active');
+                }
+            });
+            
+            const progress = (step / 4) * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+        }
+
+        // 更新状态
+        function updateStatus(text) {
+            document.getElementById('statusText').textContent = text;
+        }
+
+        // 显示/隐藏加载动画
+        function toggleLoading(show) {
+            document.getElementById('loading').style.display = show ? 'block' : 'none';
+        }
+
+        function toggleDecryptLoading(show) {
+            document.getElementById('decryptLoading').style.display = show ? 'block' : 'none';
+        }
+
+        // 字符串转GB2312字节数组
+        function stringToGB2312(str) {
+            const bytes = [];
+            for (let i = 0; i < str.length; i++) {
+                const charCode = str.charCodeAt(i);
+                if (charCode <= 0x7F) {
+                    bytes.push(charCode);
+                } else {
+                    try {
+                        const encoder = new TextEncoder('gb2312');
+                        const encoded = encoder.encode(str[i]);
+                        bytes.push(...encoded);
+                    } catch {
+                        bytes.push(0x3F);
+                    }
+                }
+            }
+            return new Uint8Array(bytes);
+        }
+
+        // GB2312字节数组转字符串
+        function gb2312ToString(bytes) {
+            try {
+                const decoder = new TextDecoder('gb2312');
+                return decoder.decode(bytes);
+            } catch (e) {
+                // 如果解码失败，使用回退方法
+                let result = '';
+                for (let i = 0; i < bytes.length; i++) {
+                    if (bytes[i] <= 0x7F) {
+                        result += String.fromCharCode(bytes[i]);
+                    } else {
+                        result += '?';
+                    }
+                }
+                return result;
+            }
+        }
+
+        // 字节数组转二进制字符串
+        function bytesToBinary(bytes) {
+            let binary = '';
+            for (let byte of bytes) {
+                binary += byte.toString(2).padStart(8, '0');
+            }
+            return binary;
+        }
+
+        // 二进制字符串转字节数组
+        function binaryToBytes(binary) {
+            const bytes = [];
+            for (let i = 0; i < binary.length; i += 8) {
+                const byteStr = binary.substr(i, 8);
+                bytes.push(parseInt(byteStr, 2));
+            }
+            return new Uint8Array(bytes);
+        }
+
+        // 生成随机二进制序列
+        function generateRandomBinary(length) {
+            let random = '';
+            for (let i = 0; i < length; i++) {
+                random += Math.random() > 0.5 ? '1' : '0';
+            }
+            return random;
+        }
+
+        // 二进制字符串按位异或运算（可逆操作）
+        function binaryXor(bin1, bin2) {
+            let result = '';
+            for (let i = 0; i < bin1.length; i++) {
+                result += (parseInt(bin1[i]) ^ parseInt(bin2[i])).toString();
+            }
+            return result;
+        }
+
+        // 二进制转十六进制
+        function binaryToHex(binary) {
+            let hex = '';
+            for (let i = 0; i < binary.length; i += 4) {
+                const nibble = binary.substr(i, 4);
+                hex += parseInt(nibble, 2).toString(16).padStart(1, '0').toUpperCase();
+            }
+            return hex;
+        }
+
+        // 十六进制转二进制
+        function hexToBinary(hex) {
+            let binary = '';
+            for (let i = 0; i < hex.length; i++) {
+                const nibble = parseInt(hex[i], 16).toString(2).padStart(4, '0');
+                binary += nibble;
+            }
+            return binary;
+        }
+
+        // 十六进制转十进制数组
+        function hexToDecimalArray(hex) {
+            const decimals = [];
+            for (let i = 0; i < hex.length; i += 2) {
+                const byte = hex.substr(i, 2);
+                decimals.push(parseInt(byte, 16));
+            }
+            return decimals;
+        }
+
+        // 十进制数组转十六进制
+        function decimalArrayToHex(decimals) {
+            let hex = '';
+            for (let decimal of decimals) {
+                hex += decimal.toString(16).padStart(2, '0').toUpperCase();
+            }
+            return hex;
+        }
+
+        // 找到比n大的最小平方数
+        function findNextSquareNumber(n) {
+            const sqrt = Math.sqrt(n);
+            const size = Math.ceil(sqrt);
+            return size;
+        }
+
+        // 补0到平方数（只补到比原数大的平方数）
+        function padToNextSquare(decimalArray) {
+            const n = decimalArray.length;
+            const size = findNextSquareNumber(n);
+            const targetLength = size * size;
+            
+            const padded = [...decimalArray];
+            const zerosToAdd = targetLength - n;
+            
+            for (let i = 0; i < zerosToAdd; i++) {
+                padded.push(0);
+            }
+            
+            return {
+                array: padded,
+                size: size,
+                originalLength: n,
+                paddedLength: targetLength,
+                zerosAdded: zerosToAdd
+            };
+        }
+
+        // 从补0后的数组中移除补的0
+        function removePadding(paddedArray, originalLength) {
+            return paddedArray.slice(0, originalLength);
+        }
+
+        // 将一维数组转换为二维矩阵
+        function arrayToMatrix(arr, size) {
+            const matrix = [];
+            for (let i = 0; i < size; i++) {
+                const row = [];
+                for (let j = 0; j < size; j++) {
+                    row.push(arr[i * size + j]);
+                }
+                matrix.push(row);
+            }
+            return matrix;
+        }
+
+        // 将二维矩阵转换为一维数组
+        function matrixToArray(matrix) {
+            const arr = [];
+            const size = matrix.length;
+            for (let i = 0; i < size; i++) {
+                for (let j = 0; j < size; j++) {
+                    arr.push(matrix[i][j]);
+                }
+            }
+            return arr;
+        }
+
+        // 生成简单哈希
+        function simpleHash(str) {
+            let hash = 0;
+            for (let i = 0; i < str.length; i++) {
+                const char = str.charCodeAt(i);
+                hash = ((hash << 5) - hash) + char;
+                hash = hash & hash;
+            }
+            return Math.abs(hash).toString(16).padStart(8, '0').toUpperCase();
+        }
+
+        // 计算数据统计信息
+        function calculateStatistics(data) {
+            const sorted = [...data].sort((a, b) => a - b);
+            const n = data.length;
+            
+            const sum = data.reduce((a, b) => a + b, 0);
+            const mean = sum / n;
+            
+            const variance = data.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / n;
+            const stdDev = Math.sqrt(variance);
+            
+            const median = n % 2 === 0 
+                ? (sorted[n/2 - 1] + sorted[n/2]) / 2
+                : sorted[Math.floor(n/2)];
+            
+            const freq = {};
+            data.forEach(val => freq[val] = (freq[val] || 0) + 1);
+            let mode = 0;
+            let maxFreq = 0;
+            for (const val in freq) {
+                if (freq[val] > maxFreq) {
+                    maxFreq = freq[val];
+                    mode = parseInt(val);
+                }
+            }
+            
+            const min = Math.min(...data);
+            const max = Math.max(...data);
+            
+            const nonZero = data.filter(val => val !== 0).length;
+            const zero = data.filter(val => val === 0).length;
+            const zeroRatio = (zero / n * 100).toFixed(2);
+            
+            const entropy = calculateEntropy(data);
+            const dataDensity = (nonZero / n * 100).toFixed(2);
+            
+            return {
+                mean: mean,
+                stdDev: stdDev,
+                median: median,
+                mode: mode,
+                min: min,
+                max: max,
+                nonZero: nonZero,
+                zero: zero,
+                zeroRatio: zeroRatio,
+                entropy: entropy,
+                dataDensity: dataDensity
+            };
+        }
+
+        // 计算数据熵
+        function calculateEntropy(data) {
+            const frequencies = {};
+            const total = data.length;
+            
+            data.forEach(value => {
+                frequencies[value] = (frequencies[value] || 0) + 1;
+            });
+            
+            let entropy = 0;
+            for (const value in frequencies) {
+                const probability = frequencies[value] / total;
+                entropy -= probability * Math.log2(probability);
+            }
+            
+            return entropy.toFixed(4);
+        }
+
+        // 绘制直方图
+        function drawHistogram(data) {
+            const chart = document.getElementById('histogramChart');
+            chart.innerHTML = '';
+            
+            const bins = 16;
+            const binSize = 256 / bins;
+            const histogram = new Array(bins).fill(0);
+            
+            data.forEach(value => {
+                const binIndex = Math.min(Math.floor(value / binSize), bins - 1);
+                histogram[binIndex]++;
+            });
+            
+            const maxCount = Math.max(...histogram);
+            
+            histogram.forEach((count, index) => {
+                const bar = document.createElement('div');
+                bar.className = 'bar';
+                const height = maxCount > 0 ? (count / maxCount * 100) : 0;
+                bar.style.height = `${height}%`;
+                bar.title = `[${Math.floor(index * binSize)}-${Math.floor((index + 1) * binSize)}]: ${count}个值`;
+                chart.appendChild(bar);
+            });
+        }
+
+        // 绘制波形
+        function drawWaveform() {
+            const canvas = document.getElementById('waveformCanvas');
+            const ctx = canvas.getContext('2d');
+            
+            canvas.width = 500;
+            canvas.height = 350;
+            
+            const width = canvas.width;
+            const height = canvas.height;
+            
+            ctx.clearRect(0, 0, width, height);
+            
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+            ctx.lineWidth = 1;
+            
+            for (let x = 0; x < width; x += 50) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, height);
+                ctx.stroke();
+            }
+            
+            for (let y = 0; y < height; y += 50) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(width, y);
+                ctx.stroke();
+            }
+            
+            if (encryptionData.decimalSequence.length > 0) {
+                const data = encryptionData.decimalSequence;
+                const spacing = Math.max(1, width / data.length);
+                
+                ctx.beginPath();
+                ctx.strokeStyle = '#00d4ff';
+                ctx.lineWidth = 2;
+                
+                for (let i = 0; i < data.length; i++) {
+                    const x = i * spacing;
+                    const y = height / 2 - (data[i] - 128) * (height / 300);
+                    
+                    if (i === 0) {
+                        ctx.moveTo(x, y);
+                    } else {
+                        ctx.lineTo(x, y);
+                    }
+                }
+                ctx.stroke();
+                
+                ctx.fillStyle = '#00d4ff';
+                const pointCount = Math.min(100, data.length);
+                const pointStep = Math.max(1, Math.floor(data.length / pointCount));
+                for (let i = 0; i < data.length; i += pointStep) {
+                    const x = i * spacing;
+                    const y = height / 2 - (data[i] - 128) * (height / 300);
+                    ctx.beginPath();
+                    ctx.arc(x, y, 3, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+                ctx.fillRect(10, 10, 200, 90);
+                
+                ctx.fillStyle = '#ffffff';
+                ctx.font = '12px Arial';
+                ctx.fillText(`数据点数: ${data.length}`, 20, 30);
+                ctx.fillText(`数值范围: ${Math.min(...data)} - ${Math.max(...data)}`, 20, 50);
+                ctx.fillText(`平均值: ${(data.reduce((a,b)=>a+b)/data.length).toFixed(2)}`, 20, 70);
+                ctx.fillText(`标准差: ${Math.sqrt(data.reduce((a,b)=>a+Math.pow(b-data.reduce((a,b)=>a+b)/data.length,2),0)/data.length).toFixed(2)}`, 20, 90);
+            }
+        }
+
+        // 绘制矩阵图像
+        function drawMatrixImage() {
+            const canvas = document.getElementById('matrixCanvas');
+            const ctx = canvas.getContext('2d');
+            
+            canvas.width = 500;
+            canvas.height = 350;
+            
+            const width = canvas.width;
+            const height = canvas.height;
+            
+            ctx.clearRect(0, 0, width, height);
+            
+            if (!encryptionData.matrixData || encryptionData.matrixSize === 0) return;
+            
+            const matrix = encryptionData.matrixData;
+            const size = encryptionData.matrixSize;
+            
+            const pixelSize = Math.min(width, height) / size * encryptionData.zoomLevel;
+            
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(0, 0, width, height);
+            
+            for (let i = 0; i < size; i++) {
+                for (let j = 0; j < size; j++) {
+                    const value = matrix[i][j];
+                    
+                    let color;
+                    if (encryptionData.heatmapMode) {
+                        const intensity = value / 255;
+                        if (intensity < 0.33) {
+                            const r = Math.floor(0 + (intensity * 3) * 255);
+                            color = `rgb(${r}, 0, 0)`;
+                        } else if (intensity < 0.66) {
+                            const g = Math.floor((intensity - 0.33) * 3 * 255);
+                            color = `rgb(255, ${g}, 0)`;
+                        } else {
+                            const b = Math.floor((intensity - 0.66) * 3 * 255);
+                            color = `rgb(255, 255, ${b})`;
+                        }
+                    } else {
+                        const grayValue = value;
+                        color = `rgb(${grayValue}, ${grayValue}, ${grayValue})`;
+                    }
+                    
+                    ctx.fillStyle = color;
+                    
+                    const x = (width - size * pixelSize) / 2 + j * pixelSize;
+                    const y = (height - size * pixelSize) / 2 + i * pixelSize;
+                    
+                    ctx.fillRect(x, y, pixelSize, pixelSize);
+                    
+                    if (encryptionData.showGrid && pixelSize > 3) {
+                        ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+                        ctx.lineWidth = 0.5;
+                        ctx.strokeRect(x, y, pixelSize, pixelSize);
+                    }
+                }
+            }
+            
+            ctx.strokeStyle = encryptionData.heatmapMode ? '#ff9900' : '#00d4ff';
+            ctx.lineWidth = 2;
+            const borderX = (width - size * pixelSize) / 2;
+            const borderY = (height - size * pixelSize) / 2;
+            ctx.strokeRect(borderX, borderY, size * pixelSize, size * pixelSize);
+            
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+            ctx.fillRect(10, 10, 180, 90);
+            
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '12px Arial';
+            ctx.fillText(`矩阵: ${size}×${size}`, 20, 30);
+            ctx.fillText(`像素大小: ${pixelSize.toFixed(1)}px`, 20, 50);
+            ctx.fillText(`缩放: ${encryptionData.zoomLevel.toFixed(1)}x`, 20, 70);
+            ctx.fillText(`模式: ${encryptionData.heatmapMode ? '热力图' : '灰度图'}`, 20, 90);
+        }
+
+        // 下载图像
+        function downloadImage() {
+            const canvas = document.getElementById('matrixCanvas');
+            const link = document.createElement('a');
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+            link.download = `matrix-${timestamp}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+
+        // 下载加密数据
+        function downloadEncryptionData() {
+            const data = {
+                originalText: encryptionData.originalText,
+                finalHex: encryptionData.finalHex,
+                matrixSize: encryptionData.matrixSize,
+                paddedLength: encryptionData.paddedSequence.length,
+                originalLength: encryptionData.decimalSequence.length,
+                randomKey: encryptionData.randomBinary,
+                keyId: encryptionData.keyId,
+                timestamp: new Date().toISOString(),
+                algorithm: "GB2312-XOR-Matrix"
+            };
+            
+            const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+            const link = document.createElement('a');
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+            link.download = `encryption-data-${timestamp}.json`;
+            link.href = URL.createObjectURL(blob);
+            link.click();
+            
+            setTimeout(() => URL.revokeObjectURL(link.href), 100);
+        }
+
+        // 放大
+        function zoomIn() {
+            encryptionData.zoomLevel = Math.min(encryptionData.zoomLevel + 0.5, 5);
+            drawMatrixImage();
+        }
+
+        // 缩小
+        function zoomOut() {
+            encryptionData.zoomLevel = Math.max(encryptionData.zoomLevel - 0.5, 0.5);
+            drawMatrixImage();
+        }
+
+        // 切换网格显示
+        function toggleGrid() {
+            encryptionData.showGrid = !encryptionData.showGrid;
+            drawMatrixImage();
+        }
+
+        // 切换热力图模式
+        function toggleHeatmap() {
+            encryptionData.heatmapMode = !encryptionData.heatmapMode;
+            drawMatrixImage();
+        }
+
+        // 处理文件上传
+        function handleFileUpload(files) {
+            if (files.length === 0) return;
+            
+            const file = files[0];
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                const result = e.target.result;
+                
+                if (file.type === 'application/json') {
+                    // 处理JSON加密数据文件
+                    try {
+                        const data = JSON.parse(result);
+                        loadEncryptionDataFromObject(data);
+                    } catch (error) {
+                        alert('无法解析JSON文件: ' + error.message);
+                    }
+                } else if (file.type.startsWith('image/')) {
+                    // 处理图像文件
+                    loadImageFromDataURL(result);
+                } else {
+                    alert('不支持的文件格式');
+                }
+            };
+            
+            if (file.type === 'application/json') {
+                reader.readAsText(file);
+            } else {
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // 加载加密数据
+        function loadEncryptionData() {
+            alert('请上传之前下载的加密数据文件(.json)');
+        }
+
+        // 从对象加载加密数据
+        function loadEncryptionDataFromObject(data) {
+            toggleDecryptLoading(true);
+            updateStatus("正在加载加密数据...");
+            
+            setTimeout(() => {
+                try {
+                    decryptionData.loadedImage = null;
+                    decryptionData.extractedMatrix = null;
+                    
+                    // 显示加载的图像
+                    const canvas = document.getElementById('loadedImageCanvas');
+                    const ctx = canvas.getContext('2d');
+                    canvas.width = 400;
+                    canvas.height = 300;
+                    
+                    ctx.fillStyle = '#000000';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    ctx.fillStyle = '#ffffff';
+                    ctx.font = '20px Arial';
+                    ctx.fillText('JSON数据已加载', 100, 150);
+                    
+                    // 提取数据
+                    const finalHex = data.finalHex;
+                    const randomKey = data.randomKey;
+                    
+                    // 分离加密数据和密钥
+                    const halfLength = finalHex.length / 2;
+                    const encryptedHex = finalHex.substring(0, halfLength);
+                    const keyHex = finalHex.substring(halfLength);
+                    
+                    // 验证密钥
+                    const extractedKeyBinary = hexToBinary(keyHex);
+                    const keyMatch = extractedKeyBinary === randomKey;
+                    
+                    // 解密过程
+                    const encryptedBinary = hexToBinary(encryptedHex);
+                    const decryptedBinary = binaryXor(encryptedBinary, randomKey);
+                    const decryptedBytes = binaryToBytes(decryptedBinary);
+                    const decryptedText = gb2312ToString(decryptedBytes);
+                    
+                    // 更新解密结果
+                    decryptionData.decryptedText = decryptedText;
+                    decryptionData.decryptionKey = randomKey;
+                    decryptionData.success = true;
+                    
+                    // 显示解密结果
+                    document.getElementById('decryptedText').textContent = decryptedText;
+                    document.getElementById('decryptKeyLength').textContent = randomKey.length;
+                    document.getElementById('decryptKeyHex').textContent = binaryToHex(randomKey).substring(0, 50) + '...';
+                    document.getElementById('keyMatchStatus').textContent = keyMatch ? '匹配 ✓' : '不匹配 ✗';
+                    document.getElementById('keyMatchStatus').className = keyMatch ? 'match' : 'mismatch';
+                    
+                    // 显示解密过程
+                    let processText = `1. 从最终Hex中分离加密数据和密钥\n`;
+                    processText += `   - 加密数据Hex长度: ${encryptedHex.length}\n`;
+                    processText += `   - 密钥Hex长度: ${keyHex.length}\n`;
+                    processText += `2. 将Hex转换为二进制\n`;
+                    processText += `3. 使用异或运算解密: 加密二进制 ⊕ 密钥二进制\n`;
+                    processText += `4. 将解密后的二进制转换为字节\n`;
+                    processText += `5. 使用GB2312解码为文本\n`;
+                    processText += `6. 解密结果: ${decryptedText.length}个字符`;
+                    
+                    document.getElementById('decryptProcess').textContent = processText;
+                    
+                    // 显示解密结果区域
+                    document.getElementById('decryptionResult').style.display = 'block';
+                    
+                    updateStatus("解密完成!");
+                    toggleDecryptLoading(false);
+                    
+                    // 更新对比标签页
+                    updateComparison();
+                    
+                } catch (error) {
+                    alert('解密失败: ' + error.message);
+                    toggleDecryptLoading(false);
+                }
+            }, 500);
+        }
+
+        // 加载图像数据
+        function loadImageData() {
+            alert('请上传之前下载的矩阵图像文件(.png)');
+        }
+
+        // 从DataURL加载图像
+        function loadImageFromDataURL(dataURL) {
+            toggleDecryptLoading(true);
+            updateStatus("正在加载图像数据...");
+            
+            const img = new Image();
+            img.onload = function() {
+                // 显示加载的图像
+                const canvas = document.getElementById('loadedImageCanvas');
+                const ctx = canvas.getContext('2d');
+                canvas.width = 400;
+                canvas.height = 300;
+                
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                
+                // 从图像中提取像素数据
+                extractMatrixFromImage(img);
+            };
+            
+            img.onerror = function() {
+                alert('无法加载图像');
+                toggleDecryptLoading(false);
+            };
+            
+            img.src = dataURL;
+        }
+
+        // 从图像中提取矩阵
+        function extractMatrixFromImage(img) {
+            setTimeout(() => {
+                try {
+                    // 创建临时canvas处理图像
+                    const tempCanvas = document.createElement('canvas');
+                    const tempCtx = tempCanvas.getContext('2d');
+                    tempCanvas.width = img.width;
+                    tempCanvas.height = img.height;
+                    tempCtx.drawImage(img, 0, 0);
+                    
+                    // 获取图像数据
+                    const imageData = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
+                    const data = imageData.data;
+                    
+                    // 简单的矩阵提取（这里简化处理，实际需要更复杂的算法）
+                    // 假设图像是灰度图，只取红色通道
+                    const extractedSequence = [];
+                    for (let i = 0; i < data.length; i += 4) {
+                        extractedSequence.push(data[i]); // 红色通道值
+                    }
+                    
+                    // 由于我们不知道原始矩阵大小，这里假设是正方形
+                    const size = Math.floor(Math.sqrt(extractedSequence.length));
+                    const matrix = arrayToMatrix(extractedSequence.slice(0, size * size), size);
+                    
+                    decryptionData.extractedMatrix = matrix;
+                    decryptionData.extractedSequence = extractedSequence.slice(0, size * size);
+                    
+                    // 绘制提取的矩阵
+                    drawExtractedMatrix(matrix);
+                    
+                    updateStatus("图像数据提取完成!");
+                    toggleDecryptLoading(false);
+                    
+                } catch (error) {
+                    alert('图像处理失败: ' + error.message);
+                    toggleDecryptLoading(false);
+                }
+            }, 500);
+        }
+
+        // 绘制提取的矩阵
+        function drawExtractedMatrix(matrix) {
+            const canvas = document.getElementById('extractedMatrixCanvas');
+            const ctx = canvas.getContext('2d');
+            
+            canvas.width = 400;
+            canvas.height = 300;
+            
+            const width = canvas.width;
+            const height = canvas.height;
+            
+            ctx.clearRect(0, 0, width, height);
+            
+            if (!matrix || matrix.length === 0) return;
+            
+            const size = matrix.length;
+            const pixelSize = Math.min(width, height) / size;
+            
+            for (let i = 0; i < size; i++) {
+                for (let j = 0; j < size; j++) {
+                    const value = matrix[i][j];
+                    const grayValue = value;
+                    
+                    ctx.fillStyle = `rgb(${grayValue}, ${grayValue}, ${grayValue})`;
+                    
+                    const x = j * pixelSize;
+                    const y = i * pixelSize;
+                    
+                    ctx.fillRect(x, y, pixelSize, pixelSize);
+                }
+            }
+        }
+
+        // 从矩阵解密
+        function decryptFromMatrix() {
+            if (!decryptionData.extractedMatrix) {
+                alert('请先加载图像数据');
+                return;
+            }
+            
+            toggleDecryptLoading(true);
+            updateStatus("正在从矩阵解密...");
+            
+            setTimeout(() => {
+                try {
+                    // 这里需要实现从矩阵还原数据的完整算法
+                    // 由于我们不知道原始数据的长度，这个任务比较复杂
+                    // 实际应用中，需要将矩阵大小、原始长度等信息编码在图像中
+                    
+                    alert('从纯图像解密需要额外的元数据信息。\n请使用下载的加密数据文件(.json)进行解密。');
+                    
+                    toggleDecryptLoading(false);
+                    
+                } catch (error) {
+                    alert('解密失败: ' + error.message);
+                    toggleDecryptLoading(false);
+                }
+            }, 500);
+        }
+
+        // 更新对比信息
+        function updateComparison() {
+            if (!encryptionData.originalText || !decryptionData.decryptedText) return;
+            
+            const original = encryptionData.originalText;
+            const decrypted = decryptionData.decryptedText;
+            
+            document.getElementById('compareOriginalLength').textContent = `${original.length} 字符`;
+            document.getElementById('compareDecryptedLength').textContent = `${decrypted.length} 字符`;
+            
+            const match = original === decrypted;
+            document.getElementById('compareMatchStatus').textContent = match ? '完全匹配 ✓' : '不匹配 ✗';
+            document.getElementById('compareMatchStatus').className = match ? 'match' : 'mismatch';
+            
+            const originalHash = simpleHash(original);
+            const decryptedHash = simpleHash(decrypted);
+            
+            document.getElementById('compareOriginalHash').textContent = originalHash;
+            document.getElementById('compareDecryptedHash').textContent = decryptedHash;
+            
+            const hashMatch = originalHash === decryptedHash;
+            document.getElementById('compareHashMatch').textContent = hashMatch ? '匹配 ✓' : '不匹配 ✗';
+            document.getElementById('compareHashMatch').className = hashMatch ? 'match' : 'mismatch';
+            
+            // 字符级对比
+            let comparisonText = '';
+            const maxLength = Math.max(original.length, decrypted.length);
+            
+            for (let i = 0; i < maxLength; i++) {
+                const origChar = i < original.length ? original[i] : ' ';
+                const decrChar = i < decrypted.length ? decrypted[i] : ' ';
+                const matchChar = origChar === decrChar ? '✓' : '✗';
+                
+                comparisonText += `位置 ${i}: '${origChar}' vs '${decrChar}' ${matchChar}\n`;
+            }
+            
+            document.getElementById('charComparison').textContent = comparisonText;
+        }
+
+        // 主加密函数
+        async function encryptText() {
+            try {
+                updateStepIndicator(1);
+                updateStatus("正在获取输入文本...");
+                toggleLoading(true);
+                
+                const inputText = document.getElementById('inputText').value;
+                encryptionData.originalText = inputText;
+                
+                document.getElementById('originalText').textContent = inputText;
+                
+                // GB2312编码
+                updateStepIndicator(2);
+                updateStatus("正在进行GB2312编码...");
+                await new Promise(resolve => setTimeout(resolve, 300));
+                
+                encryptionData.gb2312Bytes = stringToGB2312(inputText);
+                const hexString = Array.from(encryptionData.gb2312Bytes)
+                    .map(b => b.toString(16).padStart(2, '0').toUpperCase())
+                    .join(' ');
+                document.getElementById('gb2312Encoding').textContent = hexString.substring(0, 100) + (hexString.length > 100 ? '...' : '');
+                
+                // 转换为二进制
+                encryptionData.binaryString = bytesToBinary(encryptionData.gb2312Bytes);
+                
+                // 生成随机二进制密钥
+                updateStepIndicator(3);
+                updateStatus("正在生成随机密钥并进行二进制加密...");
+                await new Promise(resolve => setTimeout(resolve, 300));
+                
+                encryptionData.randomBinary = generateRandomBinary(encryptionData.binaryString.length);
+                document.getElementById('randomKey').textContent = 
+                    encryptionData.randomBinary.substring(0, 100) + '...';
+                
+                // 按位异或运算（可逆操作）
+                encryptionData.xorResult = binaryXor(encryptionData.binaryString, encryptionData.randomBinary);
+                
+                // 转换为十六进制
+                const xorHex = binaryToHex(encryptionData.xorResult);
+                document.getElementById('xorResult').textContent = xorHex.substring(0, 100) + '...';
+                
+                // 添加随机密钥的十六进制
+                const randomHex = binaryToHex(encryptionData.randomBinary);
+                encryptionData.finalHex = xorHex + randomHex;
+                document.getElementById('finalEncrypted').textContent = 
+                    encryptionData.finalHex.substring(0, 100) + '...';
+                
+                // 转换为十进制序列并进行矩阵转换
+                updateStepIndicator(4);
+                updateStatus("正在生成十进制序列并转换为矩阵图像...");
+                await new Promise(resolve => setTimeout(resolve, 300));
+                
+                encryptionData.decimalSequence = hexToDecimalArray(encryptionData.finalHex);
+                document.getElementById('decimalSequence').textContent = 
+                    encryptionData.decimalSequence.slice(0, 20).join(', ') + '...';
+                
+                // 补0到比当前个数大的平方数
+                const paddedResult = padToNextSquare(encryptionData.decimalSequence);
+                encryptionData.paddedSequence = paddedResult.array;
+                encryptionData.matrixSize = paddedResult.size;
+                
+                document.getElementById('paddedSequenceDisplay').textContent = 
+                    encryptionData.paddedSequence.slice(0, 20).join(', ') + '...';
+                
+                // 转换为矩阵
+                encryptionData.matrixData = arrayToMatrix(encryptionData.paddedSequence, encryptionData.matrixSize);
+                
+                // 显示矩阵信息
+                const nearestSquare = paddedResult.size * paddedResult.size;
+                document.getElementById('matrixInfo').textContent = 
+                    `原始点数: ${paddedResult.originalLength}, 最近平方数: ${nearestSquare}, 矩阵维度: ${encryptionData.matrixSize}×${encryptionData.matrixSize}`;
+                
+                // 更新信息面板
+                document.getElementById('dataCount').textContent = paddedResult.originalLength;
+                document.getElementById('nearestSquare').textContent = nearestSquare;
+                document.getElementById('paddedCount').textContent = paddedResult.paddedLength;
+                document.getElementById('matrixSize').textContent = `${encryptionData.matrixSize}×${encryptionData.matrixSize}`;
+                document.getElementById('zerosAdded').textContent = paddedResult.zerosAdded;
+                document.getElementById('imageSize').textContent = `${encryptionData.matrixSize}×${encryptionData.matrixSize} 像素`;
+                document.getElementById('pixelCount').textContent = paddedResult.paddedLength;
+                
+                // 计算统计数据
+                const stats = calculateStatistics(encryptionData.paddedSequence);
+                
+                document.getElementById('avgGray').textContent = stats.mean.toFixed(2);
+                document.getElementById('minMax').textContent = `${stats.min}/${stats.max}`;
+                document.getElementById('stdDev').textContent = stats.stdDev.toFixed(2);
+                document.getElementById('dataEntropy').textContent = stats.entropy;
+                document.getElementById('fillRatio').textContent = `${((paddedResult.originalLength / paddedResult.paddedLength) * 100).toFixed(2)}%`;
+                document.getElementById('dataDensity').textContent = `${stats.dataDensity}%`;
+                
+                // 更新分析面板
+                document.getElementById('nonZeroCount').textContent = stats.nonZero;
+                document.getElementById('zeroCount').textContent = stats.zero;
+                document.getElementById('zeroRatio').textContent = `${stats.zeroRatio}%`;
+                document.getElementById('medianValue').textContent = stats.median.toFixed(2);
+                document.getElementById('modeValue').textContent = stats.mode;
+                
+                // 更新密钥信息
+                encryptionData.encryptionKey = encryptionData.randomBinary;
+                encryptionData.keyId = simpleHash(encryptionData.randomBinary);
+                encryptionData.timestamp = new Date().toISOString();
+                
+                document.getElementById('keyLength').textContent = encryptionData.randomBinary.length;
+                document.getElementById('keyHex').textContent = binaryToHex(encryptionData.randomBinary).substring(0, 50) + '...';
+                document.getElementById('keyHash').textContent = encryptionData.keyId;
+                document.getElementById('keyId').textContent = encryptionData.keyId.substring(0, 8);
+                
+                // 绘制直方图
+                drawHistogram(encryptionData.paddedSequence);
+                
+                // 更新数据大小
+                const dataSize = encryptionData.finalHex.length / 2;
+                document.getElementById('dataSize').textContent = 
+                    `数据大小: ${dataSize.toFixed(2)} bytes`;
+                
+                // 完成
+                updateStatus("加密和矩阵图像转换完成！");
+                toggleLoading(false);
+                
+                // 绘制可视化和矩阵图像
+                drawWaveform();
+                drawMatrixImage();
+                
+            } catch (error) {
+                console.error('加密过程中发生错误:', error);
+                updateStatus("加密失败: " + error.message);
+                toggleLoading(false);
+            }
+        }
+
+        // 重置所有数据
+        function resetAll() {
+            document.getElementById('inputText').value = '';
+            encryptionData = {
+                originalText: '',
+                gb2312Bytes: null,
+                binaryString: '',
+                randomBinary: '',
+                xorResult: '',
+                finalHex: '',
+                decimalSequence: [],
+                paddedSequence: [],
+                matrixData: null,
+                matrixSize: 0,
+                heatmapMode: false,
+                zoomLevel: 1.5,
+                showGrid: true,
+                encryptionKey: null,
+                keyId: '',
+                timestamp: null
+            };
+            
+            decryptionData = {
+                loadedImage: null,
+                extractedMatrix: null,
+                extractedSequence: [],
+                decryptedText: '',
+                decryptionKey: null,
+                success: false
+            };
+            
+            // 重置显示
+            document.getElementById('originalText').textContent = '等待输入...';
+            document.getElementById('gb2312Encoding').textContent = '等待处理...';
+            document.getElementById('randomKey').textContent = '等待生成...';
+            document.getElementById('xorResult').textContent = '等待计算...';
+            document.getElementById('finalEncrypted').textContent = '等待计算...';
+            document.getElementById('decimalSequence').textContent = '等待生成...';
+            document.getElementById('paddedSequenceDisplay').textContent = '等待计算...';
+            document.getElementById('matrixInfo').textContent = '等待计算...';
+            
+            // 重置信息面板
+            document.getElementById('dataCount').textContent = '0';
+            document.getElementById('nearestSquare').textContent = '0';
+            document.getElementById('paddedCount').textContent = '0';
+            document.getElementById('matrixSize').textContent = '0×0';
+            document.getElementById('zerosAdded').textContent = '0';
+            document.getElementById('imageSize').textContent = '0×0 像素';
+            document.getElementById('pixelCount').textContent = '0';
+            document.getElementById('fillRatio').textContent = '0%';
+            document.getElementById('dataDensity').textContent = '0%';
+            document.getElementById('avgGray').textContent = '0';
+            document.getElementById('minMax').textContent = '0/0';
+            document.getElementById('stdDev').textContent = '0';
+            document.getElementById('dataEntropy').textContent = '0';
+            
+            // 重置分析面板
+            document.getElementById('nonZeroCount').textContent = '0';
+            document.getElementById('zeroCount').textContent = '0';
+            document.getElementById('zeroRatio').textContent = '0%';
+            document.getElementById('medianValue').textContent = '0';
+            document.getElementById('modeValue').textContent = '0';
+            
+            // 重置密钥信息
+            document.getElementById('keyLength').textContent = '0';
+            document.getElementById('keyHex').textContent = '等待生成...';
+            document.getElementById('keyHash').textContent = '等待生成...';
+            document.getElementById('keyId').textContent = '等待生成...';
+            
+            // 重置解密结果
+            document.getElementById('decryptionResult').style.display = 'none';
+            document.getElementById('decryptedText').textContent = '等待解密...';
+            
+            document.getElementById('dataSize').textContent = '数据大小: 0 bytes';
+            document.getElementById('statusText').textContent = '准备就绪';
+            document.getElementById('progressFill').style.width = '0%';
+            
+            updateStepIndicator(1);
+            
+            // 清空画布
+            const waveformCanvas = document.getElementById('waveformCanvas');
+            const waveformCtx = waveformCanvas.getContext('2d');
+            waveformCtx.clearRect(0, 0, waveformCanvas.width, waveformCanvas.height);
+            
+            const matrixCanvas = document.getElementById('matrixCanvas');
+            const matrixCtx = matrixCanvas.getContext('2d');
+            matrixCtx.clearRect(0, 0, matrixCanvas.width, matrixCanvas.height);
+            
+            const loadedCanvas = document.getElementById('loadedImageCanvas');
+            const loadedCtx = loadedCanvas.getContext('2d');
+            loadedCtx.clearRect(0, 0, loadedCanvas.width, loadedCanvas.height);
+            
+            const extractedCanvas = document.getElementById('extractedMatrixCanvas');
+            const extractedCtx = extractedCanvas.getContext('2d');
+            extractedCtx.clearRect(0, 0, extractedCanvas.width, extractedCanvas.height);
+            
+            // 清空直方图
+            document.getElementById('histogramChart').innerHTML = '';
+            
+            // 清空对比信息
+            document.getElementById('charComparison').textContent = '等待对比...';
+        }
+
+        // 随机示例
+        function randomExample() {
+            const examples = [
+                "这是一个加密测试消息！",
+                "Hello, 世界! 123 ABC",
+                "矩阵图像转换提供可视化加密",
+                "网络安全是数字化时代的基石",
+                "二进制加密提供额外的安全层",
+                "随机序列增强了加密的强度",
+                "像素图像可用于数据隐藏和加密传输",
+                "补零操作使数据形成完美的正方形矩阵",
+                "灰度图像能够很好地隐藏加密信息"
+            ];
+            
+            const randomIndex = Math.floor(Math.random() * examples.length);
+            document.getElementById('inputText').value = examples[randomIndex];
+        }
+
+        // 长文本测试
+        function testLongText() {
+            const longText = `网络安全是当今数字时代的重要议题。随着互联网的普及和信息技术的发展，网络攻击和数据泄露事件频发，给个人、企业乃至国家带来了巨大的损失和威胁。因此，加强网络安全的防护和管理显得尤为重要。
+
+加密技术作为网络安全的核心技术之一，通过将原始数据转换为密文，确保数据在传输和存储过程中的机密性、完整性和可用性。传统的加密算法如DES、AES等已被广泛应用于各种场景，但随着计算能力的提升和量子计算的发展，这些算法面临着被破解的风险。
+
+因此，研究和发展新的加密技术，如基于量子力学的量子加密、基于生物特征的生物识别加密等，成为当前网络安全领域的热点。这些新技术不仅提供了更高的安全性，还在某些特定场景下具有独特的优势。
+
+本系统展示了一种基于编码转换和矩阵图像化的加密方法，将文本数据转换为灰度图像，为数据加密和隐藏提供了新的思路。通过将加密数据可视化为图像，不仅可以增强数据的隐蔽性，还可以通过图像处理技术进一步加密和传输。
+
+在实际应用中，这种加密方法可以与其他加密技术结合使用，形成多层次的安全防护体系。例如，可以先使用AES加密数据，再将加密后的数据转换为图像进行传输，接收方再通过反向过程解密，从而提高数据的安全性。
+
+补零操作是矩阵转换的关键步骤。通过将数据补零到比原始数据点数大的最近平方数，我们可以形成一个完美的正方形矩阵。这种矩阵可以很容易地转换为图像像素，便于存储和传输。补零操作不仅保证了数据的完整性，还为后续的图像处理操作提供了便利。
+
+矩阵图像加密具有以下优点：
+1. 直观性：加密数据以图像形式呈现，便于理解和分析
+2. 隐蔽性：加密信息隐藏在图像像素中，不易被察觉
+3. 灵活性：可以通过调整矩阵大小和补零策略来控制图像尺寸
+4. 兼容性：图像格式广泛支持，易于传输和存储
+
+总之，网络安全是一个持续发展的领域，需要不断创新和完善。只有通过技术、管理和法律等多方面的努力，才能构建一个安全、可靠的网络环境。矩阵图像加密作为一种创新的加密方法，为数据安全提供了新的可能性。`;
+
+            document.getElementById('inputText').value = longText;
+        }
+
+        // 初始化
+        window.onload = function() {
+            updateStepIndicator(1);
+            drawWaveform();
+            drawMatrixImage();
+            
+            // 添加键盘快捷键
+            document.addEventListener('keydown', function(e) {
+                if (e.ctrlKey && e.key === 'Enter') {
+                    encryptText();
+                }
+                if (e.key === 'Escape') {
+                    resetAll();
+                }
+                if (e.key === '+' || e.key === '=') {
+                    zoomIn();
+                }
+                if (e.key === '-' || e.key === '_') {
+                    zoomOut();
+                }
+                if (e.key === 'g' || e.key === 'G') {
+                    toggleGrid();
+                }
+                if (e.key === 'h' || e.key === 'H') {
+                    toggleHeatmap();
+                }
+            });
+        };
+    </script>
+</body>
+</html>

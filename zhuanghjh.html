@@ -1,0 +1,2246 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>高密度像素美女图片生成器</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            min-height: 100vh;
+            color: #e6e6e6;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            padding: 30px 0;
+            margin-bottom: 30px;
+        }
+        
+        h1 {
+            font-size: 2.8rem;
+            color: #ffffff;
+            margin-bottom: 10px;
+            text-shadow: 0 0 15px rgba(108, 92, 231, 0.7);
+            background: linear-gradient(90deg, #8a2be2, #ff6ec7, #8a2be2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            color: #b8b8d1;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+        
+        @media (min-width: 1200px) {
+            .main-content {
+                flex-direction: row;
+            }
+            
+            .control-panel {
+                flex: 0 0 400px;
+            }
+            
+            .image-display {
+                flex: 1;
+            }
+        }
+        
+        .control-panel {
+            background: rgba(25, 25, 40, 0.85);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            border: 1px solid #4a4a6d;
+            backdrop-filter: blur(10px);
+        }
+        
+        .image-display {
+            background: rgba(25, 25, 40, 0.85);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            border: 1px solid #4a4a6d;
+            backdrop-filter: blur(10px);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .section-title {
+            font-size: 1.4rem;
+            color: #8a8aff;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #4a4a6d;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .section-title i {
+            color: #ff6ec7;
+        }
+        
+        .control-group {
+            margin-bottom: 25px;
+        }
+        
+        .control-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #d0d0f0;
+        }
+        
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .slider-value {
+            min-width: 50px;
+            text-align: center;
+            background: #3a3a5d;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-weight: bold;
+            color: #8a8aff;
+            border: 1px solid #5a5a8d;
+        }
+        
+        .slider {
+            flex: 1;
+            -webkit-appearance: none;
+            height: 10px;
+            background: linear-gradient(90deg, #4a4a6d, #6c5ce7);
+            border-radius: 5px;
+            outline: none;
+        }
+        
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 22px;
+            height: 22px;
+            background: #ff6ec7;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid #ffffff;
+            box-shadow: 0 0 10px rgba(255, 110, 199, 0.7);
+        }
+        
+        .slider::-webkit-slider-thumb:hover {
+            background: #ff8ed4;
+            transform: scale(1.2);
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 14px 24px;
+            background: linear-gradient(135deg, #8a2be2, #6c5ce7);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(138, 43, 226, 0.4);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+        
+        .btn:hover::before {
+            left: 100%;
+        }
+        
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(138, 43, 226, 0.6);
+            background: linear-gradient(135deg, #9b42f5, #8a8aff);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .btn-generate {
+            width: 100%;
+            font-size: 1.1rem;
+            padding: 16px;
+            background: linear-gradient(135deg, #00cec9, #00b894);
+            box-shadow: 0 4px 15px rgba(0, 206, 201, 0.4);
+        }
+        
+        .btn-generate:hover {
+            background: linear-gradient(135deg, #00fff9, #00cec9);
+            box-shadow: 0 6px 20px rgba(0, 206, 201, 0.6);
+        }
+        
+        .select-control {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #4a4a6d;
+            border-radius: 8px;
+            font-size: 1rem;
+            background-color: #2a2a3e;
+            color: #e6e6e6;
+            transition: all 0.3s;
+        }
+        
+        .select-control:focus {
+            border-color: #8a2be2;
+            outline: none;
+            box-shadow: 0 0 10px rgba(138, 43, 226, 0.5);
+        }
+        
+        .image-container {
+            flex-grow: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 500px;
+            background-color: #1a1a2e;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 25px;
+            position: relative;
+            border: 1px solid #4a4a6d;
+        }
+        
+        #pixel-canvas {
+            max-width: 100%;
+            max-height: 70vh;
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+            border-radius: 8px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+        }
+        
+        .loading {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 1.2rem;
+            color: #8a8aff;
+            background: rgba(25, 25, 40, 0.9);
+            padding: 20px 30px;
+            border-radius: 10px;
+            border: 1px solid #4a4a6d;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        
+        .loading i {
+            margin-right: 10px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .image-info {
+            background-color: #2a2a3e;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            border: 1px solid #4a4a6d;
+        }
+        
+        .image-actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .btn-action {
+            flex: 1;
+            padding: 12px;
+            background: linear-gradient(135deg, #8a2be2, #6c5ce7);
+            box-shadow: 0 4px 10px rgba(138, 43, 226, 0.4);
+        }
+        
+        .btn-action:nth-child(2) {
+            background: linear-gradient(135deg, #00cec9, #00b894);
+            box-shadow: 0 4px 10px rgba(0, 206, 201, 0.4);
+        }
+        
+        .btn-action:nth-child(3) {
+            background: linear-gradient(135deg, #ff6ec7, #ff4da6);
+            box-shadow: 0 4px 10px rgba(255, 110, 199, 0.4);
+        }
+        
+        .palette-panel {
+            background: rgba(25, 25, 40, 0.85);
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            border: 1px solid #4a4a6d;
+            backdrop-filter: blur(10px);
+        }
+        
+        .color-palette {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .color-item {
+            width: 60px;
+            height: 60px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            position: relative;
+            border: 2px solid transparent;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        }
+        
+        .color-item:hover {
+            transform: scale(1.15) rotate(5deg);
+        }
+        
+        .color-item.active {
+            border-color: #ffffff;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.7), 0 0 25px rgba(138, 43, 226, 0.7);
+            transform: scale(1.1);
+        }
+        
+        .color-item .color-name {
+            position: absolute;
+            bottom: -25px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 0.8rem;
+            color: #b8b8d1;
+        }
+        
+        .counter {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 15px;
+            font-size: 0.9rem;
+            color: #a5a5c7;
+        }
+        
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: linear-gradient(135deg, #8a2be2, #6c5ce7);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 50px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.4);
+            opacity: 0;
+            transition: all 0.5s ease;
+            z-index: 1000;
+        }
+        
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #4a4a6d;
+            color: #a5a5c7;
+            font-size: 0.9rem;
+        }
+        
+        footer a {
+            color: #8a8aff;
+            text-decoration: none;
+        }
+        
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.2rem;
+            }
+            
+            .btn {
+                padding: 12px 20px;
+            }
+            
+            .image-actions {
+                flex-direction: column;
+            }
+            
+            .color-item {
+                width: 50px;
+                height: 50px;
+            }
+        }
+        
+        .checkbox-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #d0d0f0;
+            background: #2a2a3e;
+            padding: 8px 12px;
+            border-radius: 6px;
+            border: 1px solid #4a4a6d;
+        }
+        
+        .checkbox-item input {
+            width: 18px;
+            height: 18px;
+            accent-color: #8a2be2;
+        }
+        
+        .pixel-size-info {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 5px;
+            font-size: 0.9rem;
+            color: #a5a5c7;
+        }
+        
+        .preset-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .preset-btn {
+            flex: 1;
+            padding: 10px;
+            background: #3a3a5d;
+            border: none;
+            border-radius: 8px;
+            color: #e6e6e6;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .preset-btn:hover {
+            background: #4a4a6d;
+        }
+        
+        .preset-btn.active {
+            background: linear-gradient(135deg, #8a2be2, #6c5ce7);
+            box-shadow: 0 0 10px rgba(138, 43, 226, 0.5);
+        }
+        
+        .detail-controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .detail-slider-container {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        .detail-slider-label {
+            font-size: 0.9rem;
+            color: #d0d0f0;
+        }
+        
+        .detail-slider {
+            width: 100%;
+            height: 6px;
+            background: #3a3a5d;
+            border-radius: 3px;
+            -webkit-appearance: none;
+        }
+        
+        .detail-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            background: #ff6ec7;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        
+        .pixel-grid-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            opacity: 0.1;
+            display: none;
+        }
+        
+        .pixel-grid-overlay.active {
+            display: block;
+        }
+        
+        .toggle-switch {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 26px;
+        }
+        
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .slider-switch {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #3a3a5d;
+            transition: .4s;
+            border-radius: 34px;
+        }
+        
+        .slider-switch:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .slider-switch {
+            background-color: #8a2be2;
+        }
+        
+        input:checked + .slider-switch:before {
+            transform: translateX(24px);
+        }
+        
+        .pixel-density-indicator {
+            display: inline-block;
+            padding: 3px 8px;
+            background: linear-gradient(135deg, #00cec9, #00b894);
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            color: #1a1a2e;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-gem"></i> 高密度像素美女图片生成器</h1>
+            <p class="subtitle">采用高密度像素点生成算法，创建更细腻、更精美的像素艺术图像。支持超高像素密度和丰富细节选项。</p>
+        </header>
+        
+        <div class="main-content">
+            <div class="control-panel">
+                <h2 class="section-title"><i class="fas fa-sliders-h"></i> 高级控制</h2>
+                
+                <div class="control-group">
+                    <label for="pixel-size">像素密度 <span class="pixel-density-indicator" id="density-indicator">高密度</span></label>
+                    <div class="slider-container">
+                        <input type="range" min="2" max="16" value="4" class="slider" id="pixel-size">
+                        <span class="slider-value" id="pixel-size-value">4px</span>
+                    </div>
+                    <div class="pixel-size-info">
+                        <span>超高密度 (2px)</span>
+                        <span>标准 (8px)</span>
+                        <span>低密度 (16px)</span>
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <label for="resolution">图像分辨率</label>
+                    <select id="resolution" class="select-control">
+                        <option value="512">512×512 (标准)</option>
+                        <option value="768" selected>768×768 (高清)</option>
+                        <option value="1024">1024×1024 (超高清)</option>
+                    </select>
+                </div>
+                
+                <div class="control-group">
+                    <label for="complexity">细节复杂度</label>
+                    <div class="slider-container">
+                        <input type="range" min="1" max="10" value="7" class="slider" id="complexity">
+                        <span class="slider-value" id="complexity-value">7</span>
+                    </div>
+                    <div class="pixel-size-info">
+                        <span>简单</span>
+                        <span>中等</span>
+                        <span>复杂</span>
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <label for="style">艺术风格</label>
+                    <select id="style" class="select-control">
+                        <option value="anime">动漫风格</option>
+                        <option value="realistic" selected>写实像素</option>
+                        <option value="fantasy">奇幻风格</option>
+                        <option value="vintage">复古像素</option>
+                        <option value="cyberpunk">赛博朋克</option>
+                    </select>
+                </div>
+                
+                <div class="control-group">
+                    <label>高级选项</label>
+                    <div class="checkbox-group">
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="option-hair" checked>
+                            <label for="option-hair">精致发型</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="option-clothes" checked>
+                            <label for="option-clothes">服装细节</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="option-accessories" checked>
+                            <label for="option-accessories">精细配饰</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="option-background" checked>
+                            <label for="option-background">复杂背景</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="option-shading" checked>
+                            <label for="option-shading">高级光影</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="option-texture" checked>
+                            <label for="option-texture">材质纹理</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <div class="detail-controls">
+                        <div class="detail-slider-container">
+                            <div class="detail-slider-label">光影强度</div>
+                            <input type="range" min="1" max="10" value="6" class="detail-slider" id="shading-intensity">
+                        </div>
+                        <div class="detail-slider-container">
+                            <div class="detail-slider-label">颜色饱和度</div>
+                            <input type="range" min="1" max="10" value="7" class="detail-slider" id="saturation">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <div class="toggle-switch">
+                        <span>显示像素网格</span>
+                        <label class="switch">
+                            <input type="checkbox" id="show-grid">
+                            <span class="slider-switch"></span>
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <button id="generate-btn" class="btn btn-generate">
+                        <i class="fas fa-magic"></i> 生成高清像素图像
+                    </button>
+                </div>
+                
+                <div class="counter">
+                    <div>已生成: <span id="generated-count">0</span> 张</div>
+                    <div>总像素: <span id="pixel-count">589,824</span></div>
+                </div>
+            </div>
+            
+            <div class="image-display">
+                <h2 class="section-title"><i class="fas fa-image"></i> 高清像素图像</h2>
+                
+                <div class="image-container">
+                    <div class="loading" id="loading-indicator">
+                        <i class="fas fa-spinner"></i> 正在生成高清像素图像...
+                    </div>
+                    <canvas id="pixel-canvas" width="768" height="768"></canvas>
+                    <canvas id="pixel-grid" class="pixel-grid-overlay"></canvas>
+                </div>
+                
+                <div class="image-info">
+                    <p>图像ID: <span id="image-id">HD-PXL-001</span></p>
+                    <p>分辨率: <span id="image-size-display">768×768</span> | 风格: <span id="image-style-display">写实像素</span></p>
+                    <p>像素密度: <span id="image-density">4px</span> | 生成时间: <span id="image-time">2023-06-15 10:30:45</span></p>
+                </div>
+                
+                <div class="image-actions">
+                    <button id="regenerate-btn" class="btn btn-action">
+                        <i class="fas fa-redo-alt"></i> 重新生成
+                    </button>
+                    <button id="download-btn" class="btn btn-action">
+                        <i class="fas fa-download"></i> 下载高清图
+                    </button>
+                    <button id="enhance-btn" class="btn btn-action">
+                        <i class="fas fa-star"></i> 增强细节
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="palette-panel">
+            <h2 class="section-title"><i class="fas fa-palette"></i> 高级调色板</h2>
+            <p>点击颜色可将其设为主色调，或拖拽重新排列</p>
+            <div class="color-palette" id="color-palette">
+                <!-- 颜色将通过JS动态添加 -->
+            </div>
+            <div class="counter">
+                <div>当前主色: <span id="current-color">#8A2BE2</span></div>
+                <button id="random-palette" class="btn" style="padding: 8px 15px; font-size: 0.9rem;">智能调色板</button>
+            </div>
+        </div>
+        
+        <footer>
+            <p>© 2023 高密度像素美女图片生成器 | 采用高密度像素生成算法，无外部API依赖 | 仅供学习娱乐使用</p>
+            <p>所有图像均为算法生成，不涉及任何真实人物</p>
+        </footer>
+    </div>
+    
+    <div class="toast" id="toast"></div>
+    
+    <script>
+        // 高密度像素生成器类
+        class HighDensityPixelGenerator {
+            constructor(canvasId, gridCanvasId) {
+                this.canvas = document.getElementById(canvasId);
+                this.gridCanvas = document.getElementById(gridCanvasId);
+                this.ctx = this.canvas.getContext('2d');
+                this.gridCtx = this.gridCanvas.getContext('2d');
+                this.width = this.canvas.width;
+                this.height = this.canvas.height;
+                this.gridCanvas.width = this.width;
+                this.gridCanvas.height = this.height;
+                this.pixelSize = 4; // 更小的像素尺寸
+                this.style = 'realistic';
+                this.complexity = 7;
+                this.mainColor = '#8A2BE2';
+                this.resolution = 768;
+                this.options = {
+                    hair: true,
+                    clothes: true,
+                    accessories: true,
+                    background: true,
+                    shading: true,
+                    texture: true
+                };
+                this.shadingIntensity = 6;
+                this.saturation = 7;
+                
+                // 高级调色板
+                this.palettes = {
+                    anime: ['#FF9AA2', '#FFB7B2', '#FFDAC1', '#E2F0CB', '#B5EAD7', '#C7CEEA', '#A7C5EB', '#9FA8DA'],
+                    realistic: ['#6C5CE7', '#8A2BE2', '#9370DB', '#BA55D3', '#DA70D6', '#FF6EC7', '#FF8ED4', '#FFB6C1'],
+                    fantasy: ['#FF7675', '#74B9FF', '#55EFC4', '#FDCB6E', '#E17055', '#A29BFE', '#FD79A8', '#00CEC9'],
+                    vintage: ['#D4A5A5', '#9B786F', '#E6CCB2', '#C8A2C8', '#B19CD9', '#AEC6CF', '#B5EAD7', '#FFDAC1'],
+                    cyberpunk: ['#00FF9D', '#00B8FF', '#8A2BE2', '#FF00FF', '#FF6EC7', '#00CEC9', '#FFEAA7', '#FD79A8']
+                };
+                
+                this.currentPalette = [...this.palettes.realistic];
+                this.generatedCount = 0;
+                
+                // 初始化
+                this.init();
+            }
+            
+            init() {
+                // 生成初始图片
+                this.generate();
+            }
+            
+            // 生成随机颜色
+            randomColor() {
+                return this.currentPalette[Math.floor(Math.random() * this.currentPalette.length)];
+            }
+            
+            // 生成复杂背景
+            generateBackground() {
+                if (!this.options.background) {
+                    // 单色背景
+                    this.ctx.fillStyle = '#1a1a2e';
+                    this.ctx.fillRect(0, 0, this.width, this.height);
+                    return;
+                }
+                
+                // 创建复杂渐变背景
+                const gradient = this.ctx.createLinearGradient(0, 0, this.width, this.height);
+                
+                // 根据风格选择背景色
+                switch(this.style) {
+                    case 'anime':
+                        gradient.addColorStop(0, '#1a1a2e');
+                        gradient.addColorStop(0.5, '#16213e');
+                        gradient.addColorStop(1, '#0f3460');
+                        break;
+                    case 'realistic':
+                        gradient.addColorStop(0, '#2D3436');
+                        gradient.addColorStop(0.5, '#636E72');
+                        gradient.addColorStop(1, '#4A4A4A');
+                        break;
+                    case 'fantasy':
+                        gradient.addColorStop(0, '#0F3460');
+                        gradient.addColorStop(0.5, '#533483');
+                        gradient.addColorStop(1, '#E94560');
+                        break;
+                    case 'vintage':
+                        gradient.addColorStop(0, '#3D2C2E');
+                        gradient.addColorStop(0.5, '#5C4B51');
+                        gradient.addColorStop(1, '#8B786D');
+                        break;
+                    case 'cyberpunk':
+                        gradient.addColorStop(0, '#0D0221');
+                        gradient.addColorStop(0.5, '#261447');
+                        gradient.addColorStop(1, '#2D0B59');
+                        break;
+                    default:
+                        gradient.addColorStop(0, '#1a1a2e');
+                        gradient.addColorStop(0.5, '#16213e');
+                        gradient.addColorStop(1, '#0f3460');
+                }
+                
+                this.ctx.fillStyle = gradient;
+                this.ctx.fillRect(0, 0, this.width, this.height);
+                
+                // 添加复杂的背景细节
+                this.generateBackgroundDetails();
+            }
+            
+            // 生成背景细节
+            generateBackgroundDetails() {
+                // 添加渐变光点
+                for (let i = 0; i < 80 * this.complexity; i++) {
+                    const x = Math.floor(Math.random() * this.width);
+                    const y = Math.floor(Math.random() * this.height);
+                    const size = Math.random() * 4 + 1;
+                    const alpha = Math.random() * 0.4 + 0.1;
+                    
+                    this.ctx.fillStyle = this.randomColor();
+                    this.ctx.globalAlpha = alpha;
+                    
+                    // 创建光晕效果
+                    this.ctx.beginPath();
+                    this.ctx.arc(x, y, size, 0, Math.PI * 2);
+                    this.ctx.fill();
+                    
+                    // 光晕外圈
+                    if (Math.random() > 0.7) {
+                        this.ctx.beginPath();
+                        this.ctx.arc(x, y, size * 2, 0, Math.PI * 2);
+                        this.ctx.strokeStyle = this.randomColor();
+                        this.ctx.lineWidth = 1;
+                        this.ctx.stroke();
+                    }
+                }
+                
+                // 添加几何图案
+                if (this.complexity >= 6) {
+                    for (let i = 0; i < 20 * this.complexity; i++) {
+                        const x = Math.floor(Math.random() * this.width);
+                        const y = Math.floor(Math.random() * this.height);
+                        const size = Math.random() * 10 + 5;
+                        const alpha = Math.random() * 0.2 + 0.05;
+                        
+                        this.ctx.fillStyle = this.randomColor();
+                        this.ctx.globalAlpha = alpha;
+                        
+                        // 随机几何形状
+                        const shapeType = Math.floor(Math.random() * 4);
+                        this.ctx.beginPath();
+                        
+                        switch(shapeType) {
+                            case 0: // 圆形
+                                this.ctx.arc(x, y, size, 0, Math.PI * 2);
+                                break;
+                            case 1: // 正方形
+                                this.ctx.rect(x - size/2, y - size/2, size, size);
+                                break;
+                            case 2: // 三角形
+                                this.ctx.moveTo(x, y - size/2);
+                                this.ctx.lineTo(x - size/2, y + size/2);
+                                this.ctx.lineTo(x + size/2, y + size/2);
+                                this.ctx.closePath();
+                                break;
+                            case 3: // 六边形
+                                this.drawHexagon(x, y, size);
+                                break;
+                        }
+                        
+                        this.ctx.fill();
+                    }
+                }
+                
+                this.ctx.globalAlpha = 1.0;
+            }
+            
+            // 绘制六边形
+            drawHexagon(x, y, size) {
+                this.ctx.beginPath();
+                for (let i = 0; i < 6; i++) {
+                    const angle = Math.PI / 3 * i;
+                    const px = x + size * Math.cos(angle);
+                    const py = y + size * Math.sin(angle);
+                    if (i === 0) {
+                        this.ctx.moveTo(px, py);
+                    } else {
+                        this.ctx.lineTo(px, py);
+                    }
+                }
+                this.ctx.closePath();
+            }
+            
+            // 生成高细节人脸
+            generateFace() {
+                const centerX = this.width / 2;
+                const centerY = this.height / 2;
+                const faceWidth = 120 + Math.random() * 60;
+                const faceHeight = 150 + Math.random() * 60;
+                
+                // 脸型 - 使用更圆滑的形状
+                this.ctx.fillStyle = this.getSkinColor();
+                this.ctx.beginPath();
+                this.ctx.ellipse(centerX, centerY, faceWidth/2, faceHeight/2, 0, 0, Math.PI * 2);
+                this.ctx.fill();
+                
+                // 添加脸部阴影
+                if (this.options.shading) {
+                    this.addFaceShading(centerX, centerY, faceWidth, faceHeight);
+                }
+                
+                // 眼睛
+                this.generateEyes(centerX, centerY, faceWidth, faceHeight);
+                
+                // 眉毛
+                this.generateEyebrows(centerX, centerY, faceWidth, faceHeight);
+                
+                // 鼻子
+                this.generateNose(centerX, centerY, faceWidth, faceHeight);
+                
+                // 嘴巴
+                this.generateMouth(centerX, centerY, faceWidth, faceHeight);
+                
+                // 耳朵
+                this.generateEars(centerX, centerY, faceWidth, faceHeight);
+            }
+            
+            // 添加脸部阴影
+            addFaceShading(centerX, centerY, faceWidth, faceHeight) {
+                // 左脸颊阴影
+                const leftGradient = this.ctx.createRadialGradient(
+                    centerX - faceWidth/3, centerY, 0,
+                    centerX - faceWidth/3, centerY, faceWidth/3
+                );
+                leftGradient.addColorStop(0, 'rgba(0,0,0,0.1)');
+                leftGradient.addColorStop(1, 'transparent');
+                
+                this.ctx.fillStyle = leftGradient;
+                this.ctx.beginPath();
+                this.ctx.ellipse(centerX - faceWidth/3, centerY, faceWidth/3, faceHeight/3, 0, 0, Math.PI * 2);
+                this.ctx.fill();
+                
+                // 右脸颊阴影
+                const rightGradient = this.ctx.createRadialGradient(
+                    centerX + faceWidth/3, centerY, 0,
+                    centerX + faceWidth/3, centerY, faceWidth/3
+                );
+                rightGradient.addColorStop(0, 'rgba(0,0,0,0.1)');
+                rightGradient.addColorStop(1, 'transparent');
+                
+                this.ctx.fillStyle = rightGradient;
+                this.ctx.beginPath();
+                this.ctx.ellipse(centerX + faceWidth/3, centerY, faceWidth/3, faceHeight/3, 0, 0, Math.PI * 2);
+                this.ctx.fill();
+                
+                // 下巴阴影
+                const chinGradient = this.ctx.createRadialGradient(
+                    centerX, centerY + faceHeight/3, 0,
+                    centerX, centerY + faceHeight/3, faceWidth/4
+                );
+                chinGradient.addColorStop(0, 'rgba(0,0,0,0.15)');
+                chinGradient.addColorStop(1, 'transparent');
+                
+                this.ctx.fillStyle = chinGradient;
+                this.ctx.beginPath();
+                this.ctx.ellipse(centerX, centerY + faceHeight/3, faceWidth/4, faceHeight/6, 0, 0, Math.PI * 2);
+                this.ctx.fill();
+            }
+            
+            // 生成眼睛
+            generateEyes(centerX, centerY, faceWidth, faceHeight) {
+                const eyeXOffset = faceWidth / 3;
+                const eyeY = centerY - faceHeight / 6;
+                const eyeSize = 12 + this.complexity;
+                
+                // 左眼
+                this.ctx.fillStyle = '#2D3436';
+                this.ctx.beginPath();
+                this.ctx.arc(centerX - eyeXOffset, eyeY, eyeSize, 0, Math.PI * 2);
+                this.ctx.fill();
+                
+                // 右眼
+                this.ctx.beginPath();
+                this.ctx.arc(centerX + eyeXOffset, eyeY, eyeSize, 0, Math.PI * 2);
+                this.ctx.fill();
+                
+                // 眼睛高光
+                this.ctx.fillStyle = '#FFFFFF';
+                this.ctx.beginPath();
+                this.ctx.arc(centerX - eyeXOffset - 4, eyeY - 4, eyeSize/3, 0, Math.PI * 2);
+                this.ctx.fill();
+                
+                this.ctx.beginPath();
+                this.ctx.arc(centerX + eyeXOffset - 4, eyeY - 4, eyeSize/3, 0, Math.PI * 2);
+                this.ctx.fill();
+                
+                // 眼睛虹膜细节
+                if (this.complexity >= 6) {
+                    const irisColors = ['#4A235A', '#1B4F72', '#0E6251', '#7D6608'];
+                    const irisColor = irisColors[Math.floor(Math.random() * irisColors.length)];
+                    
+                    this.ctx.fillStyle = irisColor;
+                    this.ctx.beginPath();
+                    this.ctx.arc(centerX - eyeXOffset, eyeY, eyeSize/1.5, 0, Math.PI * 2);
+                    this.ctx.fill();
+                    
+                    this.ctx.beginPath();
+                    this.ctx.arc(centerX + eyeXOffset, eyeY, eyeSize/1.5, 0, Math.PI * 2);
+                    this.ctx.fill();
+                }
+            }
+            
+            // 生成眉毛
+            generateEyebrows(centerX, centerY, faceWidth, faceHeight) {
+                const browY = centerY - faceHeight / 4;
+                const browWidth = faceWidth / 6;
+                
+                this.ctx.fillStyle = '#2D3436';
+                
+                // 左眉毛
+                this.ctx.beginPath();
+                this.ctx.ellipse(centerX - faceWidth/3, browY, browWidth, browWidth/4, -0.2, 0, Math.PI * 2);
+                this.ctx.fill();
+                
+                // 右眉毛
+                this.ctx.beginPath();
+                this.ctx.ellipse(centerX + faceWidth/3, browY, browWidth, browWidth/4, 0.2, 0, Math.PI * 2);
+                this.ctx.fill();
+            }
+            
+            // 生成鼻子
+            generateNose(centerX, centerY, faceWidth, faceHeight) {
+                const noseY = centerY + faceHeight / 8;
+                
+                this.ctx.fillStyle = this.getSkinColor();
+                this.ctx.beginPath();
+                this.ctx.arc(centerX, noseY, 6 + this.complexity/2, 0, Math.PI * 2);
+                this.ctx.fill();
+                
+                // 鼻孔
+                this.ctx.fillStyle = 'rgba(0,0,0,0.3)';
+                this.ctx.beginPath();
+                this.ctx.arc(centerX - 4, noseY + 4, 2, 0, Math.PI * 2);
+                this.ctx.fill();
+                
+                this.ctx.beginPath();
+                this.ctx.arc(centerX + 4, noseY + 4, 2, 0, Math.PI * 2);
+                this.ctx.fill();
+            }
+            
+            // 生成嘴巴
+            generateMouth(centerX, centerY, faceWidth, faceHeight) {
+                const mouthY = centerY + faceHeight / 3;
+                const mouthWidth = faceWidth / 4;
+                
+                // 嘴唇
+                this.ctx.fillStyle = '#FD79A8';
+                this.ctx.beginPath();
+                this.ctx.ellipse(centerX, mouthY, mouthWidth, mouthWidth/3, 0, 0, Math.PI);
+                this.ctx.fill();
+                
+                // 上唇高光
+                if (this.options.shading) {
+                    this.ctx.fillStyle = 'rgba(255,255,255,0.3)';
+                    this.ctx.beginPath();
+                    this.ctx.ellipse(centerX, mouthY - 2, mouthWidth - 4, mouthWidth/6, 0, 0, Math.PI);
+                    this.ctx.fill();
+                }
+                
+                // 嘴角
+                this.ctx.fillStyle = 'rgba(0,0,0,0.2)';
+                this.ctx.beginPath();
+                this.ctx.arc(centerX - mouthWidth, mouthY, 2, 0, Math.PI * 2);
+                this.ctx.fill();
+                
+                this.ctx.beginPath();
+                this.ctx.arc(centerX + mouthWidth, mouthY, 2, 0, Math.PI * 2);
+                this.ctx.fill();
+            }
+            
+            // 生成耳朵
+            generateEars(centerX, centerY, faceWidth, faceHeight) {
+                const earY = centerY;
+                const earSize = faceHeight / 6;
+                
+                this.ctx.fillStyle = this.getSkinColor();
+                
+                // 左耳
+                this.ctx.beginPath();
+                this.ctx.arc(centerX - faceWidth/2 - earSize/2, earY, earSize, 0, Math.PI * 2);
+                this.ctx.fill();
+                
+                // 右耳
+                this.ctx.beginPath();
+                this.ctx.arc(centerX + faceWidth/2 + earSize/2, earY, earSize, 0, Math.PI * 2);
+                this.ctx.fill();
+                
+                // 耳廓内部
+                this.ctx.fillStyle = this.getSkinColor(0.8);
+                this.ctx.beginPath();
+                this.ctx.arc(centerX - faceWidth/2 - earSize/2, earY, earSize/1.5, 0, Math.PI * 2);
+                this.ctx.fill();
+                
+                this.ctx.beginPath();
+                this.ctx.arc(centerX + faceWidth/2 + earSize/2, earY, earSize/1.5, 0, Math.PI * 2);
+                this.ctx.fill();
+            }
+            
+            // 生成高细节头发
+            generateHair() {
+                if (!this.options.hair) return;
+                
+                const centerX = this.width / 2;
+                const centerY = this.height / 2;
+                const hairColor = this.getHairColor();
+                
+                this.ctx.fillStyle = hairColor;
+                
+                // 根据风格生成不同发型
+                switch(this.style) {
+                    case 'anime':
+                        this.generateAnimeHair(centerX, centerY, hairColor);
+                        break;
+                    case 'realistic':
+                        this.generateRealisticHair(centerX, centerY, hairColor);
+                        break;
+                    case 'fantasy':
+                        this.generateFantasyHair(centerX, centerY, hairColor);
+                        break;
+                    default:
+                        this.generateRealisticHair(centerX, centerY, hairColor);
+                }
+                
+                // 添加头发高光
+                if (this.options.shading) {
+                    this.addHairHighlights(centerX, centerY, hairColor);
+                }
+            }
+            
+            // 生成动漫风格头发
+            generateAnimeHair(centerX, centerY, hairColor) {
+                // 头发主体
+                this.ctx.beginPath();
+                this.ctx.arc(centerX, centerY - 30, 80, 0, Math.PI * 2);
+                this.ctx.fill();
+                
+                // 刘海
+                this.ctx.beginPath();
+                this.ctx.ellipse(centerX, centerY - 40, 60, 40, 0, 0, Math.PI * 2);
+                this.ctx.fill();
+                
+                // 长发部分
+                this.ctx.fillRect(centerX - 80, centerY - 30, 160, 120);
+                
+                // 发尾
+                this.ctx.beginPath();
+                this.ctx.ellipse(centerX, centerY + 90, 80, 30, 0, 0, Math.PI * 2);
+                this.ctx.fill();
+                
+                // 发梢细节
+                for(let i = 0; i < 8; i++) {
+                    const x = centerX - 70 + i * 20;
+                    this.ctx.beginPath();
+                    this.ctx.arc(x, centerY + 110, 10, 0, Math.PI * 2);
+                    this.ctx.fill();
+                }
+            }
+            
+            // 生成写实风格头发
+            generateRealisticHair(centerX, centerY, hairColor) {
+                // 头发主体 - 更加自然的不规则形状
+                this.ctx.beginPath();
+                
+                // 顶部
+                this.ctx.arc(centerX, centerY - 40, 70, 0, Math.PI * 2);
+                
+                // 左侧
+                this.ctx.moveTo(centerX - 70, centerY - 40);
+                this.ctx.quadraticCurveTo(centerX - 90, centerY, centerX - 70, centerY + 80);
+                
+                // 底部
+                this.ctx.quadraticCurveTo(centerX - 40, centerY + 120, centerX, centerY + 100);
+                this.ctx.quadraticCurveTo(centerX + 40, centerY + 120, centerX + 70, centerY + 80);
+                
+                // 右侧
+                this.ctx.quadraticCurveTo(centerX + 90, centerY, centerX + 70, centerY - 40);
+                
+                this.ctx.closePath();
+                this.ctx.fill();
+                
+                // 添加发丝纹理
+                if (this.options.texture) {
+                    this.addHairTexture(centerX, centerY, hairColor);
+                }
+            }
+            
+            // 生成奇幻风格头发
+            generateFantasyHair(centerX, centerY, hairColor) {
+                // 奇幻风格 - 更夸张的造型
+                this.ctx.beginPath();
+                this.ctx.arc(centerX, centerY - 50, 90, 0, Math.PI * 2);
+                this.ctx.fill();
+                
+                // 卷发
+                for(let i = 0; i < 12; i++) {
+                    const angle = (Math.PI * 2 / 12) * i;
+                    const curlX = centerX + Math.cos(angle) * 70;
+                    const curlY = centerY + Math.sin(angle) * 30;
+                    const curlSize = 15 + Math.random() * 10;
+                    
+                    this.ctx.beginPath();
+                    this.ctx.arc(curlX, curlY, curlSize, 0, Math.PI * 2);
+                    this.ctx.fill();
+                }
+            }
+            
+            // 添加头发纹理
+            addHairTexture(centerX, centerY, baseColor) {
+                // 创建发丝效果
+                for(let i = 0; i < 100 * this.complexity; i++) {
+                    const angle = Math.random() * Math.PI * 2;
+                    const distance = Math.random() * 80;
+                    const x = centerX + Math.cos(angle) * distance;
+                    const y = centerY - 40 + Math.sin(angle) * distance * 0.8;
+                    
+                    // 只在上半部分添加发丝
+                    if (y < centerY + 60) {
+                        const length = 10 + Math.random() * 20;
+                        const thickness = 0.5 + Math.random() * 1.5;
+                        
+                        // 发丝颜色 - 比基础色稍亮或稍暗
+                        const brightness = Math.random() > 0.5 ? 20 : -20;
+                        const hairColor = this.adjustColorBrightness(baseColor, brightness);
+                        
+                        this.ctx.strokeStyle = hairColor;
+                        this.ctx.lineWidth = thickness;
+                        this.ctx.lineCap = 'round';
+                        
+                        this.ctx.beginPath();
+                        this.ctx.moveTo(x, y);
+                        this.ctx.lineTo(x + Math.cos(angle) * length, y + Math.sin(angle) * length);
+                        this.ctx.stroke();
+                    }
+                }
+            }
+            
+            // 添加头发高光
+            addHairHighlights(centerX, centerY, baseColor) {
+                // 顶部高光
+                const highlightColor = this.adjustColorBrightness(baseColor, 40);
+                
+                const gradient = this.ctx.createRadialGradient(
+                    centerX, centerY - 60, 0,
+                    centerX, centerY - 60, 50
+                );
+                gradient.addColorStop(0, highlightColor);
+                gradient.addColorStop(1, 'transparent');
+                
+                this.ctx.fillStyle = gradient;
+                this.ctx.beginPath();
+                this.ctx.arc(centerX, centerY - 60, 50, 0, Math.PI * 2);
+                this.ctx.fill();
+            }
+            
+            // 生成身体
+            generateBody() {
+                const centerX = this.width / 2;
+                const centerY = this.height / 2;
+                
+                // 脖子
+                this.ctx.fillStyle = this.getSkinColor();
+                this.ctx.fillRect(centerX - 20, centerY + 80, 40, 30);
+                
+                // 肩膀
+                this.ctx.fillStyle = this.options.clothes ? this.randomColor() : this.getSkinColor();
+                this.ctx.beginPath();
+                this.ctx.arc(centerX, centerY + 110, 60, 0, Math.PI * 2);
+                this.ctx.fill();
+                
+                // 衣服
+                if (this.options.clothes) {
+                    this.generateClothing(centerX, centerY);
+                }
+                
+                // 手
+                this.generateHands(centerX, centerY);
+            }
+            
+            // 生成服装
+            generateClothing(centerX, centerY) {
+                const clothingColor = this.randomColor();
+                const secondaryColor = this.randomColor();
+                
+                // 上衣主体
+                this.ctx.fillStyle = clothingColor;
+                this.ctx.fillRect(centerX - 60, centerY + 110, 120, 80);
+                
+                // 领口
+                this.ctx.fillStyle = secondaryColor;
+                this.ctx.beginPath();
+                this.ctx.ellipse(centerX, centerY + 120, 30, 15, 0, 0, Math.PI * 2);
+                this.ctx.fill();
+                
+                // 衣服纹理
+                if (this.options.texture && this.complexity >= 5) {
+                    this.addClothingTexture(centerX, centerY, clothingColor, secondaryColor);
+                }
+                
+                // 衣服细节
+                if (this.complexity >= 6) {
+                    this.ctx.fillStyle = secondaryColor;
+                    this.ctx.fillRect(centerX - 30, centerY + 140, 60, 5);
+                    
+                    // 按钮
+                    for(let i = 0; i < 3; i++) {
+                        this.ctx.beginPath();
+                        this.ctx.arc(centerX, centerY + 150 + i * 15, 3, 0, Math.PI * 2);
+                        this.ctx.fill();
+                    }
+                }
+            }
+            
+            // 添加服装纹理
+            addClothingTexture(centerX, centerY, baseColor, secondaryColor) {
+                // 条纹纹理
+                for(let i = 0; i < 10; i++) {
+                    const stripeX = centerX - 50 + i * 10;
+                    const stripeColor = i % 2 === 0 ? baseColor : secondaryColor;
+                    
+                    this.ctx.fillStyle = this.adjustColorBrightness(stripeColor, i % 2 === 0 ? -10 : 10);
+                    this.ctx.fillRect(stripeX, centerY + 110, 5, 80);
+                }
+            }
+            
+            // 生成手
+            generateHands(centerX, centerY) {
+                this.ctx.fillStyle = this.getSkinColor();
+                
+                // 左手
+                this.ctx.beginPath();
+                this.ctx.ellipse(centerX - 70, centerY + 150, 15, 10, 0, 0, Math.PI * 2);
+                this.ctx.fill();
+                
+                // 右手
+                this.ctx.beginPath();
+                this.ctx.ellipse(centerX + 70, centerY + 150, 15, 10, 0, 0, Math.PI * 2);
+                this.ctx.fill();
+            }
+            
+            // 生成高细节配饰
+            generateAccessories() {
+                if (!this.options.accessories) return;
+                
+                const centerX = this.width / 2;
+                const centerY = this.height / 2;
+                
+                // 随机决定是否添加配饰
+                if (Math.random() > 0.3) {
+                    // 耳环
+                    this.generateEarrings(centerX, centerY);
+                }
+                
+                if (Math.random() > 0.5) {
+                    // 项链
+                    this.generateNecklace(centerX, centerY);
+                }
+                
+                if (this.complexity >= 7 && Math.random() > 0.7) {
+                    // 头饰
+                    this.generateHeadwear(centerX, centerY);
+                }
+            }
+            
+            // 生成耳环
+            generateEarrings(centerX, centerY) {
+                const earringColor = this.randomColor();
+                this.ctx.fillStyle = earringColor;
+                
+                // 左耳环
+                this.ctx.beginPath();
+                this.ctx.arc(centerX - 100, centerY, 6, 0, Math.PI * 2);
+                this.ctx.fill();
+                
+                // 右耳环
+                this.ctx.beginPath();
+                this.ctx.arc(centerX + 100, centerY, 6, 0, Math.PI * 2);
+                this.ctx.fill();
+                
+                // 耳环细节
+                if (this.complexity >= 6) {
+                    this.ctx.fillStyle = this.adjustColorBrightness(earringColor, 30);
+                    this.ctx.beginPath();
+                    this.ctx.arc(centerX - 100, centerY + 8, 3, 0, Math.PI * 2);
+                    this.ctx.fill();
+                    
+                    this.ctx.beginPath();
+                    this.ctx.arc(centerX + 100, centerY + 8, 3, 0, Math.PI * 2);
+                    this.ctx.fill();
+                }
+            }
+            
+            // 生成项链
+            generateNecklace(centerX, centerY) {
+                const necklaceColor = this.randomColor();
+                this.ctx.strokeStyle = necklaceColor;
+                this.ctx.lineWidth = 2;
+                
+                // 项链链条
+                this.ctx.beginPath();
+                this.ctx.arc(centerX, centerY + 90, 40, Math.PI, Math.PI * 2);
+                this.ctx.stroke();
+                
+                // 吊坠
+                this.ctx.fillStyle = necklaceColor;
+                this.ctx.beginPath();
+                this.ctx.arc(centerX, centerY + 130, 8, 0, Math.PI * 2);
+                this.ctx.fill();
+                
+                // 吊坠高光
+                if (this.options.shading) {
+                    this.ctx.fillStyle = this.adjustColorBrightness(necklaceColor, 50);
+                    this.ctx.beginPath();
+                    this.ctx.arc(centerX - 3, centerY + 127, 3, 0, Math.PI * 2);
+                    this.ctx.fill();
+                }
+            }
+            
+            // 生成头饰
+            generateHeadwear(centerX, centerY) {
+                const headwearColor = this.randomColor();
+                this.ctx.fillStyle = headwearColor;
+                
+                // 发带
+                this.ctx.fillRect(centerX - 80, centerY - 90, 160, 10);
+                
+                // 发带装饰
+                this.ctx.fillStyle = this.adjustColorBrightness(headwearColor, 30);
+                this.ctx.beginPath();
+                this.ctx.arc(centerX, centerY - 90, 8, 0, Math.PI * 2);
+                this.ctx.fill();
+            }
+            
+            // 获取肤色
+            getSkinColor(brightness = 1.0) {
+                const skinColors = [
+                    '#FFDBAC', '#F1C27D', '#E0AC69', '#C68642', '#8D5524'
+                ];
+                
+                // 根据风格选择肤色
+                switch(this.style) {
+                    case 'anime':
+                        return this.adjustColorBrightness('#FFDBAC', (brightness - 1) * 100);
+                    case 'realistic':
+                        const baseColor = skinColors[Math.floor(Math.random() * skinColors.length)];
+                        return this.adjustColorBrightness(baseColor, (brightness - 1) * 100);
+                    case 'fantasy':
+                        const fantasyColors = ['#FFB6C1', '#E6E6FA', '#FFDAB9', '#F0E68C'];
+                        return fantasyColors[Math.floor(Math.random() * fantasyColors.length)];
+                    case 'cyberpunk':
+                        return this.adjustColorBrightness('#C0C0C0', (brightness - 1) * 100);
+                    default:
+                        return this.adjustColorBrightness('#FFDBAC', (brightness - 1) * 100);
+                }
+            }
+            
+            // 获取发色
+            getHairColor() {
+                const hairColors = {
+                    anime: ['#FF6EC7', '#8A2BE2', '#00CEC9', '#FFD700', '#FF6347'],
+                    realistic: ['#8B4513', '#A0522D', '#D2691E', '#5D4037', '#3E2723'],
+                    fantasy: ['#FF00FF', '#00FFFF', '#00FF00', '#FF4500', '#9400D3'],
+                    vintage: ['#8B7355', '#BC8F8F', '#D2B48C', '#CD853F', '#A0522D'],
+                    cyberpunk: ['#00FF9D', '#FF00FF', '#00B8FF', '#FFFF00', '#FF6EC7']
+                };
+                
+                const colors = hairColors[this.style] || hairColors.realistic;
+                return colors[Math.floor(Math.random() * colors.length)];
+            }
+            
+            // 调整颜色亮度
+            adjustColorBrightness(color, percent) {
+                // 将HEX转换为RGB
+                let r = parseInt(color.substr(1, 2), 16);
+                let g = parseInt(color.substr(3, 2), 16);
+                let b = parseInt(color.substr(5, 2), 16);
+                
+                // 调整亮度
+                r = Math.max(0, Math.min(255, r + r * percent / 100));
+                g = Math.max(0, Math.min(255, g + g * percent / 100));
+                b = Math.max(0, Math.min(255, b + b * percent / 100));
+                
+                // 将RGB转换回HEX
+                return '#' + 
+                    Math.round(r).toString(16).padStart(2, '0') +
+                    Math.round(g).toString(16).padStart(2, '0') +
+                    Math.round(b).toString(16).padStart(2, '0');
+            }
+            
+            // 应用高密度像素化效果
+            applyPixelation() {
+                // 保存当前画布图像
+                const imageData = this.ctx.getImageData(0, 0, this.width, this.height);
+                const data = imageData.data;
+                
+                // 清除画布
+                this.ctx.clearRect(0, 0, this.width, this.height);
+                
+                // 应用像素化 - 使用更小的像素块
+                const pixelSize = this.pixelSize;
+                
+                for (let y = 0; y < this.height; y += pixelSize) {
+                    for (let x = 0; x < this.width; x += pixelSize) {
+                        // 计算像素块的平均颜色
+                        let r = 0, g = 0, b = 0, a = 0, count = 0;
+                        
+                        for (let py = 0; py < pixelSize && y + py < this.height; py++) {
+                            for (let px = 0; px < pixelSize && x + px < this.width; px++) {
+                                const index = ((y + py) * this.width + (x + px)) * 4;
+                                r += data[index];
+                                g += data[index + 1];
+                                b += data[index + 2];
+                                a += data[index + 3];
+                                count++;
+                            }
+                        }
+                        
+                        if (count > 0) {
+                            r = Math.floor(r / count);
+                            g = Math.floor(g / count);
+                            b = Math.floor(b / count);
+                            a = Math.floor(a / count);
+                            
+                            // 应用饱和度调整
+                            const avg = (r + g + b) / 3;
+                            const saturation = this.saturation / 5; // 缩放饱和度值
+                            
+                            r = avg + (r - avg) * saturation;
+                            g = avg + (g - avg) * saturation;
+                            b = avg + (b - avg) * saturation;
+                            
+                            // 确保颜色值在有效范围内
+                            r = Math.max(0, Math.min(255, r));
+                            g = Math.max(0, Math.min(255, g));
+                            b = Math.max(0, Math.min(255, b));
+                            
+                            // 绘制像素块
+                            this.ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${a/255})`;
+                            this.ctx.fillRect(x, y, pixelSize, pixelSize);
+                            
+                            // 添加像素之间的分隔线（可选）
+                            if (pixelSize > 4) {
+                                this.ctx.strokeStyle = `rgba(0, 0, 0, 0.1)`;
+                                this.ctx.lineWidth = 0.5;
+                                this.ctx.strokeRect(x, y, pixelSize, pixelSize);
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // 绘制像素网格
+            drawPixelGrid() {
+                this.gridCtx.clearRect(0, 0, this.width, this.height);
+                this.gridCtx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+                this.gridCtx.lineWidth = 0.5;
+                
+                const pixelSize = this.pixelSize;
+                
+                // 绘制垂直线
+                for (let x = 0; x <= this.width; x += pixelSize) {
+                    this.gridCtx.beginPath();
+                    this.gridCtx.moveTo(x, 0);
+                    this.gridCtx.lineTo(x, this.height);
+                    this.gridCtx.stroke();
+                }
+                
+                // 绘制水平线
+                for (let y = 0; y <= this.height; y += pixelSize) {
+                    this.gridCtx.beginPath();
+                    this.gridCtx.moveTo(0, y);
+                    this.gridCtx.lineTo(this.width, y);
+                    this.gridCtx.stroke();
+                }
+            }
+            
+            // 主生成函数
+            generate() {
+                // 显示加载指示器
+                this.showLoading(true);
+                
+                // 延迟生成以显示加载效果
+                setTimeout(() => {
+                    // 生成背景
+                    this.generateBackground();
+                    
+                    // 生成身体
+                    this.generateBody();
+                    
+                    // 生成头发
+                    this.generateHair();
+                    
+                    // 生成脸部
+                    this.generateFace();
+                    
+                    // 生成配饰
+                    this.generateAccessories();
+                    
+                    // 应用像素化效果
+                    this.applyPixelation();
+                    
+                    // 更新计数
+                    this.generatedCount++;
+                    
+                    // 隐藏加载指示器
+                    this.showLoading(false);
+                    
+                    // 触发生成完成事件
+                    this.onGenerationComplete();
+                }, 400);
+            }
+            
+            // 增强细节
+            enhanceDetails() {
+                this.showLoading(true);
+                
+                setTimeout(() => {
+                    // 增加复杂度
+                    this.complexity = Math.min(10, this.complexity + 1);
+                    
+                    // 减小像素尺寸以提高细节
+                    this.pixelSize = Math.max(2, this.pixelSize - 1);
+                    
+                    // 重新生成
+                    this.generate();
+                    
+                    this.showToast('细节已增强！');
+                }, 400);
+            }
+            
+            // 显示/隐藏加载指示器
+            showLoading(show) {
+                // 这个函数由外部控制
+            }
+            
+            // 显示提示
+            showToast(message) {
+                // 这个函数由外部控制
+            }
+            
+            // 生成完成回调
+            onGenerationComplete() {
+                // 这个函数由外部设置
+            }
+            
+            // 更新设置
+            updateSettings(settings) {
+                if (settings.pixelSize !== undefined) {
+                    this.pixelSize = settings.pixelSize;
+                }
+                
+                if (settings.style !== undefined) {
+                    this.style = settings.style;
+                    // 更新调色板
+                    this.currentPalette = [...this.palettes[this.style] || this.palettes.realistic];
+                }
+                
+                if (settings.complexity !== undefined) {
+                    this.complexity = settings.complexity;
+                }
+                
+                if (settings.mainColor !== undefined) {
+                    this.mainColor = settings.mainColor;
+                    // 将主颜色添加到调色板
+                    if (!this.currentPalette.includes(this.mainColor)) {
+                        this.currentPalette[0] = this.mainColor;
+                    }
+                }
+                
+                if (settings.resolution !== undefined) {
+                    this.resolution = parseInt(settings.resolution);
+                    this.canvas.width = this.resolution;
+                    this.canvas.height = this.resolution;
+                    this.gridCanvas.width = this.resolution;
+                    this.gridCanvas.height = this.resolution;
+                    this.width = this.resolution;
+                    this.height = this.resolution;
+                }
+                
+                if (settings.options !== undefined) {
+                    this.options = {...this.options, ...settings.options};
+                }
+                
+                if (settings.shadingIntensity !== undefined) {
+                    this.shadingIntensity = settings.shadingIntensity;
+                }
+                
+                if (settings.saturation !== undefined) {
+                    this.saturation = settings.saturation;
+                }
+            }
+            
+            // 获取图片数据URL
+            getImageDataURL() {
+                return this.canvas.toDataURL('image/png');
+            }
+            
+            // 下载图片
+            downloadImage() {
+                const link = document.createElement('a');
+                link.download = `hd-pixel-beauty-${Date.now()}.png`;
+                link.href = this.getImageDataURL();
+                link.click();
+            }
+        }
+        
+        // DOM元素
+        const generateBtn = document.getElementById('generate-btn');
+        const regenerateBtn = document.getElementById('regenerate-btn');
+        const downloadBtn = document.getElementById('download-btn');
+        const enhanceBtn = document.getElementById('enhance-btn');
+        const pixelSizeSlider = document.getElementById('pixel-size');
+        const pixelSizeValue = document.getElementById('pixel-size-value');
+        const complexitySlider = document.getElementById('complexity');
+        const complexityValue = document.getElementById('complexity-value');
+        const styleSelect = document.getElementById('style');
+        const resolutionSelect = document.getElementById('resolution');
+        const loadingIndicator = document.getElementById('loading-indicator');
+        const imageIdElement = document.getElementById('image-id');
+        const imageSizeDisplay = document.getElementById('image-size-display');
+        const imageStyleDisplay = document.getElementById('image-style-display');
+        const imageTimeElement = document.getElementById('image-time');
+        const imageDensityElement = document.getElementById('image-density');
+        const generatedCountElement = document.getElementById('generated-count');
+        const pixelCountElement = document.getElementById('pixel-count');
+        const densityIndicator = document.getElementById('density-indicator');
+        const colorPalette = document.getElementById('color-palette');
+        const currentColorElement = document.getElementById('current-color');
+        const randomPaletteBtn = document.getElementById('random-palette');
+        const toast = document.getElementById('toast');
+        const showGridCheckbox = document.getElementById('show-grid');
+        const pixelGridCanvas = document.getElementById('pixel-grid');
+        const shadingIntensitySlider = document.getElementById('shading-intensity');
+        const saturationSlider = document.getElementById('saturation');
+        
+        // 选项复选框
+        const optionHair = document.getElementById('option-hair');
+        const optionClothes = document.getElementById('option-clothes');
+        const optionAccessories = document.getElementById('option-accessories');
+        const optionBackground = document.getElementById('option-background');
+        const optionShading = document.getElementById('option-shading');
+        const optionTexture = document.getElementById('option-texture');
+        
+        // 创建高密度像素生成器实例
+        const pixelGenerator = new HighDensityPixelGenerator('pixel-canvas', 'pixel-grid');
+        
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 初始化UI
+            updatePixelCount();
+            updateColorPalette();
+            updateGeneratedCount();
+            updateDensityIndicator();
+            
+            // 设置生成器回调
+            pixelGenerator.showLoading = function(show) {
+                loadingIndicator.style.display = show ? 'block' : 'none';
+            };
+            
+            pixelGenerator.showToast = function(message) {
+                showToast(message);
+            };
+            
+            pixelGenerator.onGenerationComplete = function() {
+                updateGeneratedCount();
+                updateImageInfo();
+                updateDensityIndicator();
+                
+                // 更新像素网格
+                if (showGridCheckbox.checked) {
+                    pixelGenerator.drawPixelGrid();
+                    pixelGridCanvas.classList.add('active');
+                } else {
+                    pixelGridCanvas.classList.remove('active');
+                }
+                
+                showToast('高清像素图像生成完成！');
+            };
+            
+            // 事件监听
+            generateBtn.addEventListener('click', generateImage);
+            regenerateBtn.addEventListener('click', generateImage);
+            downloadBtn.addEventListener('click', downloadImage);
+            enhanceBtn.addEventListener('click', enhanceImage);
+            randomPaletteBtn.addEventListener('click', generateRandomPalette);
+            
+            // 滑块事件
+            pixelSizeSlider.addEventListener('input', function() {
+                const value = this.value;
+                pixelSizeValue.textContent = value + 'px';
+                updatePixelCount();
+                updateDensityIndicator();
+                updateGeneratorSettings();
+            });
+            
+            complexitySlider.addEventListener('input', function() {
+                complexityValue.textContent = this.value;
+                updateGeneratorSettings();
+            });
+            
+            shadingIntensitySlider.addEventListener('input', updateGeneratorSettings);
+            saturationSlider.addEventListener('input', updateGeneratorSettings);
+            
+            // 选择框事件
+            styleSelect.addEventListener('change', function() {
+                updateGeneratorSettings();
+                updateColorPalette();
+            });
+            
+            resolutionSelect.addEventListener('change', function() {
+                updateGeneratorSettings();
+                updatePixelCount();
+                generateImage();
+            });
+            
+            // 复选框事件
+            optionHair.addEventListener('change', updateGeneratorSettings);
+            optionClothes.addEventListener('change', updateGeneratorSettings);
+            optionAccessories.addEventListener('change', updateGeneratorSettings);
+            optionBackground.addEventListener('change', updateGeneratorSettings);
+            optionShading.addEventListener('change', updateGeneratorSettings);
+            optionTexture.addEventListener('change', updateGeneratorSettings);
+            
+            // 像素网格开关
+            showGridCheckbox.addEventListener('change', function() {
+                if (this.checked) {
+                    pixelGenerator.drawPixelGrid();
+                    pixelGridCanvas.classList.add('active');
+                } else {
+                    pixelGridCanvas.classList.remove('active');
+                }
+            });
+            
+            // 调色板点击事件
+            colorPalette.addEventListener('click', function(e) {
+                if (e.target.classList.contains('color-item')) {
+                    const color = e.target.style.backgroundColor;
+                    const hexColor = rgbToHex(color);
+                    
+                    // 移除所有active类
+                    document.querySelectorAll('.color-item').forEach(item => {
+                        item.classList.remove('active');
+                    });
+                    
+                    // 为当前项添加active类
+                    e.target.classList.add('active');
+                    
+                    // 更新主色
+                    pixelGenerator.updateSettings({mainColor: hexColor});
+                    currentColorElement.textContent = hexColor;
+                    
+                    // 重新生成图片
+                    generateImage();
+                }
+            });
+            
+            // 使调色板可拖拽
+            makePaletteDraggable();
+        });
+        
+        // 生成图片
+        function generateImage() {
+            pixelGenerator.generate();
+        }
+        
+        // 增强图像
+        function enhanceImage() {
+            pixelGenerator.enhanceDetails();
+        }
+        
+        // 更新生成器设置
+        function updateGeneratorSettings() {
+            const settings = {
+                pixelSize: parseInt(pixelSizeSlider.value),
+                style: styleSelect.value,
+                complexity: parseInt(complexitySlider.value),
+                resolution: resolutionSelect.value,
+                shadingIntensity: parseInt(shadingIntensitySlider.value),
+                saturation: parseInt(saturationSlider.value),
+                options: {
+                    hair: optionHair.checked,
+                    clothes: optionClothes.checked,
+                    accessories: optionAccessories.checked,
+                    background: optionBackground.checked,
+                    shading: optionShading.checked,
+                    texture: optionTexture.checked
+                }
+            };
+            
+            pixelGenerator.updateSettings(settings);
+        }
+        
+        // 更新像素计数
+        function updatePixelCount() {
+            const pixelSize = parseInt(pixelSizeSlider.value);
+            const resolution = parseInt(resolutionSelect.value);
+            const pixelCount = Math.floor(resolution / pixelSize) * Math.floor(resolution / pixelSize);
+            const formattedCount = pixelCount.toLocaleString();
+            pixelCountElement.textContent = formattedCount;
+            imageSizeDisplay.textContent = `${resolution}×${resolution}`;
+        }
+        
+        // 更新密度指示器
+        function updateDensityIndicator() {
+            const pixelSize = parseInt(pixelSizeSlider.value);
+            let densityText = '';
+            let densityClass = '';
+            
+            if (pixelSize <= 3) {
+                densityText = '超高密度';
+                densityClass = 'ultra-high';
+            } else if (pixelSize <= 6) {
+                densityText = '高密度';
+                densityClass = 'high';
+            } else if (pixelSize <= 10) {
+                densityText = '中密度';
+                densityClass = 'medium';
+            } else {
+                densityText = '低密度';
+                densityClass = 'low';
+            }
+            
+            densityIndicator.textContent = densityText;
+            densityIndicator.style.background = getDensityGradient(densityClass);
+        }
+        
+        // 获取密度梯度颜色
+        function getDensityGradient(densityClass) {
+            switch(densityClass) {
+                case 'ultra-high':
+                    return 'linear-gradient(135deg, #00FF9D, #00B8FF)';
+                case 'high':
+                    return 'linear-gradient(135deg, #00CEC9, #00b894)';
+                case 'medium':
+                    return 'linear-gradient(135deg, #FFD700, #FFA500)';
+                case 'low':
+                    return 'linear-gradient(135deg, #FF6B6B, #FF8E8E)';
+                default:
+                    return 'linear-gradient(135deg, #00CEC9, #00b894)';
+            }
+        }
+        
+        // 更新生成计数
+        function updateGeneratedCount() {
+            generatedCountElement.textContent = pixelGenerator.generatedCount;
+        }
+        
+        // 更新图片信息
+        function updateImageInfo() {
+            // 生成随机ID
+            const id = 'HD-PXL-' + String(pixelGenerator.generatedCount).padStart(3, '0');
+            imageIdElement.textContent = id;
+            
+            // 更新风格显示
+            const styleMap = {
+                'anime': '动漫风格',
+                'realistic': '写实像素',
+                'fantasy': '奇幻风格',
+                'vintage': '复古像素',
+                'cyberpunk': '赛博朋克'
+            };
+            imageStyleDisplay.textContent = styleMap[pixelGenerator.style] || '写实像素';
+            
+            // 更新像素密度显示
+            imageDensityElement.textContent = pixelGenerator.pixelSize + 'px';
+            
+            // 更新时间
+            const now = new Date();
+            imageTimeElement.textContent = now.toLocaleString('zh-CN');
+        }
+        
+        // 更新颜色调色板显示
+        function updateColorPalette() {
+            colorPalette.innerHTML = '';
+            
+            pixelGenerator.currentPalette.forEach(color => {
+                const colorItem = document.createElement('div');
+                colorItem.className = 'color-item';
+                colorItem.style.backgroundColor = color;
+                colorItem.title = color;
+                colorItem.setAttribute('draggable', 'true');
+                
+                // 检查是否是当前主色
+                if (color === pixelGenerator.mainColor) {
+                    colorItem.classList.add('active');
+                }
+                
+                // 颜色名称
+                const colorName = document.createElement('div');
+                colorName.className = 'color-name';
+                colorName.textContent = color;
+                
+                colorItem.appendChild(colorName);
+                colorPalette.appendChild(colorItem);
+            });
+            
+            // 更新当前主色显示
+            currentColorElement.textContent = pixelGenerator.mainColor;
+        }
+        
+        // 生成智能调色板
+        function generateRandomPalette() {
+            // 根据当前风格生成协调的调色板
+            const baseColor = pixelGenerator.mainColor;
+            const style = pixelGenerator.style;
+            
+            let randomColors = [];
+            
+            // 生成与基础色协调的颜色
+            for (let i = 0; i < 8; i++) {
+                let newColor;
+                
+                if (i === 0) {
+                    newColor = baseColor;
+                } else if (i < 3) {
+                    // 相似色
+                    newColor = adjustColor(baseColor, 30 * i);
+                } else if (i < 6) {
+                    // 互补色
+                    newColor = getComplementaryColor(baseColor, (i-3) * 20);
+                } else {
+                    // 强调色
+                    newColor = getAccentColor(style);
+                }
+                
+                randomColors.push(newColor);
+            }
+            
+            // 更新生成器的调色板
+            pixelGenerator.currentPalette = randomColors;
+            
+            // 更新UI
+            updateColorPalette();
+            
+            // 重新生成图片
+            generateImage();
+            
+            showToast('智能调色板已生成！');
+        }
+        
+        // 调整颜色（色相偏移）
+        function adjustColor(hex, degrees) {
+            // 简化实现 - 实际应用中应使用HSL颜色空间
+            const r = parseInt(hex.substr(1, 2), 16);
+            const g = parseInt(hex.substr(3, 2), 16);
+            const b = parseInt(hex.substr(5, 2), 16);
+            
+            // 简单调整
+            const factor = 1 + degrees / 100;
+            const newR = Math.max(0, Math.min(255, Math.floor(r * factor)));
+            const newG = Math.max(0, Math.min(255, Math.floor(g * factor)));
+            const newB = Math.max(0, Math.min(255, Math.floor(b * factor)));
+            
+            return '#' + 
+                newR.toString(16).padStart(2, '0') +
+                newG.toString(16).padStart(2, '0') +
+                newB.toString(16).padStart(2, '0');
+        }
+        
+        // 获取互补色
+        function getComplementaryColor(hex, offset = 0) {
+            // 简化实现
+            const r = parseInt(hex.substr(1, 2), 16);
+            const g = parseInt(hex.substr(3, 2), 16);
+            const b = parseInt(hex.substr(5, 2), 16);
+            
+            // 简单的互补色计算
+            const newR = (255 - r + offset) % 256;
+            const newG = (255 - g + offset) % 256;
+            const newB = (255 - b + offset) % 256;
+            
+            return '#' + 
+                newR.toString(16).padStart(2, '0') +
+                newG.toString(16).padStart(2, '0') +
+                newB.toString(16).padStart(2, '0');
+        }
+        
+        // 获取强调色（根据风格）
+        function getAccentColor(style) {
+            const accentColors = {
+                anime: ['#FF6EC7', '#00CEC9', '#FFD700'],
+                realistic: ['#8A2BE2', '#00B894', '#FF6B6B'],
+                fantasy: ['#FF00FF', '#00FFFF', '#FFD700'],
+                vintage: ['#8B7355', '#BC8F8F', '#D2B48C'],
+                cyberpunk: ['#00FF9D', '#FF00FF', '#00B8FF']
+            };
+            
+            const colors = accentColors[style] || accentColors.realistic;
+            return colors[Math.floor(Math.random() * colors.length)];
+        }
+        
+        // RGB转HEX
+        function rgbToHex(rgb) {
+            // 处理rgb(r, g, b)格式
+            const result = rgb.match(/\d+/g);
+            if (result) {
+                const r = parseInt(result[0]);
+                const g = parseInt(result[1]);
+                const b = parseInt(result[2]);
+                return '#' + 
+                    r.toString(16).padStart(2, '0') +
+                    g.toString(16).padStart(2, '0') +
+                    b.toString(16).padStart(2, '0');
+            }
+            return '#8A2BE2'; // 默认颜色
+        }
+        
+        // 使调色板可拖拽重新排列
+        function makePaletteDraggable() {
+            let draggedItem = null;
+            
+            colorPalette.addEventListener('dragstart', function(e) {
+                if (e.target.classList.contains('color-item')) {
+                    draggedItem = e.target;
+                    e.dataTransfer.effectAllowed = 'move';
+                    e.dataTransfer.setData('text/html', draggedItem);
+                }
+            });
+            
+            colorPalette.addEventListener('dragover', function(e) {
+                e.preventDefault();
+            });
+            
+            colorPalette.addEventListener('drop', function(e) {
+                e.preventDefault();
+                if (draggedItem && e.target.classList.contains('color-item') && draggedItem !== e.target) {
+                    // 交换两个颜色项的位置
+                    const allItems = Array.from(colorPalette.children);
+                    const draggedIndex = allItems.indexOf(draggedItem);
+                    const targetIndex = allItems.indexOf(e.target);
+                    
+                    if (draggedIndex < targetIndex) {
+                        e.target.after(draggedItem);
+                    } else {
+                        e.target.before(draggedItem);
+                    }
+                    
+                    // 更新调色板顺序
+                    updatePaletteOrder();
+                }
+            });
+        }
+        
+        // 更新调色板顺序
+        function updatePaletteOrder() {
+            const newPalette = [];
+            const colorItems = document.querySelectorAll('.color-item');
+            
+            colorItems.forEach(item => {
+                const color = item.style.backgroundColor;
+                const hexColor = rgbToHex(color);
+                newPalette.push(hexColor);
+            });
+            
+            pixelGenerator.currentPalette = newPalette;
+            showToast('调色板顺序已更新！');
+        }
+        
+        // 下载图片
+        function downloadImage() {
+            pixelGenerator.downloadImage();
+            showToast('高清图片下载开始！');
+        }
+        
+        // 显示提示消息
+        function showToast(message) {
+            toast.textContent = message;
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,1066 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>城市末日：彗星撞地球前最后时刻</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background-color: #000;
+            color: #fff;
+            overflow-x: hidden;
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+        
+        .scene-container {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+        
+        #sceneCanvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            background: #000;
+        }
+        
+        .narrative-overlay {
+            position: relative;
+            z-index: 2;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            pointer-events: none;
+        }
+        
+        .narrative-card {
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            border-left: 5px solid #ff6b35;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            max-width: 800px;
+            pointer-events: auto;
+            transform: translateY(20px);
+            opacity: 0;
+            transition: all 1s ease;
+        }
+        
+        .narrative-card.active {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        
+        .narrative-card h2 {
+            color: #ff6b35;
+            margin-bottom: 15px;
+            font-size: 1.8rem;
+            border-bottom: 1px solid rgba(255, 107, 53, 0.3);
+            padding-bottom: 10px;
+        }
+        
+        .narrative-card p {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            margin-bottom: 15px;
+        }
+        
+        .character {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .character-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-right: 15px;
+            border: 2px solid #ff6b35;
+        }
+        
+        .character-info {
+            flex: 1;
+        }
+        
+        .character-name {
+            font-weight: bold;
+            color: #ff6b35;
+            font-size: 1.2rem;
+        }
+        
+        .character-desc {
+            font-size: 0.9rem;
+            color: #aaa;
+        }
+        
+        .time-display {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 3;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px 25px;
+            border-radius: 10px;
+            text-align: center;
+            border: 1px solid #ff6b35;
+            box-shadow: 0 5px 15px rgba(255, 107, 53, 0.2);
+        }
+        
+        .time-label {
+            font-size: 0.9rem;
+            color: #aaa;
+            margin-bottom: 5px;
+        }
+        
+        .time-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #ff6b35;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .controls {
+            position: fixed;
+            bottom: 20px;
+            left: 0;
+            right: 0;
+            z-index: 3;
+            display: flex;
+            justify-content: center;
+            pointer-events: none;
+        }
+        
+        .controls-inner {
+            display: flex;
+            gap: 15px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px 25px;
+            border-radius: 50px;
+            border: 1px solid rgba(255, 107, 53, 0.3);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+            pointer-events: auto;
+        }
+        
+        .control-btn {
+            background: rgba(255, 107, 53, 0.2);
+            color: #ff6b35;
+            border: 1px solid #ff6b35;
+            padding: 12px 25px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .control-btn:hover {
+            background: rgba(255, 107, 53, 0.4);
+            transform: translateY(-3px);
+        }
+        
+        .control-btn:active {
+            transform: translateY(0);
+        }
+        
+        .sound-control {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 3;
+        }
+        
+        .sound-btn {
+            background: rgba(0, 0, 0, 0.8);
+            color: #ff6b35;
+            border: 1px solid #ff6b35;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+        }
+        
+        .sound-btn:hover {
+            background: rgba(255, 107, 53, 0.2);
+        }
+        
+        .scene-progress {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.1);
+            z-index: 3;
+        }
+        
+        .scene-progress-bar {
+            height: 100%;
+            background: linear-gradient(to right, #ff6b35, #ff9e35);
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+        
+        .scene-indicator {
+            position: fixed;
+            top: 50%;
+            right: 20px;
+            transform: translateY(-50%);
+            z-index: 3;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .scene-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 107, 53, 0.5);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .scene-dot.active {
+            background: #ff6b35;
+            transform: scale(1.3);
+        }
+        
+        .scene-dot:hover {
+            transform: scale(1.3);
+        }
+        
+        .scene-title {
+            position: fixed;
+            top: 20px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            z-index: 3;
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #fff;
+            text-shadow: 0 0 20px rgba(255, 107, 53, 0.7);
+            opacity: 0.9;
+        }
+        
+        .flash-effect {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 1);
+            z-index: 10;
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        .shockwave {
+            position: absolute;
+            border-radius: 50%;
+            border: 2px solid rgba(255, 107, 53, 0.8);
+            z-index: 5;
+            pointer-events: none;
+        }
+        
+        @media (max-width: 768px) {
+            .narrative-card {
+                padding: 20px;
+                margin-bottom: 20px;
+            }
+            
+            .narrative-card h2 {
+                font-size: 1.5rem;
+            }
+            
+            .scene-title {
+                font-size: 1.8rem;
+                top: 10px;
+            }
+            
+            .time-display {
+                top: 10px;
+                right: 10px;
+                padding: 10px 15px;
+            }
+            
+            .controls {
+                bottom: 10px;
+            }
+            
+            .controls-inner {
+                padding: 10px 15px;
+            }
+            
+            .control-btn {
+                padding: 10px 15px;
+                font-size: 0.9rem;
+            }
+        }
+        
+        .fade-in {
+            animation: fadeIn 2s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .typewriter {
+            overflow: hidden;
+            border-right: 3px solid #ff6b35;
+            white-space: nowrap;
+            animation: typing 3.5s steps(40, end), blink-caret 0.75s step-end infinite;
+        }
+        
+        @keyframes typing {
+            from { width: 0 }
+            to { width: 100% }
+        }
+        
+        @keyframes blink-caret {
+            from, to { border-color: transparent }
+            50% { border-color: #ff6b35 }
+        }
+        
+        .glow {
+            text-shadow: 0 0 10px #ff6b35, 0 0 20px #ff6b35, 0 0 30px #ff6b35;
+        }
+    </style>
+</head>
+<body>
+    <div class="scene-container">
+        <canvas id="sceneCanvas"></canvas>
+    </div>
+    
+    <div class="scene-title" id="sceneTitle">彗星撞地球：城市末日时刻</div>
+    
+    <div class="sound-control">
+        <div class="sound-btn" id="soundToggle">
+            <i class="fas fa-volume-up"></i>
+        </div>
+    </div>
+    
+    <div class="time-display">
+        <div class="time-label">撞击倒计时</div>
+        <div class="time-value" id="countdown">03:47</div>
+    </div>
+    
+    <div class="scene-indicator" id="sceneIndicator">
+        <div class="scene-dot active" data-scene="1"></div>
+        <div class="scene-dot" data-scene="2"></div>
+        <div class="scene-dot" data-scene="3"></div>
+        <div class="scene-dot" data-scene="4"></div>
+        <div class="scene-dot" data-scene="5"></div>
+        <div class="scene-dot" data-scene="6"></div>
+    </div>
+    
+    <div class="narrative-overlay" id="narrativeOverlay">
+        <div class="narrative-card active" id="scene1">
+            <div class="character">
+                <div class="character-avatar">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div class="character-info">
+                    <div class="character-name">李明</div>
+                    <div class="character-desc">35岁，软件工程师，市中心公寓</div>
+                </div>
+            </div>
+            <h2>黄昏异常</h2>
+            <p>2045年9月15日，傍晚6点23分。李明像往常一样结束了一天的工作，站在32层公寓的窗前，准备欣赏城市的日落。</p>
+            <p>但今天的黄昏有些不同。西方的天空不是熟悉的橙红色，而是一种诡异的紫红色，像是天空在流血。城市的灯光比往常更早亮起，但有一种不安的沉默笼罩着一切。</p>
+            <p>他的手机突然响起紧急警报声——这已经是今天第三次了。</p>
+        </div>
+        
+        <div class="narrative-card" id="scene2">
+            <div class="character">
+                <div class="character-avatar">
+                    <i class="fas fa-user-friends"></i>
+                </div>
+                <div class="character-info">
+                    <div class="character-name">市民们</div>
+                    <div class="character-desc">城市街道上的普通人</div>
+                </div>
+            </div>
+            <h2>谣言四起</h2>
+            <p>街道上的人们开始聚集，仰头望着天空。手机信号变得不稳定，社交媒体上充斥着混乱的信息：有说是极光异常，有说是太阳风暴，还有更可怕的传言。</p>
+            <p>“听说了吗？新闻上说有颗彗星...”一个路人压低声音说，但后半句被一阵突然响起的警笛声淹没。</p>
+            <p>远处，政府大楼的紧急广播开始响起：“请市民保持冷静，返回室内...”但人群中已经出现了恐慌的迹象。</p>
+        </div>
+        
+        <div class="narrative-card" id="scene3">
+            <div class="character">
+                <div class="character-avatar">
+                    <i class="fas fa-user-astronaut"></i>
+                </div>
+                <div class="character-info">
+                    <div class="character-name">天文观测者</div>
+                    <div class="character-desc">业余天文爱好者，楼顶</div>
+                </div>
+            </div>
+            <h2>天空中的威胁</h2>
+            <p>在城市的一处楼顶，一群天文爱好者架起了望远镜。他们早在两周前就注意到了那个异常的光点，但当局一直说那是正常的天文现象。</p>
+            <p>“它的亮度在过去24小时增加了十倍，”一个年轻人颤抖着说，“轨迹计算显示...它会直接撞击地球。” </p>
+            <p>此刻，即使不用望远镜，也能在夜空中看到一个模糊的光斑，比任何星星都亮，拖着一条诡异的绿色尾巴——一颗直奔地球而来的彗星。</p>
+        </div>
+        
+        <div class="narrative-card" id="scene4">
+            <div class="character">
+                <div class="character-avatar">
+                    <i class="fas fa-user-injured"></i>
+                </div>
+                <div class="character-info">
+                    <div class="character-name">逃亡者</div>
+                    <div class="character-desc">试图逃离城市的人们</div>
+                </div>
+            </div>
+            <h2>大逃亡</h2>
+            <p>消息终于得到官方证实：一颗直径5公里的彗星将在4小时后撞击北大西洋。冲击将引发全球性灾难。</p>
+            <p>街道瞬间陷入混乱。汽车喇叭声、呼喊声、哭泣声交织在一起。高速公路变成了停车场，人们弃车而逃。</p>
+            <p>李明看着楼下混乱的场景，知道无处可逃。他想起远在另一座城市的家人，但电话已经打不通了。他决定留在自己的公寓，面对最后的时刻。</p>
+        </div>
+        
+        <div class="narrative-card" id="scene5">
+            <div class="character">
+                <div class="character-avatar">
+                    <i class="fas fa-user-clock"></i>
+                </div>
+                <div class="character-info">
+                    <div class="character-name">最后时刻</div>
+                    <div class="character-desc">撞击前1小时</div>
+                </div>
+            </div>
+            <h2>最后的宁静</h2>
+            <p>电力中断了，城市陷入黑暗，只有月光和那颗越来越亮的彗星提供照明。奇怪的是，恐慌似乎已经过去，取而代之的是一种诡异的宁静。</p>
+            <p>一些人在街道上拥抱，有些人在祈祷，还有些人只是静静坐着，仰望天空。远处传来隐约的歌声——有人在唱圣歌。</p>
+            <p>李明打开最后一瓶珍藏的红酒，坐在窗前。彗星现在清晰可见，甚至能分辨出它的核心和巨大的彗尾。它美丽而致命。</p>
+        </div>
+        
+        <div class="narrative-card" id="scene6">
+            <div class="character">
+                <div class="character-avatar">
+                    <i class="fas fa-user-last"></i>
+                </div>
+                <div class="character-info">
+                    <div class="character-name">终结</div>
+                    <div class="character-desc">撞击瞬间</div>
+                </div>
+            </div>
+            <h2>白昼降临</h2>
+            <p>彗星现在比满月亮十倍，二十倍，一百倍...夜空亮如白昼，但这不是太阳的光芒，而是死亡的前奏。</p>
+            <p>李明感到一种奇异的平静。他想起自己的一生，那些遗憾，那些快乐，那些未完成的梦想。最后，他想起了初恋的笑容。</p>
+            <p>“再见，世界，”他轻声说，举起酒杯向天空致意。</p>
+            <p>然后，世界变成了纯白色...</p>
+        </div>
+    </div>
+    
+    <div class="controls">
+        <div class="controls-inner">
+            <button class="control-btn" id="prevScene">
+                <i class="fas fa-arrow-left"></i> 上一幕
+            </button>
+            <button class="control-btn" id="nextScene">
+                下一幕 <i class="fas fa-arrow-right"></i>
+            </button>
+            <button class="control-btn" id="replayBtn">
+                <i class="fas fa-redo"></i> 重播
+            </button>
+        </div>
+    </div>
+    
+    <div class="scene-progress">
+        <div class="scene-progress-bar" id="sceneProgress"></div>
+    </div>
+    
+    <div class="flash-effect" id="flashEffect"></div>
+
+    <script>
+        // 初始化Canvas和上下文
+        const canvas = document.getElementById('sceneCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // 设置Canvas尺寸
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        
+        // 初始调整尺寸
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+        
+        // 场景状态
+        let currentScene = 1;
+        const totalScenes = 6;
+        let sceneObjects = [];
+        let comet = {
+            x: canvas.width + 200,
+            y: canvas.height / 2,
+            radius: 5,
+            speed: 0,
+            tail: [],
+            brightness: 0
+        };
+        
+        // 城市建筑
+        let buildings = [];
+        
+        // 初始化城市
+        function initCity() {
+            buildings = [];
+            const buildingCount = Math.min(50, Math.floor(canvas.width / 20));
+            
+            for (let i = 0; i < buildingCount; i++) {
+                const width = Math.random() * 30 + 20;
+                const height = Math.random() * (canvas.height * 0.6) + (canvas.height * 0.2);
+                const x = (i / buildingCount) * canvas.width + Math.random() * 20 - 10;
+                
+                buildings.push({
+                    x,
+                    y: canvas.height - height,
+                    width,
+                    height,
+                    windows: [],
+                    color: `hsl(${Math.random() * 30 + 200}, 30%, ${Math.random() * 10 + 20}%)`
+                });
+            }
+            
+            // 为建筑添加窗户
+            buildings.forEach(building => {
+                building.windows = [];
+                const windowRows = Math.floor(building.height / 30);
+                const windowCols = Math.floor(building.width / 20);
+                
+                for (let row = 0; row < windowRows; row++) {
+                    for (let col = 0; col < windowCols; col++) {
+                        if (Math.random() > 0.3) { // 70%的建筑有窗户
+                            building.windows.push({
+                                x: building.x + col * 20 + 5,
+                                y: building.y + row * 30 + 5,
+                                width: 10,
+                                height: 15,
+                                lit: Math.random() > 0.5
+                            });
+                        }
+                    }
+                }
+            });
+        }
+        
+        // 初始化场景对象
+        function initSceneObjects() {
+            sceneObjects = [];
+            
+            // 添加星星
+            for (let i = 0; i < 200; i++) {
+                sceneObjects.push({
+                    type: 'star',
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height * 0.7,
+                    size: Math.random() * 2 + 0.5,
+                    brightness: Math.random() * 0.5 + 0.5,
+                    twinkle: Math.random() * 0.05
+                });
+            }
+            
+            // 添加云朵
+            for (let i = 0; i < 10; i++) {
+                sceneObjects.push({
+                    type: 'cloud',
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height * 0.3,
+                    width: Math.random() * 100 + 50,
+                    height: Math.random() * 30 + 20,
+                    speed: Math.random() * 0.5 + 0.1,
+                    opacity: Math.random() * 0.3 + 0.1
+                });
+            }
+            
+            // 添加人群
+            for (let i = 0; i < 30; i++) {
+                sceneObjects.push({
+                    type: 'person',
+                    x: Math.random() * canvas.width,
+                    y: canvas.height - 20,
+                    size: Math.random() * 5 + 5,
+                    speed: Math.random() * 0.5 + 0.1,
+                    direction: Math.random() > 0.5 ? 1 : -1
+                });
+            }
+        }
+        
+        // 绘制场景
+        function drawScene() {
+            // 清除画布
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // 绘制天空渐变
+            const skyGradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            
+            // 根据场景调整天空颜色
+            let skyColor1, skyColor2;
+            switch(currentScene) {
+                case 1:
+                    // 黄昏
+                    skyColor1 = '#1a237e';
+                    skyColor2 = '#e65100';
+                    break;
+                case 2:
+                    // 夜晚开始
+                    skyColor1 = '#0d1b3e';
+                    skyColor2 = '#311b92';
+                    break;
+                case 3:
+                case 4:
+                    // 深夜
+                    skyColor1 = '#000428';
+                    skyColor2 = '#004e92';
+                    break;
+                case 5:
+                case 6:
+                    // 彗星照亮
+                    skyColor1 = '#1a0033';
+                    skyColor2 = '#660033';
+                    break;
+                default:
+                    skyColor1 = '#000428';
+                    skyColor2 = '#004e92';
+            }
+            
+            skyGradient.addColorStop(0, skyColor1);
+            skyGradient.addColorStop(1, skyColor2);
+            ctx.fillStyle = skyGradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // 绘制星星
+            sceneObjects.forEach(obj => {
+                if (obj.type === 'star') {
+                    // 星星闪烁效果
+                    const twinkle = Math.sin(Date.now() * 0.001 + obj.x) * obj.twinkle;
+                    const brightness = obj.brightness + twinkle;
+                    
+                    ctx.beginPath();
+                    ctx.arc(obj.x, obj.y, obj.size, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(255, 255, 255, ${brightness})`;
+                    ctx.fill();
+                    
+                    // 如果彗星很亮，星星会变暗
+                    if (comet.brightness > 50) {
+                        ctx.fillStyle = `rgba(255, 255, 255, ${brightness * (1 - comet.brightness / 200)})`;
+                        ctx.fill();
+                    }
+                }
+            });
+            
+            // 绘制云朵
+            sceneObjects.forEach(obj => {
+                if (obj.type === 'cloud') {
+                    ctx.beginPath();
+                    ctx.ellipse(obj.x, obj.y, obj.width/2, obj.height/2, 0, 0, Math.PI * 2);
+                    ctx.ellipse(obj.x + obj.width/3, obj.y - obj.height/3, obj.width/3, obj.height/2, 0, 0, Math.PI * 2);
+                    ctx.ellipse(obj.x - obj.width/3, obj.y - obj.height/4, obj.width/3, obj.height/2, 0, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(255, 255, 255, ${obj.opacity})`;
+                    ctx.fill();
+                    
+                    // 移动云朵
+                    obj.x += obj.speed;
+                    if (obj.x > canvas.width + obj.width) {
+                        obj.x = -obj.width;
+                    }
+                }
+            });
+            
+            // 绘制城市建筑
+            buildings.forEach(building => {
+                // 建筑主体
+                ctx.fillStyle = building.color;
+                ctx.fillRect(building.x, building.y, building.width, building.height);
+                
+                // 建筑窗户
+                building.windows.forEach(window => {
+                    // 根据场景和时间调整窗户亮度
+                    let windowBrightness = 0;
+                    if (currentScene <= 2) {
+                        windowBrightness = window.lit ? 0.8 : 0.1;
+                    } else if (currentScene <= 4) {
+                        windowBrightness = window.lit ? 0.9 : 0;
+                    } else {
+                        // 最后场景，窗户逐渐熄灭
+                        windowBrightness = window.lit ? Math.max(0, 0.7 - (currentScene-4)*0.3) : 0;
+                    }
+                    
+                    if (windowBrightness > 0) {
+                        ctx.fillStyle = `rgba(255, 255, 200, ${windowBrightness})`;
+                        ctx.fillRect(window.x, window.y, window.width, window.height);
+                    }
+                });
+                
+                // 建筑轮廓
+                ctx.strokeStyle = `rgba(0, 0, 0, 0.5)`;
+                ctx.lineWidth = 2;
+                ctx.strokeRect(building.x, building.y, building.width, building.height);
+            });
+            
+            // 绘制街道
+            ctx.fillStyle = '#222';
+            ctx.fillRect(0, canvas.height - 20, canvas.width, 20);
+            
+            // 绘制街道线
+            ctx.strokeStyle = '#555';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([20, 15]);
+            ctx.beginPath();
+            ctx.moveTo(0, canvas.height - 10);
+            ctx.lineTo(canvas.width, canvas.height - 10);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            
+            // 绘制人群
+            sceneObjects.forEach(obj => {
+                if (obj.type === 'person') {
+                    // 根据场景调整人群行为
+                    let personColor = '#333';
+                    let personSpeed = obj.speed;
+                    
+                    if (currentScene <= 2) {
+                        // 正常行走
+                        personColor = '#555';
+                    } else if (currentScene === 3 || currentScene === 4) {
+                        // 恐慌奔跑
+                        personColor = '#777';
+                        personSpeed = obj.speed * 2;
+                    } else {
+                        // 最后静止
+                        personColor = '#444';
+                        personSpeed = 0;
+                    }
+                    
+                    ctx.fillStyle = personColor;
+                    ctx.beginPath();
+                    ctx.arc(obj.x, obj.y, obj.size, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // 移动人物
+                    if (currentScene <= 4) {
+                        obj.x += personSpeed * obj.direction;
+                        if (obj.x < 0 || obj.x > canvas.width) {
+                            obj.direction *= -1;
+                        }
+                    }
+                }
+            });
+            
+            // 绘制彗星
+            if (currentScene >= 3) {
+                // 根据场景设置彗星位置和亮度
+                if (currentScene === 3) {
+                    comet.x = canvas.width * 0.8;
+                    comet.y = canvas.height * 0.2;
+                    comet.radius = 10;
+                    comet.brightness = 30;
+                } else if (currentScene === 4) {
+                    comet.x = canvas.width * 0.6;
+                    comet.y = canvas.height * 0.25;
+                    comet.radius = 20;
+                    comet.brightness = 60;
+                } else if (currentScene === 5) {
+                    comet.x = canvas.width * 0.4;
+                    comet.y = canvas.height * 0.3;
+                    comet.radius = 40;
+                    comet.brightness = 120;
+                } else if (currentScene === 6) {
+                    comet.x = canvas.width * 0.2;
+                    comet.y = canvas.height * 0.35;
+                    comet.radius = 80;
+                    comet.brightness = 200;
+                }
+                
+                // 添加彗星轨迹点
+                comet.tail.unshift({x: comet.x, y: comet.y});
+                if (comet.tail.length > 50) {
+                    comet.tail.pop();
+                }
+                
+                // 绘制彗尾
+                for (let i = 0; i < comet.tail.length; i++) {
+                    const point = comet.tail[i];
+                    const alpha = (comet.tail.length - i) / comet.tail.length * 0.7;
+                    const radius = comet.radius * (i / comet.tail.length) * 0.5;
+                    
+                    const gradient = ctx.createRadialGradient(
+                        point.x, point.y, 0,
+                        point.x, point.y, radius * 2
+                    );
+                    
+                    if (i < comet.tail.length * 0.3) {
+                        gradient.addColorStop(0, `rgba(255, 255, 255, ${alpha})`);
+                        gradient.addColorStop(1, `rgba(100, 200, 255, 0)`);
+                    } else {
+                        gradient.addColorStop(0, `rgba(255, 200, 100, ${alpha})`);
+                        gradient.addColorStop(1, `rgba(255, 100, 50, 0)`);
+                    }
+                    
+                    ctx.fillStyle = gradient;
+                    ctx.beginPath();
+                    ctx.arc(point.x, point.y, radius * 2, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                
+                // 绘制彗核
+                const coreGradient = ctx.createRadialGradient(
+                    comet.x, comet.y, 0,
+                    comet.x, comet.y, comet.radius * 3
+                );
+                coreGradient.addColorStop(0, `rgba(255, 255, 255, 1)`);
+                coreGradient.addColorStop(0.3, `rgba(255, 255, 200, 0.8)`);
+                coreGradient.addColorStop(0.6, `rgba(255, 200, 100, 0.5)`);
+                coreGradient.addColorStop(1, `rgba(255, 100, 50, 0)`);
+                
+                ctx.fillStyle = coreGradient;
+                ctx.beginPath();
+                ctx.arc(comet.x, comet.y, comet.radius * 3, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // 彗核核心
+                ctx.fillStyle = '#fff';
+                ctx.beginPath();
+                ctx.arc(comet.x, comet.y, comet.radius, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // 彗星光照效果
+                if (comet.brightness > 50) {
+                    const glowGradient = ctx.createRadialGradient(
+                        comet.x, comet.y, 0,
+                        comet.x, comet.y, canvas.width
+                    );
+                    glowGradient.addColorStop(0, `rgba(255, 200, 150, ${comet.brightness/300})`);
+                    glowGradient.addColorStop(0.5, `rgba(255, 150, 100, ${comet.brightness/500})`);
+                    glowGradient.addColorStop(1, `rgba(100, 50, 50, 0)`);
+                    
+                    ctx.fillStyle = glowGradient;
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                }
+            }
+            
+            // 最后场景的闪光效果
+            if (currentScene === 6) {
+                const flashIntensity = Math.min(1, (Date.now() % 2000) / 1000);
+                if (flashIntensity > 0.5) {
+                    const flashGradient = ctx.createRadialGradient(
+                        canvas.width * 0.2, canvas.height * 0.35, 0,
+                        canvas.width * 0.2, canvas.height * 0.35, canvas.width
+                    );
+                    flashGradient.addColorStop(0, `rgba(255, 255, 255, ${flashIntensity * 0.3})`);
+                    flashGradient.addColorStop(1, `rgba(255, 255, 255, 0)`);
+                    
+                    ctx.fillStyle = flashGradient;
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                }
+            }
+        }
+        
+        // 场景控制
+        function goToScene(sceneNumber) {
+            if (sceneNumber < 1 || sceneNumber > totalScenes) return;
+            
+            currentScene = sceneNumber;
+            
+            // 更新场景指示器
+            document.querySelectorAll('.scene-dot').forEach((dot, index) => {
+                if (index + 1 === sceneNumber) {
+                    dot.classList.add('active');
+                } else {
+                    dot.classList.remove('active');
+                }
+            });
+            
+            // 更新叙事卡片
+            document.querySelectorAll('.narrative-card').forEach((card, index) => {
+                if (index + 1 === sceneNumber) {
+                    card.classList.add('active');
+                } else {
+                    card.classList.remove('active');
+                }
+            });
+            
+            // 更新进度条
+            const progress = ((sceneNumber - 1) / (totalScenes - 1)) * 100;
+            document.getElementById('sceneProgress').style.width = `${progress}%`;
+            
+            // 更新标题
+            const titles = [
+                "彗星撞地球：城市末日时刻",
+                "黄昏异常",
+                "谣言四起",
+                "天空中的威胁",
+                "大逃亡",
+                "最后的宁静",
+                "白昼降临"
+            ];
+            document.getElementById('sceneTitle').textContent = titles[sceneNumber];
+            
+            // 更新倒计时
+            updateCountdown();
+            
+            // 如果是最后场景，触发闪光效果
+            if (sceneNumber === 6) {
+                const flashEffect = document.getElementById('flashEffect');
+                flashEffect.style.opacity = '0.8';
+                flashEffect.style.transition = 'opacity 3s ease';
+                
+                setTimeout(() => {
+                    flashEffect.style.opacity = '0';
+                }, 1000);
+            }
+        }
+        
+        // 更新倒计时
+        function updateCountdown() {
+            const times = [
+                "04:00",
+                "03:30",
+                "03:00",
+                "02:00",
+                "01:00",
+                "00:00"
+            ];
+            
+            if (currentScene >= 1 && currentScene <= 6) {
+                document.getElementById('countdown').textContent = times[currentScene - 1];
+            }
+        }
+        
+        // 初始化
+        function init() {
+            initCity();
+            initSceneObjects();
+            
+            // 设置初始场景
+            goToScene(1);
+            
+            // 开始动画循环
+            function animate() {
+                drawScene();
+                requestAnimationFrame(animate);
+            }
+            
+            animate();
+        }
+        
+        // 事件监听
+        document.getElementById('nextScene').addEventListener('click', () => {
+            if (currentScene < totalScenes) {
+                goToScene(currentScene + 1);
+            } else {
+                goToScene(1);
+            }
+        });
+        
+        document.getElementById('prevScene').addEventListener('click', () => {
+            if (currentScene > 1) {
+                goToScene(currentScene - 1);
+            }
+        });
+        
+        document.getElementById('replayBtn').addEventListener('click', () => {
+            goToScene(1);
+        });
+        
+        document.querySelectorAll('.scene-dot').forEach(dot => {
+            dot.addEventListener('click', () => {
+                const sceneNumber = parseInt(dot.getAttribute('data-scene'));
+                goToScene(sceneNumber);
+            });
+        });
+        
+        // 声音控制
+        let soundEnabled = true;
+        document.getElementById('soundToggle').addEventListener('click', () => {
+            soundEnabled = !soundEnabled;
+            const icon = document.querySelector('#soundToggle i');
+            if (soundEnabled) {
+                icon.className = 'fas fa-volume-up';
+                // 这里可以添加声音播放代码
+            } else {
+                icon.className = 'fas fa-volume-mute';
+                // 这里可以添加声音暂停代码
+            }
+        });
+        
+        // 键盘控制
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === ' ') {
+                if (currentScene < totalScenes) {
+                    goToScene(currentScene + 1);
+                }
+                e.preventDefault();
+            } else if (e.key === 'ArrowLeft') {
+                if (currentScene > 1) {
+                    goToScene(currentScene - 1);
+                }
+                e.preventDefault();
+            } else if (e.key === 'Home') {
+                goToScene(1);
+            } else if (e.key === 'End') {
+                goToScene(totalScenes);
+            }
+        });
+        
+        // 初始化应用
+        init();
+        
+        // 添加开场动画
+        window.addEventListener('load', () => {
+            document.getElementById('sceneTitle').classList.add('fade-in');
+            
+            setTimeout(() => {
+                document.getElementById('sceneTitle').classList.remove('fade-in');
+            }, 3000);
+        });
+    </script>
+</body>
+</html>
