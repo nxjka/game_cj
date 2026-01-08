@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DEFLATE分段压缩解压工具 - 修复版</title>
+    <title>DEFLATE分段压缩解压工具 - 支持文件夹压缩</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
@@ -65,6 +66,34 @@
             font-weight: bold;
         }
         
+        .mode-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            justify-content: center;
+        }
+        
+        .mode-btn {
+            padding: 10px 20px;
+            border: 2px solid #4a6ee0;
+            background-color: white;
+            color: #4a6ee0;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .mode-btn.active {
+            background-color: #4a6ee0;
+            color: white;
+        }
+        
+        .mode-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
         .app-container {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -114,6 +143,7 @@
             margin-bottom: 25px;
             cursor: pointer;
             transition: all 0.3s ease;
+            position: relative;
         }
         
         .upload-area:hover {
@@ -133,6 +163,13 @@
             margin-bottom: 10px;
         }
         
+        .folder-upload-hint {
+            font-size: 0.9rem;
+            color: #4a6ee0;
+            margin-top: 10px;
+            font-weight: 600;
+        }
+        
         .file-info {
             background-color: #f8f9fa;
             border-radius: 8px;
@@ -149,6 +186,33 @@
             display: flex;
             justify-content: space-between;
             margin-bottom: 8px;
+        }
+        
+        .folder-info {
+            max-height: 200px;
+            overflow-y: auto;
+            margin-top: 10px;
+        }
+        
+        .folder-item {
+            padding: 5px 10px;
+            border-bottom: 1px solid #eee;
+            font-size: 0.9rem;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .folder-path {
+            color: #666;
+            font-family: monospace;
+            word-break: break-all;
+        }
+        
+        .folder-size {
+            color: #4a6ee0;
+            font-weight: bold;
+            min-width: 80px;
+            text-align: right;
         }
         
         .settings {
@@ -202,6 +266,7 @@
         .buttons {
             display: flex;
             gap: 15px;
+            flex-wrap: wrap;
         }
         
         .btn {
@@ -217,6 +282,7 @@
             justify-content: center;
             gap: 10px;
             transition: all 0.3s ease;
+            min-width: 150px;
         }
         
         .btn-primary {
@@ -471,16 +537,32 @@
             .performance-metrics {
                 grid-template-columns: 1fr;
             }
+            
+            .buttons {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+            }
         }
         
-        .debug-info {
-            background-color: #f8f9fa;
-            border-radius: 8px;
-            padding: 10px;
-            margin-top: 10px;
-            font-size: 0.8rem;
-            color: #666;
-            font-family: monospace;
+        .format-selector {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+        
+        .format-option {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+        }
+        
+        .format-radio {
+            accent-color: #4a6ee0;
         }
     </style>
 </head>
@@ -491,33 +573,58 @@
                 <i class="fas fa-file-archive logo-icon"></i>
                 <h1>DEFLATE分段压缩解压工具</h1>
             </div>
-            <p class="subtitle">基于<span class="highlight">pako.js实现DEFLATE算法</span>，支持<span class="highlight">分段压缩/解压</span>，可处理大文件并显示实时性能指标</p>
+            <p class="subtitle">支持<span class="highlight">单个文件压缩</span>和<span class="highlight">文件夹打包压缩</span>，基于pako.js和JSZip实现</p>
         </header>
+        
+        <div class="mode-selector" id="mode-selector">
+            <button class="mode-btn active" data-mode="single">单个文件压缩</button>
+            <button class="mode-btn" data-mode="folder">文件夹压缩</button>
+        </div>
         
         <div class="app-container">
             <!-- 压缩部分 -->
             <div class="card">
                 <h2 class="card-title"><i class="fas fa-compress-alt"></i> 压缩文件</h2>
                 
+                <div class="format-selector" id="compress-format-selector">
+                    <div class="format-option">
+                        <input type="radio" id="format-deflate" name="compress-format" class="format-radio" value="deflate" checked>
+                        <label for="format-deflate">DEFLATE格式（单个文件）</label>
+                    </div>
+                    <div class="format-option">
+                        <input type="radio" id="format-zip" name="compress-format" class="format-radio" value="zip">
+                        <label for="format-zip">ZIP格式（支持文件夹）</label>
+                    </div>
+                </div>
+                
                 <div class="upload-area" id="compress-upload">
                     <i class="fas fa-cloud-upload-alt upload-icon"></i>
-                    <p class="upload-text">点击或拖拽文件到此处上传</p>
-                    <p>支持所有文件类型</p>
+                    <p class="upload-text" id="compress-upload-text">点击或拖拽文件到此处上传</p>
+                    <p id="compress-upload-hint">支持所有文件类型</p>
+                    <p class="folder-upload-hint" id="folder-hint" style="display: none;">
+                        <i class="fas fa-folder-open"></i> 可选择整个文件夹（需使用文件夹选择模式）
+                    </p>
                 </div>
                 
                 <div class="file-info" id="compress-file-info">
                     <div class="file-info-row">
-                        <span>文件名:</span>
-                        <span id="compress-filename">未选择文件</span>
+                        <span>文件/文件夹:</span>
+                        <span id="compress-filename">未选择</span>
                     </div>
                     <div class="file-info-row">
-                        <span>文件大小:</span>
+                        <span>文件数量:</span>
+                        <span id="compress-filecount">0</span>
+                    </div>
+                    <div class="file-info-row">
+                        <span>总大小:</span>
                         <span id="compress-filesize">0 KB</span>
                     </div>
                     <div class="file-info-row">
-                        <span>文件类型:</span>
-                        <span id="compress-filetype">未知</span>
+                        <span>压缩格式:</span>
+                        <span id="compress-filetype">DEFLATE</span>
                     </div>
+                    
+                    <div class="folder-info" id="folder-info" style="display: none;"></div>
                 </div>
                 
                 <div class="settings">
@@ -562,6 +669,9 @@
                     <button class="btn btn-secondary" id="cancel-compress-btn" disabled>
                         <i class="fas fa-stop-circle"></i> 取消
                     </button>
+                    <button class="btn btn-secondary" id="test-compress">
+                        <i class="fas fa-vial"></i> 测试压缩
+                    </button>
                 </div>
                 
                 <div class="loading" id="compress-loading">
@@ -596,7 +706,7 @@
                             <span id="compress-time">0 秒</span>
                         </div>
                         <div class="result-row">
-                            <span>分段数量:</span>
+                            <span>文件数量:</span>
                             <span id="segment-count">0</span>
                         </div>
                         <div class="result-row">
@@ -609,9 +719,6 @@
                         <button class="btn btn-primary" id="download-compressed">
                             <i class="fas fa-download"></i> 下载压缩文件
                         </button>
-                        <button class="btn btn-secondary" id="test-compress">
-                            <i class="fas fa-vial"></i> 测试压缩
-                        </button>
                     </div>
                 </div>
             </div>
@@ -623,7 +730,7 @@
                 <div class="upload-area" id="decompress-upload">
                     <i class="fas fa-cloud-upload-alt upload-icon"></i>
                     <p class="upload-text">点击或拖拽压缩文件到此处上传</p>
-                    <p>支持 .deflate 格式</p>
+                    <p>支持 .deflate 和 .zip 格式</p>
                 </div>
                 
                 <div class="file-info" id="decompress-file-info">
@@ -638,6 +745,10 @@
                     <div class="file-info-row">
                         <span>压缩格式:</span>
                         <span id="decompress-format">未知</span>
+                    </div>
+                    <div class="file-info-row" id="zip-content-info" style="display: none;">
+                        <span>ZIP内容:</span>
+                        <span id="zip-filecount">0 个文件</span>
                     </div>
                 </div>
                 
@@ -662,6 +773,9 @@
                     </button>
                     <button class="btn btn-secondary" id="cancel-decompress-btn" disabled>
                         <i class="fas fa-stop-circle"></i> 取消
+                    </button>
+                    <button class="btn btn-secondary" id="test-decompress">
+                        <i class="fas fa-vial"></i> 测试解压
                     </button>
                 </div>
                 
@@ -689,7 +803,7 @@
                             <span id="decompressed-size">0 KB</span>
                         </div>
                         <div class="result-row">
-                            <span>原始文件名:</span>
+                            <span>文件/文件夹:</span>
                             <span id="original-filename">未知</span>
                         </div>
                         <div class="result-row">
@@ -697,7 +811,7 @@
                             <span id="decompress-time">0 秒</span>
                         </div>
                         <div class="result-row">
-                            <span>分段数量:</span>
+                            <span>文件数量:</span>
                             <span id="decompress-segment-count">0</span>
                         </div>
                         <div class="result-row">
@@ -710,8 +824,8 @@
                         <button class="btn btn-primary" id="download-decompressed">
                             <i class="fas fa-download"></i> 下载解压文件
                         </button>
-                        <button class="btn btn-secondary" id="test-decompress">
-                            <i class="fas fa-vial"></i> 测试解压
+                        <button class="btn btn-secondary" id="download-zip-folder" style="display: none;">
+                            <i class="fas fa-folder-download"></i> 下载ZIP包
                         </button>
                     </div>
                 </div>
@@ -719,32 +833,32 @@
         </div>
         
         <div class="algorithm-info">
-            <h3>DEFLATE分段压缩算法 - 实际实现</h3>
-            <p>本工具使用pako.js库实现DEFLATE算法，该算法结合了LZ77压缩和霍夫曼编码，是ZIP、GZIP等格式的核心算法。通过分段处理优化大文件压缩/解压性能：</p>
+            <h3>DEFLATE分段压缩算法 - 支持文件夹压缩</h3>
+            <p>本工具使用pako.js实现DEFLATE算法，JSZip库实现ZIP格式，支持两种压缩模式：</p>
             
             <div class="info-grid">
                 <div class="info-item">
-                    <h4><i class="fas fa-tachometer-alt"></i> 实际压缩算法</h4>
-                    <p>使用pako.js实现的DEFLATE算法，支持原始数据压缩/解压，与标准ZIP/GZIP兼容。</p>
+                    <h4><i class="fas fa-file"></i> 单个文件压缩</h4>
+                    <p>使用DEFLATE算法直接压缩单个文件，生成.deflate格式文件，保持原始DEFLATE压缩率。</p>
                 </div>
                 <div class="info-item">
-                    <h4><i class="fas fa-microchip"></i> 性能监控</h4>
-                    <p>实时显示压缩/解压速度、内存使用情况和吞吐量等性能指标。</p>
+                    <h4><i class="fas fa-folder"></i> 文件夹压缩</h4>
+                    <p>使用JSZip库打包文件夹，内部使用DEFLATE算法压缩每个文件，生成标准ZIP格式文件。</p>
                 </div>
                 <div class="info-item">
-                    <h4><i class="fas fa-file-archive"></i> 自定义文件格式</h4>
-                    <p>使用自定义头部存储文件元数据和分段信息，支持恢复原始文件名和属性。</p>
+                    <h4><i class="fas fa-sitemap"></i> 文件夹结构保持</h4>
+                    <p>ZIP格式能够保持文件夹层级结构，解压后可以恢复原始目录布局。</p>
                 </div>
                 <div class="info-item">
-                    <h4><i class="fas fa-chart-line"></i> 真实性能优化</h4>
-                    <p>分段处理减少内存占用，支持Web Workers（可选）实现后台处理不阻塞UI。</p>
+                    <h4><i class="fas fa-shield-alt"></i> 浏览器安全限制</h4>
+                    <p>由于浏览器安全限制，不能直接读取文件夹，需要通过特殊方法获取文件夹内容。</p>
                 </div>
             </div>
         </div>
         
         <footer>
-            <p>DEFLATE分段压缩解压工具 &copy; 2023 | 基于pako.js实现DEFLATE算法</p>
-            <p>注意：本工具完全在浏览器端运行，不会上传任何文件到服务器</p>
+            <p>DEFLATE分段压缩解压工具 &copy; 2023 | 支持单个文件和文件夹压缩</p>
+            <p>注意：由于浏览器安全限制，文件夹压缩需要用户主动选择文件夹，不能自动遍历目录</p>
         </footer>
     </div>
     
@@ -753,24 +867,15 @@
     <script>
         // 全局变量
         let compressFile = null;
+        let compressFiles = []; // 用于存储多个文件（文件夹）
         let decompressFile = null;
-        let compressChunks = [];
-        let decompressChunks = [];
+        let compressMode = 'single'; // 'single' 或 'folder'
+        let compressFormat = 'deflate'; // 'deflate' 或 'zip'
         let isCompressing = false;
         let isDecompressing = false;
         let compressCancelled = false;
         let decompressCancelled = false;
-        let compressStartTime = 0; // 修复：明确定义compressStartTime变量
-        
-        // 自定义文件格式头部
-        const FILE_HEADER = {
-            MAGIC: "DFLT", // 魔数
-            VERSION: 1,    // 版本号
-            ORIGINAL_FILE_NAME: "", // 原始文件名
-            ORIGINAL_FILE_SIZE: 0,  // 原始文件大小
-            SEGMENT_COUNT: 0,       // 分段数量
-            SEGMENTS: []            // 分段信息
-        };
+        let compressStartTime = 0;
         
         // DOM元素
         const compressUpload = document.getElementById('compress-upload');
@@ -794,11 +899,12 @@
         const compressMetrics = document.getElementById('compress-metrics');
         const decompressMetrics = document.getElementById('decompress-metrics');
         const toast = document.getElementById('toast');
-        
-        // 性能监控变量
-        let compressProcessedBytes = 0;
-        let decompressStartTime = 0;
-        let decompressProcessedBytes = 0;
+        const folderInfo = document.getElementById('folder-info');
+        const folderHint = document.getElementById('folder-hint');
+        const compressUploadText = document.getElementById('compress-upload-text');
+        const compressUploadHint = document.getElementById('compress-upload-hint');
+        const modeSelector = document.getElementById('mode-selector');
+        const compressFormatSelector = document.getElementById('compress-format-selector');
         
         // 初始化
         document.addEventListener('DOMContentLoaded', function() {
@@ -814,6 +920,22 @@
             setupFileUpload(compressUpload, handleCompressFileUpload);
             setupFileUpload(decompressUpload, handleDecompressFileUpload);
             
+            // 模式选择
+            modeSelector.addEventListener('click', (e) => {
+                if (e.target.classList.contains('mode-btn')) {
+                    const mode = e.target.dataset.mode;
+                    setCompressMode(mode);
+                }
+            });
+            
+            // 格式选择
+            compressFormatSelector.addEventListener('change', (e) => {
+                if (e.target.name === 'compress-format') {
+                    compressFormat = e.target.value;
+                    updateFormatDisplay();
+                }
+            });
+            
             // 按钮事件
             compressBtn.addEventListener('click', startCompression);
             decompressBtn.addEventListener('click', startDecompression);
@@ -822,7 +944,8 @@
             
             document.getElementById('download-compressed').addEventListener('click', downloadCompressedFile);
             document.getElementById('download-decompressed').addEventListener('click', downloadDecompressedFile);
-            document.getElementById('test-compress').addEventListener('click', generateTestFile);
+            document.getElementById('download-zip-folder').addEventListener('click', downloadZipFolder);
+            document.getElementById('test-compress').addEventListener('click', generateTestFiles);
             document.getElementById('test-decompress').addEventListener('click', testDecompression);
             
             // 初始化分段显示
@@ -832,8 +955,49 @@
             // 初始化性能监控
             initPerformanceMonitoring();
             
-            showToast('DEFLATE压缩解压工具已加载，基于pako.js实现', 'warning');
+            showToast('DEFLATE压缩解压工具已加载，支持文件夹压缩', 'warning');
         });
+        
+        // 设置压缩模式
+        function setCompressMode(mode) {
+            compressMode = mode;
+            
+            // 更新按钮状态
+            document.querySelectorAll('.mode-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`[data-mode="${mode}"]`).classList.add('active');
+            
+            // 更新界面显示
+            if (mode === 'folder') {
+                compressUploadText.textContent = '点击或拖拽文件夹到此处上传';
+                compressUploadHint.textContent = '支持选择整个文件夹';
+                folderHint.style.display = 'block';
+                document.getElementById('format-zip').checked = true;
+                compressFormat = 'zip';
+            } else {
+                compressUploadText.textContent = '点击或拖拽文件到此处上传';
+                compressUploadHint.textContent = '支持所有文件类型';
+                folderHint.style.display = 'none';
+            }
+            
+            updateFormatDisplay();
+            
+            // 清空之前的选择
+            compressFile = null;
+            compressFiles = [];
+            compressFileInfo.classList.remove('active');
+            folderInfo.style.display = 'none';
+            compressBtn.disabled = true;
+            
+            showToast(`已切换到${mode === 'folder' ? '文件夹' : '单个文件'}压缩模式`);
+        }
+        
+        // 更新格式显示
+        function updateFormatDisplay() {
+            document.getElementById('compress-filetype').textContent = 
+                compressFormat === 'zip' ? 'ZIP（支持文件夹）' : 'DEFLATE（单个文件）';
+        }
         
         // 更新分段大小显示
         function updateChunkSizeValue() {
@@ -858,12 +1022,24 @@
             uploadArea.addEventListener('click', () => {
                 const input = document.createElement('input');
                 input.type = 'file';
-                input.accept = uploadArea.id === 'decompress-upload' ? '.deflate,.gz,.zip' : '*';
+                
+                if (uploadArea.id === 'decompress-upload') {
+                    input.accept = '.deflate,.zip,.gz';
+                } else if (compressMode === 'folder') {
+                    // 文件夹选择模式
+                    input.setAttribute('webkitdirectory', '');
+                    input.setAttribute('directory', '');
+                    input.setAttribute('multiple', '');
+                } else {
+                    input.accept = '*';
+                    input.multiple = compressFormat === 'zip'; // ZIP格式允许多文件
+                }
+                
                 input.click();
                 
                 input.addEventListener('change', (e) => {
                     if (e.target.files.length > 0) {
-                        callback(e.target.files[0]);
+                        callback(e.target.files);
                     }
                 });
             });
@@ -886,52 +1062,195 @@
                 uploadArea.style.borderColor = '#d1d8e0';
                 uploadArea.style.backgroundColor = 'white';
                 
-                if (e.dataTransfer.files.length > 0) {
-                    callback(e.dataTransfer.files[0]);
+                if (e.dataTransfer.items) {
+                    // 处理文件夹拖拽（仅限Chrome）
+                    const items = e.dataTransfer.items;
+                    const files = [];
+                    
+                    for (let i = 0; i < items.length; i++) {
+                        const item = items[i];
+                        if (item.kind === 'file') {
+                            const entry = item.webkitGetAsEntry();
+                            if (entry) {
+                                if (entry.isFile) {
+                                    files.push(item.getAsFile());
+                                } else if (entry.isDirectory && compressMode === 'folder') {
+                                    // 处理文件夹
+                                    traverseDirectory(entry, '', files).then(() => {
+                                        callback(files);
+                                    });
+                                    return;
+                                }
+                            }
+                        }
+                    }
+                    
+                    if (files.length > 0) {
+                        callback(files);
+                    }
+                } else if (e.dataTransfer.files.length > 0) {
+                    callback(e.dataTransfer.files);
                 }
             });
         }
         
+        // 遍历目录（用于拖拽文件夹）
+        async function traverseDirectory(entry, path, fileList) {
+            if (entry.isFile) {
+                return new Promise((resolve) => {
+                    entry.file((file) => {
+                        file.relativePath = path + file.name;
+                        fileList.push(file);
+                        resolve();
+                    });
+                });
+            } else if (entry.isDirectory) {
+                const dirReader = entry.createReader();
+                const entries = await new Promise((resolve) => {
+                    dirReader.readEntries(resolve);
+                });
+                
+                for (let i = 0; i < entries.length; i++) {
+                    await traverseDirectory(entries[i], path + entry.name + '/', fileList);
+                }
+            }
+        }
+        
         // 处理压缩文件上传
-        function handleCompressFileUpload(file) {
-            compressFile = file;
-            
-            // 更新文件信息显示
-            document.getElementById('compress-filename').textContent = file.name;
-            document.getElementById('compress-filesize').textContent = formatFileSize(file.size);
-            document.getElementById('compress-filetype').textContent = file.type || getFileExtension(file.name);
+        function handleCompressFileUpload(files) {
+            if (compressMode === 'single' && compressFormat === 'deflate') {
+                // 单个文件DEFLATE模式
+                if (files.length > 1) {
+                    showToast('DEFLATE格式只支持单个文件，已选择第一个文件', 'warning');
+                }
+                compressFile = files[0];
+                compressFiles = [compressFile];
+                
+                updateSingleFileInfo(compressFile);
+            } else {
+                // 多文件或ZIP模式
+                compressFiles = Array.from(files);
+                
+                if (compressMode === 'single' && compressFiles.length === 1) {
+                    compressFile = compressFiles[0];
+                    updateSingleFileInfo(compressFile);
+                } else {
+                    updateMultipleFilesInfo(compressFiles);
+                }
+            }
             
             compressFileInfo.classList.add('active');
             compressBtn.disabled = false;
             compressResult.classList.remove('active');
             
-            // 计算分段数量并更新显示
-            const chunkSize = parseInt(chunkSizeSlider.value) * 1024;
-            const chunkCount = Math.ceil(file.size / chunkSize);
-            updateSegmentsDisplay(compressSegments, chunkCount);
+            // 计算分段数量并更新显示（对于多文件，显示文件数量）
+            const chunkCount = compressFiles.length;
+            updateSegmentsDisplay(compressSegments, Math.min(chunkCount, 50)); // 最多显示50个分段
             
-            showToast(`文件 "${file.name}" 已准备就绪，可以开始压缩`);
+            showToast(`已选择${compressFiles.length}个文件，可以开始压缩`);
+        }
+        
+        // 更新单个文件信息
+        function updateSingleFileInfo(file) {
+            document.getElementById('compress-filename').textContent = file.name;
+            document.getElementById('compress-filecount').textContent = '1';
+            document.getElementById('compress-filesize').textContent = formatFileSize(file.size);
+            document.getElementById('compress-filetype').textContent = 
+                compressFormat === 'zip' ? 'ZIP（单个文件）' : 'DEFLATE';
+            
+            folderInfo.style.display = 'none';
+        }
+        
+        // 更新多个文件信息
+        function updateMultipleFilesInfo(files) {
+            const totalSize = files.reduce((sum, file) => sum + file.size, 0);
+            const folderName = files.length > 0 ? 
+                (files[0].webkitRelativePath ? files[0].webkitRelativePath.split('/')[0] : '文件夹') : 
+                '文件夹';
+            
+            document.getElementById('compress-filename').textContent = `${folderName} (${files.length}个文件)`;
+            document.getElementById('compress-filecount').textContent = files.length;
+            document.getElementById('compress-filesize').textContent = formatFileSize(totalSize);
+            document.getElementById('compress-filetype').textContent = 'ZIP（多文件）';
+            
+            // 显示文件列表（最多显示10个）
+            folderInfo.innerHTML = '';
+            const maxDisplay = 10;
+            for (let i = 0; i < Math.min(files.length, maxDisplay); i++) {
+                const file = files[i];
+                const div = document.createElement('div');
+                div.className = 'folder-item';
+                div.innerHTML = `
+                    <span class="folder-path">${file.name || file.webkitRelativePath || `文件${i+1}`}</span>
+                    <span class="folder-size">${formatFileSize(file.size)}</span>
+                `;
+                folderInfo.appendChild(div);
+            }
+            
+            if (files.length > maxDisplay) {
+                const div = document.createElement('div');
+                div.className = 'folder-item';
+                div.innerHTML = `<span class="folder-path">... 还有${files.length - maxDisplay}个文件</span>`;
+                folderInfo.appendChild(div);
+            }
+            
+            folderInfo.style.display = 'block';
         }
         
         // 处理解压文件上传
-        function handleDecompressFileUpload(file) {
-            decompressFile = file;
+        function handleDecompressFileUpload(files) {
+            if (files.length > 1) {
+                showToast('每次只能解压一个文件，已选择第一个文件', 'warning');
+            }
+            
+            decompressFile = files[0];
             
             // 更新文件信息显示
-            document.getElementById('decompress-filename').textContent = file.name;
-            document.getElementById('decompress-filesize').textContent = formatFileSize(file.size);
-            document.getElementById('decompress-format').textContent = getFileExtension(file.name).toUpperCase() + ' 格式';
+            document.getElementById('decompress-filename').textContent = decompressFile.name;
+            document.getElementById('decompress-filesize').textContent = formatFileSize(decompressFile.size);
+            
+            // 检测文件格式
+            const fileName = decompressFile.name.toLowerCase();
+            let format = '未知';
+            if (fileName.endsWith('.deflate')) {
+                format = 'DEFLATE 格式';
+                document.getElementById('zip-content-info').style.display = 'none';
+            } else if (fileName.endsWith('.zip')) {
+                format = 'ZIP 格式';
+                // 尝试读取ZIP文件信息
+                readZipInfo(decompressFile);
+            } else {
+                format = '未知格式（尝试作为DEFLATE处理）';
+                document.getElementById('zip-content-info').style.display = 'none';
+            }
+            
+            document.getElementById('decompress-format').textContent = format;
             
             decompressFileInfo.classList.add('active');
             decompressBtn.disabled = false;
             decompressResult.classList.remove('active');
             
-            showToast(`压缩文件 "${file.name}" 已准备就绪，可以开始解压`);
+            showToast(`压缩文件 "${decompressFile.name}" 已准备就绪，可以开始解压`);
+        }
+        
+        // 读取ZIP文件信息
+        async function readZipInfo(file) {
+            try {
+                const arrayBuffer = await readFileAsArrayBuffer(file);
+                const zip = await JSZip.loadAsync(arrayBuffer);
+                const fileCount = Object.keys(zip.files).length;
+                document.getElementById('zip-filecount').textContent = `${fileCount} 个文件`;
+                document.getElementById('zip-content-info').style.display = 'flex';
+            } catch (error) {
+                console.error('读取ZIP信息失败:', error);
+            }
         }
         
         // 开始压缩
         async function startCompression() {
-            if (!compressFile || isCompressing) return;
+            if ((compressMode === 'single' && !compressFile) || 
+                (compressMode === 'folder' && compressFiles.length === 0) ||
+                isCompressing) return;
             
             isCompressing = true;
             compressCancelled = false;
@@ -941,85 +1260,28 @@
             compressResult.classList.remove('active');
             compressMetrics.style.display = 'grid';
             
-            const chunkSize = parseInt(chunkSizeSlider.value) * 1024;
-            const compressionLevel = parseInt(compressionLevelSlider.value);
-            const chunkCount = Math.ceil(compressFile.size / chunkSize);
-            
             // 重置进度和性能监控
             updateProgress('compress', 0);
-            updateSegmentsDisplay(compressSegments, chunkCount);
             resetPerformanceMetrics('compress');
             
-            // 开始计时 - 修复：使用compressStartTime变量
+            // 开始计时
             compressStartTime = Date.now();
-            compressProcessedBytes = 0;
             
             try {
-                // 读取文件为ArrayBuffer
-                const arrayBuffer = await readFileAsArrayBuffer(compressFile);
+                let compressedFile;
                 
-                // 创建文件头
-                const header = {
-                    ...FILE_HEADER,
-                    ORIGINAL_FILE_NAME: compressFile.name,
-                    ORIGINAL_FILE_SIZE: compressFile.size,
-                    SEGMENT_COUNT: chunkCount,
-                    SEGMENTS: []
-                };
-                
-                // 分段压缩
-                const compressedChunks = [];
-                let totalCompressedSize = 0;
-                
-                for (let i = 0; i < chunkCount; i++) {
-                    if (compressCancelled) {
-                        throw new Error('压缩已取消');
-                    }
-                    
-                    // 计算当前分段的偏移量和大小
-                    const start = i * chunkSize;
-                    const end = Math.min(start + chunkSize, compressFile.size);
-                    const chunkLength = end - start;
-                    
-                    // 获取当前分段的数据
-                    const chunkData = arrayBuffer.slice(start, end);
-                    
-                    // 更新分段显示状态
-                    updateSegmentStatus(compressSegments, i, 'compressing');
-                    
-                    // 使用pako进行DEFLATE压缩
-                    const compressedData = pako.deflate(new Uint8Array(chunkData), { level: compressionLevel });
-                    
-                    // 更新性能监控
-                    compressProcessedBytes += chunkLength;
-                    updatePerformanceMetrics('compress', compressProcessedBytes, compressStartTime);
-                    
-                    // 保存压缩后的数据和分段信息
-                    compressedChunks.push(compressedData);
-                    header.SEGMENTS.push({
-                        originalSize: chunkLength,
-                        compressedSize: compressedData.length,
-                        offset: totalCompressedSize
-                    });
-                    
-                    totalCompressedSize += compressedData.length;
-                    
-                    // 更新进度
-                    const progress = Math.round(((i + 1) / chunkCount) * 100);
-                    updateProgress('compress', progress);
-                    
-                    // 更新分段显示状态
-                    updateSegmentStatus(compressSegments, i, 'processed');
-                    
-                    // 让出控制权，避免UI阻塞
-                    await delay(10);
+                if (compressFormat === 'zip' || compressFiles.length > 1) {
+                    // 使用ZIP格式压缩（多文件或文件夹）
+                    compressedFile = await compressWithZip();
+                } else {
+                    // 使用DEFLATE格式压缩（单个文件）
+                    compressedFile = await compressWithDeflate();
                 }
                 
-                // 构建最终文件
-                const finalFile = createCompressedFile(header, compressedChunks);
-                
-                // 完成压缩 - 修复：传递compressStartTime参数
-                finishCompression(finalFile, header, chunkCount, compressStartTime);
+                if (!compressCancelled) {
+                    // 完成压缩
+                    finishCompression(compressedFile);
+                }
                 
             } catch (error) {
                 if (error.message === '压缩已取消') {
@@ -1036,105 +1298,179 @@
             }
         }
         
-        // 开始解压
-        async function startDecompression() {
-            if (!decompressFile || isDecompressing) return;
+        // 使用DEFLATE压缩单个文件
+        async function compressWithDeflate() {
+            if (!compressFile) throw new Error('没有选择文件');
             
-            isDecompressing = true;
-            decompressCancelled = false;
-            decompressBtn.disabled = true;
-            cancelDecompressBtn.disabled = false;
-            decompressLoading.classList.add('active');
-            decompressResult.classList.remove('active');
-            decompressMetrics.style.display = 'grid';
+            const chunkSize = parseInt(chunkSizeSlider.value) * 1024;
+            const compressionLevel = parseInt(compressionLevelSlider.value);
+            const chunkCount = Math.ceil(compressFile.size / chunkSize);
             
-            // 重置进度和性能监控
-            updateProgress('decompress', 0);
-            resetPerformanceMetrics('decompress');
+            // 更新分段显示
+            updateSegmentsDisplay(compressSegments, chunkCount);
             
-            // 开始计时
-            decompressStartTime = Date.now();
-            decompressProcessedBytes = 0;
+            // 读取文件为ArrayBuffer
+            const arrayBuffer = await readFileAsArrayBuffer(compressFile);
             
-            try {
-                // 读取压缩文件
-                const arrayBuffer = await readFileAsArrayBuffer(decompressFile);
-                
-                // 解析文件头
-                const { header, dataOffset } = parseFileHeader(arrayBuffer);
-                
-                // 检查魔数
-                if (header.MAGIC !== FILE_HEADER.MAGIC) {
-                    throw new Error('不是有效的DEFLATE压缩文件');
+            // 创建文件头
+            const header = {
+                MAGIC: "DFLT",
+                VERSION: 1,
+                ORIGINAL_FILE_NAME: compressFile.name,
+                ORIGINAL_FILE_SIZE: compressFile.size,
+                SEGMENT_COUNT: chunkCount,
+                SEGMENTS: []
+            };
+            
+            // 分段压缩
+            const compressedChunks = [];
+            let totalCompressedSize = 0;
+            let processedBytes = 0;
+            
+            for (let i = 0; i < chunkCount; i++) {
+                if (compressCancelled) {
+                    throw new Error('压缩已取消');
                 }
                 
-                // 更新分段显示
-                updateSegmentsDisplay(decompressSegments, header.SEGMENT_COUNT);
+                // 计算当前分段的偏移量和大小
+                const start = i * chunkSize;
+                const end = Math.min(start + chunkSize, compressFile.size);
+                const chunkLength = end - start;
                 
-                // 分段解压
-                const decompressedChunks = [];
-                let totalDecompressedSize = 0;
+                // 获取当前分段的数据
+                const chunkData = arrayBuffer.slice(start, end);
                 
-                for (let i = 0; i < header.SEGMENT_COUNT; i++) {
-                    if (decompressCancelled) {
-                        throw new Error('解压已取消');
+                // 更新分段显示状态
+                updateSegmentStatus(compressSegments, i, 'compressing');
+                
+                // 使用pako进行DEFLATE压缩
+                const compressedData = pako.deflate(new Uint8Array(chunkData), { level: compressionLevel });
+                
+                // 更新性能监控
+                processedBytes += chunkLength;
+                updatePerformanceMetrics('compress', processedBytes, compressStartTime);
+                
+                // 保存压缩后的数据和分段信息
+                compressedChunks.push(compressedData);
+                header.SEGMENTS.push({
+                    originalSize: chunkLength,
+                    compressedSize: compressedData.length,
+                    offset: totalCompressedSize
+                });
+                
+                totalCompressedSize += compressedData.length;
+                
+                // 更新进度
+                const progress = Math.round(((i + 1) / chunkCount) * 100);
+                updateProgress('compress', progress);
+                
+                // 更新分段显示状态
+                updateSegmentStatus(compressSegments, i, 'processed');
+                
+                // 让出控制权，避免UI阻塞
+                await delay(10);
+            }
+            
+            // 构建最终文件
+            return createCompressedFile(header, compressedChunks, '.deflate');
+        }
+        
+        // 使用ZIP压缩多个文件
+        async function compressWithZip() {
+            if (compressFiles.length === 0) throw new Error('没有选择文件');
+            
+            const compressionLevel = parseInt(compressionLevelSlider.value);
+            
+            // 更新分段显示（每个文件一个分段）
+            updateSegmentsDisplay(compressSegments, Math.min(compressFiles.length, 50));
+            
+            // 创建ZIP实例
+            const zip = new JSZip();
+            let processedFiles = 0;
+            let totalOriginalSize = 0;
+            let totalCompressedSize = 0;
+            
+            // 添加文件到ZIP
+            for (let i = 0; i < compressFiles.length; i++) {
+                if (compressCancelled) {
+                    throw new Error('压缩已取消');
+                }
+                
+                const file = compressFiles[i];
+                totalOriginalSize += file.size;
+                
+                // 更新分段显示状态
+                if (i < 50) {
+                    updateSegmentStatus(compressSegments, i, 'compressing');
+                }
+                
+                try {
+                    // 读取文件内容
+                    const arrayBuffer = await readFileAsArrayBuffer(file);
+                    
+                    // 确定文件在ZIP中的路径
+                    let filePath = file.name;
+                    if (file.webkitRelativePath) {
+                        filePath = file.webkitRelativePath;
+                    } else if (compressFiles.length > 1) {
+                        // 如果是多个单独文件，放在根目录
+                        filePath = file.name;
                     }
                     
-                    const segmentInfo = header.SEGMENTS[i];
-                    
-                    // 更新分段显示状态
-                    updateSegmentStatus(decompressSegments, i, 'compressing');
-                    
-                    // 获取压缩数据
-                    const segmentStart = dataOffset + segmentInfo.offset;
-                    const segmentEnd = segmentStart + segmentInfo.compressedSize;
-                    const compressedData = arrayBuffer.slice(segmentStart, segmentEnd);
-                    
-                    // 使用pako进行DEFLATE解压
-                    const decompressedData = pako.inflate(new Uint8Array(compressedData));
-                    
-                    // 更新性能监控
-                    decompressProcessedBytes += segmentInfo.compressedSize;
-                    updatePerformanceMetrics('decompress', decompressProcessedBytes, decompressStartTime);
-                    
-                    // 保存解压后的数据
-                    decompressedChunks.push(decompressedData);
-                    totalDecompressedSize += decompressedData.length;
+                    // 添加到ZIP（JSZip内部使用DEFLATE算法）
+                    zip.file(filePath, arrayBuffer, {
+                        compression: "DEFLATE",
+                        compressionOptions: {
+                            level: compressionLevel
+                        }
+                    });
                     
                     // 更新进度
-                    const progress = Math.round(((i + 1) / header.SEGMENT_COUNT) * 100);
-                    updateProgress('decompress', progress);
+                    processedFiles++;
+                    const progress = Math.round((processedFiles / compressFiles.length) * 100);
+                    updateProgress('compress', progress);
+                    
+                    // 更新性能监控
+                    updatePerformanceMetrics('compress', totalOriginalSize, compressStartTime);
                     
                     // 更新分段显示状态
-                    updateSegmentStatus(decompressSegments, i, 'processed');
+                    if (i < 50) {
+                        updateSegmentStatus(compressSegments, i, 'processed');
+                    }
                     
                     // 让出控制权，避免UI阻塞
                     await delay(10);
+                    
+                } catch (error) {
+                    console.error(`处理文件 ${file.name} 失败:`, error);
+                    // 继续处理其他文件
                 }
-                
-                // 合并所有分段数据
-                const finalFile = mergeChunksToFile(decompressedChunks, header.ORIGINAL_FILE_NAME);
-                
-                // 完成解压
-                finishDecompression(finalFile, header, decompressStartTime);
-                
-            } catch (error) {
-                if (error.message === '解压已取消') {
-                    showToast('解压已取消', 'error');
-                } else {
-                    console.error('解压失败:', error);
-                    showToast('解压失败: ' + error.message, 'error');
-                }
-                
-                isDecompressing = false;
-                decompressBtn.disabled = false;
-                cancelDecompressBtn.disabled = true;
-                decompressLoading.classList.remove('active');
             }
+            
+            // 生成ZIP文件
+            const zipContent = await zip.generateAsync({
+                type: "blob",
+                compression: "DEFLATE",
+                compressionOptions: {
+                    level: compressionLevel
+                }
+            });
+            
+            totalCompressedSize = zipContent.size;
+            
+            // 保存统计信息
+            window.compressionStats = {
+                originalSize: totalOriginalSize,
+                compressedSize: totalCompressedSize,
+                fileCount: compressFiles.length,
+                format: 'zip'
+            };
+            
+            return zipContent;
         }
         
-        // 创建压缩文件
-        function createCompressedFile(header, compressedChunks) {
+        // 创建压缩文件（DEFLATE格式）
+        function createCompressedFile(header, compressedChunks, extension = '.deflate') {
             // 将头部转换为JSON字符串
             const headerStr = JSON.stringify(header);
             const headerEncoder = new TextEncoder();
@@ -1170,10 +1506,214 @@
                 offset += chunk.length;
             }
             
+            const fileName = compressFile ? compressFile.name : 'compressed';
             return new Blob([finalBuffer], { type: 'application/octet-stream' });
         }
         
-        // 解析文件头部
+        // 开始解压
+        async function startDecompression() {
+            if (!decompressFile || isDecompressing) return;
+            
+            isDecompressing = true;
+            decompressCancelled = false;
+            decompressBtn.disabled = true;
+            cancelDecompressBtn.disabled = false;
+            decompressLoading.classList.add('active');
+            decompressResult.classList.remove('active');
+            decompressMetrics.style.display = 'grid';
+            
+            // 重置进度和性能监控
+            updateProgress('decompress', 0);
+            resetPerformanceMetrics('decompress');
+            
+            // 开始计时
+            const decompressStartTime = Date.now();
+            
+            try {
+                // 检测文件格式
+                const fileName = decompressFile.name.toLowerCase();
+                let result;
+                
+                if (fileName.endsWith('.zip')) {
+                    // ZIP格式解压
+                    result = await decompressZip(decompressStartTime);
+                } else {
+                    // DEFLATE格式解压
+                    result = await decompressDeflate(decompressStartTime);
+                }
+                
+                if (!decompressCancelled) {
+                    // 完成解压
+                    finishDecompression(result.file, result.info, decompressStartTime);
+                }
+                
+            } catch (error) {
+                if (error.message === '解压已取消') {
+                    showToast('解压已取消', 'error');
+                } else {
+                    console.error('解压失败:', error);
+                    showToast('解压失败: ' + error.message, 'error');
+                }
+                
+                isDecompressing = false;
+                decompressBtn.disabled = false;
+                cancelDecompressBtn.disabled = true;
+                decompressLoading.classList.remove('active');
+            }
+        }
+        
+        // 解压DEFLATE文件
+        async function decompressDeflate(startTime) {
+            // 读取压缩文件
+            const arrayBuffer = await readFileAsArrayBuffer(decompressFile);
+            
+            // 解析文件头
+            const { header, dataOffset } = parseFileHeader(arrayBuffer);
+            
+            // 检查魔数
+            if (header.MAGIC !== "DFLT") {
+                throw new Error('不是有效的DEFLATE压缩文件');
+            }
+            
+            // 更新分段显示
+            updateSegmentsDisplay(decompressSegments, header.SEGMENT_COUNT);
+            
+            // 分段解压
+            const decompressedChunks = [];
+            let totalDecompressedSize = 0;
+            let processedBytes = 0;
+            
+            for (let i = 0; i < header.SEGMENT_COUNT; i++) {
+                if (decompressCancelled) {
+                    throw new Error('解压已取消');
+                }
+                
+                const segmentInfo = header.SEGMENTS[i];
+                
+                // 更新分段显示状态
+                updateSegmentStatus(decompressSegments, i, 'compressing');
+                
+                // 获取压缩数据
+                const segmentStart = dataOffset + segmentInfo.offset;
+                const segmentEnd = segmentStart + segmentInfo.compressedSize;
+                const compressedData = arrayBuffer.slice(segmentStart, segmentEnd);
+                
+                // 使用pako进行DEFLATE解压
+                const decompressedData = pako.inflate(new Uint8Array(compressedData));
+                
+                // 更新性能监控
+                processedBytes += segmentInfo.compressedSize;
+                updatePerformanceMetrics('decompress', processedBytes, startTime);
+                
+                // 保存解压后的数据
+                decompressedChunks.push(decompressedData);
+                totalDecompressedSize += decompressedData.length;
+                
+                // 更新进度
+                const progress = Math.round(((i + 1) / header.SEGMENT_COUNT) * 100);
+                updateProgress('decompress', progress);
+                
+                // 更新分段显示状态
+                updateSegmentStatus(decompressSegments, i, 'processed');
+                
+                // 让出控制权，避免UI阻塞
+                await delay(10);
+            }
+            
+            // 合并所有分段数据
+            const finalFile = mergeChunksToFile(decompressedChunks, header.ORIGINAL_FILE_NAME);
+            
+            return {
+                file: finalFile,
+                info: {
+                    originalName: header.ORIGINAL_FILE_NAME,
+                    originalSize: header.ORIGINAL_FILE_SIZE,
+                    fileCount: 1,
+                    format: 'deflate'
+                }
+            };
+        }
+        
+        // 解压ZIP文件
+        async function decompressZip(startTime) {
+            // 读取ZIP文件
+            const arrayBuffer = await readFileAsArrayBuffer(decompressFile);
+            const zip = await JSZip.loadAsync(arrayBuffer);
+            
+            const files = Object.keys(zip.files);
+            const fileCount = files.length;
+            
+            // 更新分段显示
+            updateSegmentsDisplay(decompressSegments, Math.min(fileCount, 50));
+            
+            // 解压所有文件
+            const fileBlobs = {};
+            let totalDecompressedSize = 0;
+            let processedFiles = 0;
+            
+            for (let i = 0; i < files.length; i++) {
+                if (decompressCancelled) {
+                    throw new Error('解压已取消');
+                }
+                
+                const fileName = files[i];
+                const zipEntry = zip.files[fileName];
+                
+                // 跳过目录
+                if (zipEntry.dir) continue;
+                
+                // 更新分段显示状态
+                if (i < 50) {
+                    updateSegmentStatus(decompressSegments, i, 'compressing');
+                }
+                
+                try {
+                    // 解压文件
+                    const fileData = await zipEntry.async("blob");
+                    fileBlobs[fileName] = fileData;
+                    totalDecompressedSize += fileData.size;
+                    
+                    // 更新进度
+                    processedFiles++;
+                    const progress = Math.round((processedFiles / fileCount) * 100);
+                    updateProgress('decompress', progress);
+                    
+                    // 更新性能监控
+                    updatePerformanceMetrics('decompress', totalDecompressedSize, startTime);
+                    
+                    // 更新分段显示状态
+                    if (i < 50) {
+                        updateSegmentStatus(decompressSegments, i, 'processed');
+                    }
+                    
+                    // 让出控制权，避免UI阻塞
+                    await delay(10);
+                    
+                } catch (error) {
+                    console.error(`解压文件 ${fileName} 失败:`, error);
+                }
+            }
+            
+            // 保存ZIP文件内容供下载
+            window.zipContents = fileBlobs;
+            window.zipFileName = decompressFile.name.replace('.zip', '') || 'extracted';
+            
+            // 创建第一个文件的Blob（用于单个文件下载）
+            const firstFile = fileBlobs[Object.keys(fileBlobs)[0]];
+            
+            return {
+                file: firstFile || new Blob([]),
+                info: {
+                    originalName: decompressFile.name.replace('.zip', ''),
+                    originalSize: totalDecompressedSize,
+                    fileCount: Object.keys(fileBlobs).length,
+                    format: 'zip',
+                    isMultiFile: Object.keys(fileBlobs).length > 1
+                }
+            };
+        }
+        
+        // 解析文件头部（DEFLATE格式）
         function parseFileHeader(arrayBuffer) {
             const dataView = new DataView(arrayBuffer);
             
@@ -1213,8 +1753,8 @@
             return new Blob([finalBuffer], { type: 'application/octet-stream' });
         }
         
-        // 完成压缩 - 修复：添加startTime参数
-        function finishCompression(compressedFile, header, chunkCount, startTime) {
+        // 完成压缩
+        function finishCompression(compressedFile) {
             isCompressing = false;
             compressBtn.disabled = false;
             cancelCompressBtn.disabled = true;
@@ -1222,12 +1762,24 @@
             compressResult.classList.add('active');
             
             const endTime = Date.now();
-            const processingTime = (endTime - startTime) / 1000;
+            const processingTime = (endTime - compressStartTime) / 1000;
             
             // 计算压缩率
-            const originalSize = compressFile.size;
-            const compressedSize = compressedFile.size;
-            const compressionRatio = Math.round((1 - compressedSize / originalSize) * 100);
+            let originalSize, compressedSize, compressionRatio;
+            
+            if (compressFormat === 'zip' || compressFiles.length > 1) {
+                // ZIP格式
+                originalSize = window.compressionStats?.originalSize || 
+                    compressFiles.reduce((sum, file) => sum + file.size, 0);
+                compressedSize = compressedFile.size;
+                compressionRatio = originalSize > 0 ? 
+                    Math.round((1 - compressedSize / originalSize) * 100) : 0;
+            } else {
+                // DEFLATE格式
+                originalSize = compressFile.size;
+                compressedSize = compressedFile.size;
+                compressionRatio = Math.round((1 - compressedSize / originalSize) * 100);
+            }
             
             // 计算平均速度
             const avgSpeed = originalSize > 0 ? Math.round(originalSize / processingTime / 1024) : 0;
@@ -1236,18 +1788,28 @@
             document.getElementById('compressed-size').textContent = formatFileSize(compressedSize);
             document.getElementById('compression-ratio').textContent = `${compressionRatio}%`;
             document.getElementById('compress-time').textContent = `${processingTime.toFixed(2)} 秒`;
-            document.getElementById('segment-count').textContent = chunkCount;
+            document.getElementById('segment-count').textContent = compressFiles.length;
             document.getElementById('avg-compress-speed').textContent = `${avgSpeed} KB/s`;
             
             // 保存压缩文件供下载
             window.compressedFileBlob = compressedFile;
-            window.compressedFileName = compressFile.name + '.deflate';
+            
+            // 确定文件名
+            if (compressFormat === 'zip' || compressFiles.length > 1) {
+                const folderName = compressFiles.length > 0 ? 
+                    (compressFiles[0].webkitRelativePath ? 
+                     compressFiles[0].webkitRelativePath.split('/')[0] : 'archive') : 
+                    'archive';
+                window.compressedFileName = `${folderName}.zip`;
+            } else {
+                window.compressedFileName = compressFile.name + '.deflate';
+            }
             
             showToast(`文件压缩完成！压缩率: ${compressionRatio}%`);
         }
         
-        // 完成解压 - 修复：添加startTime参数
-        function finishDecompression(decompressedFile, header, startTime) {
+        // 完成解压
+        function finishDecompression(decompressedFile, info, startTime) {
             isDecompressing = false;
             decompressBtn.disabled = false;
             cancelDecompressBtn.disabled = true;
@@ -1262,17 +1824,62 @@
             const avgSpeed = compressedSize > 0 ? Math.round(compressedSize / processingTime / 1024) : 0;
             
             // 更新结果显示
-            document.getElementById('decompressed-size').textContent = formatFileSize(decompressedFile.size);
-            document.getElementById('original-filename').textContent = header.ORIGINAL_FILE_NAME;
+            document.getElementById('decompressed-size').textContent = formatFileSize(info.originalSize);
+            document.getElementById('original-filename').textContent = 
+                info.fileCount > 1 ? `${info.originalName} (${info.fileCount}个文件)` : info.originalName;
             document.getElementById('decompress-time').textContent = `${processingTime.toFixed(2)} 秒`;
-            document.getElementById('decompress-segment-count').textContent = header.SEGMENT_COUNT;
+            document.getElementById('decompress-segment-count').textContent = info.fileCount;
             document.getElementById('avg-decompress-speed').textContent = `${avgSpeed} KB/s`;
             
             // 保存解压文件供下载
-            window.decompressedFileBlob = decompressedFile;
-            window.decompressedFileName = header.ORIGINAL_FILE_NAME;
+            if (info.format === 'zip' && info.isMultiFile) {
+                // 对于多文件ZIP，显示ZIP包下载按钮
+                window.decompressedFileBlob = decompressedFile;
+                window.decompressedFileName = info.originalName || 'extracted';
+                document.getElementById('download-zip-folder').style.display = 'flex';
+            } else {
+                // 单个文件
+                window.decompressedFileBlob = decompressedFile;
+                window.decompressedFileName = info.originalName || 'extracted';
+                document.getElementById('download-zip-folder').style.display = 'none';
+            }
             
-            showToast('文件解压完成！');
+            showToast(`文件解压完成！共${info.fileCount}个文件`);
+        }
+        
+        // 下载ZIP文件夹（多文件情况）
+        function downloadZipFolder() {
+            if (!window.zipContents || Object.keys(window.zipContents).length === 0) {
+                showToast('没有可下载的ZIP文件内容', 'error');
+                return;
+            }
+            
+            // 创建新的ZIP包供下载
+            const zip = new JSZip();
+            
+            // 添加所有文件到ZIP
+            Object.keys(window.zipContents).forEach(fileName => {
+                zip.file(fileName, window.zipContents[fileName]);
+            });
+            
+            // 生成ZIP文件
+            zip.generateAsync({ type: "blob" })
+                .then(function(zipContent) {
+                    const url = URL.createObjectURL(zipContent);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `${window.zipFileName}_extracted.zip`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                    
+                    showToast('ZIP文件夹已开始下载');
+                })
+                .catch(error => {
+                    console.error('创建ZIP文件失败:', error);
+                    showToast('下载ZIP文件夹失败: ' + error.message, 'error');
+                });
         }
         
         // 取消压缩
@@ -1451,12 +2058,6 @@
             return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
         }
         
-        // 获取文件扩展名
-        function getFileExtension(filename) {
-            const pos = filename.lastIndexOf('.');
-            return pos > 0 ? filename.substring(pos + 1) : '';
-        }
-        
         // 延迟函数
         function delay(ms) {
             return new Promise(resolve => setTimeout(resolve, ms));
@@ -1475,65 +2076,77 @@
         }
         
         // 生成测试文件
-        function generateTestFile() {
-            // 生成一个简单的文本文件用于测试
-            const text = "这是一个测试文件，用于测试DEFLATE压缩算法的效果。\n".repeat(1000);
-            const blob = new Blob([text], { type: 'text/plain' });
-            const file = new File([blob], 'test_file.txt', { type: 'text/plain', lastModified: Date.now() });
-            
-            // 模拟文件上传
-            handleCompressFileUpload(file);
-            
-            showToast('已生成1个测试文本文件 (约50KB)', 'warning');
+        function generateTestFiles() {
+            if (compressMode === 'single') {
+                // 生成一个简单的文本文件用于测试
+                const text = "这是一个测试文件，用于测试DEFLATE压缩算法的效果。\n".repeat(1000);
+                const blob = new Blob([text], { type: 'text/plain' });
+                const file = new File([blob], 'test_file.txt', { type: 'text/plain', lastModified: Date.now() });
+                
+                // 模拟文件上传
+                handleCompressFileUpload([file]);
+                
+                showToast('已生成1个测试文本文件 (约50KB)', 'warning');
+            } else {
+                // 生成多个测试文件模拟文件夹
+                const files = [];
+                
+                // 创建一些测试文件
+                const fileContents = [
+                    { name: 'document.txt', content: '这是一个文本文档\n'.repeat(100) },
+                    { name: 'data.json', content: JSON.stringify({ test: true, count: 42, message: '测试数据' }, null, 2) },
+                    { name: 'notes.md', content: '# 测试文档\n\n这是一个Markdown测试文件。\n\n' },
+                    { name: 'images/photo1.txt', content: '模拟图片文件 1\n'.repeat(50) },
+                    { name: 'images/photo2.txt', content: '模拟图片文件 2\n'.repeat(50) },
+                    { name: 'docs/readme.txt', content: '说明文档\n'.repeat(30) }
+                ];
+                
+                fileContents.forEach(item => {
+                    const blob = new Blob([item.content], { type: 'text/plain' });
+                    const file = new File([blob], item.name, { 
+                        type: 'text/plain', 
+                        lastModified: Date.now() 
+                    });
+                    
+                    // 模拟文件夹结构
+                    if (item.name.includes('/')) {
+                        file.webkitRelativePath = `test_folder/${item.name}`;
+                    } else {
+                        file.webkitRelativePath = `test_folder/${item.name}`;
+                    }
+                    
+                    files.push(file);
+                });
+                
+                // 模拟文件上传
+                handleCompressFileUpload(files);
+                
+                showToast('已生成测试文件夹 (6个文件)', 'warning');
+            }
         }
         
         // 测试解压功能
         async function testDecompression() {
-            // 先创建一个测试压缩文件
-            const text = "这是一个用于测试解压功能的文件。\n".repeat(500);
-            const blob = new Blob([text], { type: 'text/plain' });
-            const testFile = new File([blob], 'test_for_decompress.txt', { type: 'text/plain' });
+            // 先创建一个测试ZIP文件
+            const zip = new JSZip();
             
-            // 模拟压缩过程
-            showToast('正在创建测试压缩文件...', 'warning');
+            // 添加一些测试文件
+            zip.file("test1.txt", "这是一个测试文件1。");
+            zip.file("test2.txt", "这是一个测试文件2，内容稍长一些。");
+            zip.file("folder/test3.txt", "这是在文件夹中的测试文件。");
             
-            try {
-                // 使用pako直接压缩
-                const textData = new TextEncoder().encode(text);
-                const compressed = pako.deflate(textData, { level: 6 });
-                
-                // 创建自定义格式的压缩文件
-                const header = {
-                    ...FILE_HEADER,
-                    ORIGINAL_FILE_NAME: 'test_for_decompress.txt',
-                    ORIGINAL_FILE_SIZE: textData.length,
-                    SEGMENT_COUNT: 1,
-                    SEGMENTS: [{
-                        originalSize: textData.length,
-                        compressedSize: compressed.length,
-                        offset: 0
-                    }]
-                };
-                
-                const testCompressedFile = createCompressedFile(header, [compressed]);
-                
-                // 创建File对象
-                const decompressTestFile = new File([testCompressedFile], 'test_compressed.deflate', 
-                    { type: 'application/octet-stream', lastModified: Date.now() });
-                
-                // 模拟上传
-                handleDecompressFileUpload(decompressTestFile);
-                
-                showToast('测试压缩文件已创建，可以开始解压测试', 'warning');
-            } catch (error) {
-                console.error('创建测试压缩文件失败:', error);
-                showToast('创建测试压缩文件失败: ' + error.message, 'error');
-            }
+            // 生成ZIP文件
+            const zipContent = await zip.generateAsync({ type: "blob" });
+            
+            // 创建File对象
+            const decompressTestFile = new File([zipContent], 'test_folder.zip', 
+                { type: 'application/zip', lastModified: Date.now() });
+            
+            // 模拟上传
+            handleDecompressFileUpload([decompressTestFile]);
+            
+            showToast('测试ZIP文件已创建，可以开始解压测试', 'warning');
         }
-        
-        // 添加全局测试函数
-        window.generateTestFile = generateTestFile;
-        window.testDecompression = testDecompression;
     </script>
 </body>
 </html>
