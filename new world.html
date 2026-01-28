@@ -1,0 +1,1211 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>概念编织语 (CWL) 翻译界面</title>
+    <style>
+        :root {
+            --primary-bg: #0d1117;
+            --secondary-bg: #161b22;
+            --accent-blue: #58a6ff;
+            --accent-purple: #bc8cff;
+            --accent-green: #7ee787;
+            --accent-red: #ff7b72;
+            --text-primary: #f0f6fc;
+            --text-secondary: #8b949e;
+            --grid-color: #30363d;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', 'Consolas', monospace;
+            background-color: var(--primary-bg);
+            color: var(--text-primary);
+            height: 100vh;
+            overflow: hidden;
+            line-height: 1.6;
+        }
+        
+        /* 三维网格背景 */
+        .grid-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            opacity: 0.15;
+            background-image: 
+                linear-gradient(var(--grid-color) 1px, transparent 1px),
+                linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+            background-size: 60px 60px;
+            transform: perspective(500px) rotateX(60deg);
+            transform-origin: center;
+        }
+        
+        .container {
+            display: flex;
+            height: 100vh;
+            gap: 20px;
+            padding: 20px;
+        }
+        
+        /* 左侧：CWL输入面板 */
+        .cwl-input-panel {
+            width: 35%;
+            background-color: rgba(22, 27, 34, 0.9);
+            border-radius: 12px;
+            padding: 25px;
+            border: 1px solid var(--grid-color);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .panel-title {
+            font-size: 1.5em;
+            margin-bottom: 25px;
+            color: var(--accent-blue);
+            text-align: center;
+            border-bottom: 2px solid var(--accent-blue);
+            padding-bottom: 10px;
+        }
+        
+        /* CWL编辑器 */
+        .cwl-editor {
+            flex: 1;
+            background-color: rgba(13, 17, 23, 0.8);
+            border: 1px solid var(--grid-color);
+            border-radius: 8px;
+            padding: 20px;
+            font-family: 'Consolas', monospace;
+            font-size: 1.1em;
+            line-height: 1.8;
+            color: var(--accent-green);
+            overflow-y: auto;
+            margin-bottom: 20px;
+            white-space: pre-wrap;
+        }
+        
+        .cwl-editor:focus {
+            outline: 2px solid var(--accent-blue);
+            outline-offset: -2px;
+        }
+        
+        /* 连接符号样式 */
+        .conn-symbol {
+            color: var(--accent-purple);
+            font-weight: bold;
+            margin: 0 8px;
+            font-size: 1.2em;
+        }
+        
+        .concept-node {
+            color: var(--accent-blue);
+            background-color: rgba(88, 166, 255, 0.1);
+            padding: 2px 6px;
+            border-radius: 4px;
+            border: 1px solid rgba(88, 166, 255, 0.3);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .concept-node:hover {
+            background-color: rgba(88, 166, 255, 0.2);
+            transform: translateY(-1px);
+        }
+        
+        .dimension-value {
+            color: var(--accent-green);
+            font-style: italic;
+        }
+        
+        /* 中间：可视化网络 */
+        .visualization-panel {
+            flex: 1;
+            background-color: rgba(22, 27, 34, 0.9);
+            border-radius: 12px;
+            padding: 25px;
+            border: 1px solid var(--grid-color);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        #cwl-canvas {
+            flex: 1;
+            background-color: rgba(13, 17, 23, 0.7);
+            border-radius: 8px;
+            border: 1px solid var(--grid-color);
+        }
+        
+        .legend {
+            display: flex;
+            justify-content: center;
+            margin-top: 15px;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            font-size: 0.9em;
+            color: var(--text-secondary);
+        }
+        
+        .legend-color {
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        /* 右侧：翻译输出 */
+        .translation-panel {
+            width: 35%;
+            background-color: rgba(22, 27, 34, 0.9);
+            border-radius: 12px;
+            padding: 25px;
+            border: 1px solid var(--grid-color);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .translation-output {
+            flex: 1;
+            background-color: rgba(13, 17, 23, 0.8);
+            border: 1px solid var(--grid-color);
+            border-radius: 8px;
+            padding: 20px;
+            overflow-y: auto;
+            font-size: 1.1em;
+            line-height: 1.7;
+            margin-bottom: 20px;
+        }
+        
+        .language-toggle {
+            display: flex;
+            background-color: rgba(13, 17, 23, 0.8);
+            border-radius: 8px;
+            padding: 5px;
+            margin-bottom: 15px;
+        }
+        
+        .lang-btn {
+            flex: 1;
+            padding: 10px;
+            text-align: center;
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-family: inherit;
+            font-size: 0.95em;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.3s;
+        }
+        
+        .lang-btn.active {
+            background-color: var(--accent-blue);
+            color: white;
+        }
+        
+        /* 控制面板 */
+        .control-panel {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .control-btn {
+            flex: 1;
+            padding: 12px;
+            background-color: var(--accent-blue);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .control-btn:hover {
+            background-color: #1f6feb;
+            transform: translateY(-2px);
+        }
+        
+        .control-btn.secondary {
+            background-color: transparent;
+            border: 1px solid var(--grid-color);
+            color: var(--text-secondary);
+        }
+        
+        .control-btn.secondary:hover {
+            background-color: rgba(48, 54, 61, 0.5);
+            color: var(--text-primary);
+        }
+        
+        /* 概念节点详情 */
+        .node-detail {
+            position: absolute;
+            background-color: rgba(22, 27, 34, 0.95);
+            border: 1px solid var(--accent-blue);
+            border-radius: 8px;
+            padding: 15px;
+            width: 280px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+            z-index: 100;
+            display: none;
+        }
+        
+        .node-detail h3 {
+            color: var(--accent-blue);
+            margin-bottom: 10px;
+            border-bottom: 1px solid var(--grid-color);
+            padding-bottom: 5px;
+        }
+        
+        .dimension-list {
+            margin-top: 10px;
+        }
+        
+        .dimension-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 0.9em;
+        }
+        
+        .dimension-name {
+            color: var(--text-secondary);
+        }
+        
+        .dimension-val {
+            color: var(--accent-green);
+        }
+        
+        /* 状态指示器 */
+        .status-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: rgba(22, 27, 34, 0.95);
+            border-top: 1px solid var(--grid-color);
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9em;
+        }
+        
+        .status-item {
+            display: flex;
+            align-items: center;
+        }
+        
+        .status-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .status-active {
+            background-color: var(--accent-green);
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 1200px) {
+            .container {
+                flex-direction: column;
+                height: auto;
+                overflow-y: auto;
+            }
+            
+            .cwl-input-panel, .translation-panel {
+                width: 100%;
+                height: 400px;
+            }
+            
+            .visualization-panel {
+                width: 100%;
+                height: 500px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="grid-container"></div>
+    
+    <div class="container">
+        <!-- 左侧：CWL输入面板 -->
+        <div class="cwl-input-panel">
+            <h2 class="panel-title">概念编织语 (CWL) 输入</h2>
+            <div class="cwl-editor" id="cwl-editor" contenteditable="true">
+C-09A7[强度:0.92, 纠缠度:高, 抗熵系数:3.7]
+  <span class="conn-symbol">⊢</span> C-1B3F[节点:早期同步, 带宽:高, 过滤:低]
+  <span class="conn-symbol">⋈</span> C-4D2A[构造体:我们-单元, 维护:持续, 动态:是]
+  <span class="conn-symbol">⥁</span> C-7E9C[功能:冗余备份, 恢复协议:共识]
+  
+C-4D2A[构造体:我们-单元]
+  <span class="conn-symbol">⊂</span> C-8F2B[子模块:节点A定义体]
+  <span class="conn-symbol">⊂</span> C-9G3C[子模块:节点B定义体]
+  <span class="conn-symbol">≈</span> C-2H5D[概念:认知沙箱]
+  
+C-7E9C[功能:冗余备份]
+  <span class="conn-symbol">⇝</span> C-5J8K[状态:逻辑冲击, 概率:0.12]
+  <span class="conn-symbol">⊢</span> C-3L6M[过程:共识恢复协议, 带宽:高]
+            </div>
+            
+            <div class="control-panel">
+                <button class="control-btn" id="parse-btn">解析网络</button>
+                <button class="control-btn secondary" id="clear-btn">清空画布</button>
+                <button class="control-btn secondary" id="example-btn">加载示例</button>
+            </div>
+        </div>
+        
+        <!-- 中间：可视化网络 -->
+        <div class="visualization-panel">
+            <h2 class="panel-title">CWL概念网络可视化</h2>
+            <canvas id="cwl-canvas"></canvas>
+            
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: #58a6ff;"></div>
+                    <span>核心概念节点</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: #bc8cff;"></div>
+                    <span>连接关系</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: #7ee787;"></div>
+                    <span>维度参数</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: #ff7b72;"></div>
+                    <span>矛盾/冲突</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 右侧：翻译输出 -->
+        <div class="translation-panel">
+            <h2 class="panel-title">翻译输出</h2>
+            
+            <div class="language-toggle">
+                <button class="lang-btn active" data-lang="human">人类自然语言</button>
+                <button class="lang-btn" data-lang="technical">技术性描述</button>
+                <button class="lang-btn" data-lang="minimal">最小化逻辑</button>
+            </div>
+            
+            <div class="translation-output" id="translation-output">
+                <!-- 翻译结果将在这里显示 -->
+            </div>
+            
+            <div class="control-panel">
+                <button class="control-btn" id="translate-btn">执行翻译</button>
+                <button class="control-btn secondary" id="export-btn">导出网络</button>
+            </div>
+        </div>
+        
+        <!-- 概念节点详情弹窗 -->
+        <div class="node-detail" id="node-detail">
+            <h3 id="detail-title">概念节点</h3>
+            <div class="dimension-list" id="detail-dimensions">
+                <!-- 维度信息将动态加载 -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- 状态栏 -->
+    <div class="status-bar">
+        <div class="status-item">
+            <div class="status-indicator status-active"></div>
+            <span>认知网络：<span id="node-count">0</span>个节点 | <span id="connection-count">0</span>个连接</span>
+        </div>
+        <div class="status-item">
+            <span>协同翻译模式：<span id="translation-mode">多维度解析</span></span>
+        </div>
+        <div class="status-item">
+            <span>协议版本：CWL-α-1.3</span>
+        </div>
+    </div>
+
+    <script>
+        // CWL解析器和翻译器
+        class CWLTranslator {
+            constructor() {
+                this.concepts = new Map();
+                this.connections = [];
+                this.currentNetwork = null;
+            }
+            
+            // 解析CWL文本
+            parseCWL(text) {
+                this.concepts.clear();
+                this.connections = [];
+                
+                // 简单的CWL解析（实际应用需要更复杂的解析器）
+                const lines = text.split('\n').filter(line => line.trim());
+                let currentConcept = null;
+                
+                lines.forEach(line => {
+                    line = line.trim();
+                    
+                    // 检测概念节点定义：C-XXXX[...]
+                    const conceptMatch = line.match(/^(C-[0-9A-Z]+)\[([^\]]+)\]/);
+                    if (conceptMatch) {
+                        const [, id, dimStr] = conceptMatch;
+                        const dimensions = this.parseDimensions(dimStr);
+                        
+                        // 提取核心概念
+                        let coreConcept = "未定义";
+                        if (dimensions["节点"]) coreConcept = `节点:${dimensions["节点"]}`;
+                        else if (dimensions["构造体"]) coreConcept = `构造体:${dimensions["构造体"]}`;
+                        else if (dimensions["功能"]) coreConcept = `功能:${dimensions["功能"]}`;
+                        else if (dimensions["过程"]) coreConcept = `过程:${dimensions["过程"]}`;
+                        else if (dimensions["概念"]) coreConcept = `概念:${dimensions["概念"]}`;
+                        else if (dimensions["状态"]) coreConcept = `状态:${dimensions["状态"]}`;
+                        
+                        this.concepts.set(id, {
+                            id,
+                            core: coreConcept,
+                            dimensions,
+                            x: Math.random() * 600 + 100,
+                            y: Math.random() * 400 + 100,
+                            activation: 0.5 + Math.random() * 0.5,
+                            valence: Math.random() * 2 - 1
+                        });
+                        
+                        currentConcept = id;
+                    }
+                    
+                    // 检测连接关系：符号 目标概念
+                    if (currentConcept) {
+                        const connMatch = line.match(/([⊢≈⊂⥁⇝⊠⋈])\s+(C-[0-9A-Z]+)/);
+                        if (connMatch) {
+                            const [, symbol, targetId] = connMatch;
+                            if (this.concepts.has(targetId)) {
+                                this.connections.push({
+                                    source: currentConcept,
+                                    target: targetId,
+                                    type: symbol,
+                                    strength: 0.7 + Math.random() * 0.3
+                                });
+                            }
+                        }
+                    }
+                });
+                
+                this.currentNetwork = {
+                    concepts: Array.from(this.concepts.values()),
+                    connections: this.connections
+                };
+                
+                return this.currentNetwork;
+            }
+            
+            // 解析维度字符串
+            parseDimensions(dimStr) {
+                const dimensions = {};
+                const pairs = dimStr.split(',');
+                
+                pairs.forEach(pair => {
+                    const [key, value] = pair.split(':').map(s => s.trim());
+                    if (key && value !== undefined) {
+                        dimensions[key] = value;
+                    }
+                });
+                
+                return dimensions;
+            }
+            
+            // 翻译为人类语言
+            translateToHuman(network) {
+                if (!network) return "无网络数据";
+                
+                const { concepts, connections } = network;
+                
+                // 找出核心概念
+                const coreConcepts = concepts.filter(c => 
+                    c.core.startsWith("构造体:") || c.core.startsWith("功能:")
+                );
+                
+                let translation = "";
+                
+                // 翻译每个核心概念及其连接
+                coreConcepts.forEach(concept => {
+                    const outgoingConns = connections.filter(c => c.source === concept.id);
+                    const incomingConns = connections.filter(c => c.target === concept.id);
+                    
+                    translation += `\n【${concept.core}】\n`;
+                    
+                    // 维度描述
+                    const dims = Object.entries(concept.dimensions);
+                    if (dims.length > 0) {
+                        translation += `  参数：${dims.map(([k, v]) => `${k}=${v}`).join(', ')}\n`;
+                    }
+                    
+                    // 输出连接
+                    outgoingConns.forEach(conn => {
+                        const target = concepts.find(c => c.id === conn.target);
+                        if (target) {
+                            const relationText = this.getRelationText(conn.type);
+                            translation += `  ${relationText} ${target.core}\n`;
+                        }
+                    });
+                    
+                    // 输入连接
+                    if (incomingConns.length > 0) {
+                        translation += `  由以下概念支持：`;
+                        const sourceNames = incomingConns.map(conn => {
+                            const source = concepts.find(c => c.id === conn.source);
+                            return source ? source.core.split(':')[1] : "未知";
+                        }).join('、');
+                        translation += `${sourceNames}\n`;
+                    }
+                });
+                
+                // 添加总结
+                translation += `\n---\n`;
+                translation += `网络解析完成：共${concepts.length}个概念节点，${connections.length}个连接关系。`;
+                translation += `该网络描述了一个${coreConcepts.length > 1 ? '多层级' : '集中式'}认知结构。`;
+                
+                return translation;
+            }
+            
+            // 翻译为技术性描述
+            translateToTechnical(network) {
+                if (!network) return "无网络数据";
+                
+                const { concepts, connections } = network;
+                
+                let translation = `CWL网络分析报告\n`;
+                translation += `================\n\n`;
+                translation += `网络拓扑结构：\n`;
+                
+                // 统计连接类型
+                const connTypes = {};
+                connections.forEach(conn => {
+                    connTypes[conn.type] = (connTypes[conn.type] || 0) + 1;
+                });
+                
+                translation += `- 节点总数: ${concepts.length}\n`;
+                translation += `- 连接总数: ${connections.length}\n`;
+                translation += `- 连接类型分布: ${Object.entries(connTypes).map(([t, c]) => `${t}:${c}`).join(', ')}\n\n`;
+                
+                translation += `核心概念分析：\n`;
+                
+                concepts.forEach(concept => {
+                    const connCount = connections.filter(c => 
+                        c.source === concept.id || c.target === concept.id
+                    ).length;
+                    
+                    translation += `\n${concept.id} (${concept.core}):\n`;
+                    translation += `  连接度: ${connCount}\n`;
+                    translation += `  激活值: ${concept.activation.toFixed(2)}\n`;
+                    translation += `  情感价: ${concept.valence.toFixed(2)}\n`;
+                    
+                    // 最重要的3个维度
+                    const dims = Object.entries(concept.dimensions);
+                    if (dims.length > 0) {
+                        translation += `  关键维度: ${dims.slice(0, 3).map(([k, v]) => `${k}=${v}`).join(', ')}\n`;
+                    }
+                });
+                
+                return translation;
+            }
+            
+            // 翻译为最小化逻辑
+            translateToMinimal(network) {
+                if (!network) return "无网络数据";
+                
+                const { concepts, connections } = network;
+                
+                // 找到关键路径
+                const keyConcepts = concepts.filter(c => 
+                    c.core.includes("构造体") || 
+                    connections.filter(conn => conn.source === c.id || conn.target === c.id).length >= 2
+                );
+                
+                let translation = "";
+                
+                keyConcepts.forEach(concept => {
+                    const outgoing = connections.filter(c => c.source === concept.id);
+                    
+                    if (outgoing.length > 0) {
+                        const logicLine = `${concept.core.split(':')[1] || concept.id}`;
+                        const relations = outgoing.map(conn => {
+                            const target = concepts.find(c => c.id === conn.target);
+                            return `${this.getMinimalRelation(conn.type)}${target.core.split(':')[1] || target.id}`;
+                        }).join('');
+                        
+                        translation += `${logicLine} ${relations}\n`;
+                    }
+                });
+                
+                return translation || "无法生成最小化逻辑表示";
+            }
+            
+            // 获取关系文本
+            getRelationText(symbol) {
+                const relations = {
+                    '⊢': '导致',
+                    '≈': '类似于',
+                    '⊂': '包含',
+                    '⥁': '与...双向反馈',
+                    '⇝': '可能关联到',
+                    '⊠': '与...矛盾',
+                    '⋈': '协同编织于'
+                };
+                return relations[symbol] || `[关系:${symbol}]`;
+            }
+            
+            // 获取最小化关系表示
+            getMinimalRelation(symbol) {
+                const relations = {
+                    '⊢': '→',
+                    '≈': '~',
+                    '⊂': '⊂',
+                    '⥁': '↔',
+                    '⇝': '?→',
+                    '⊠': '≠',
+                    '⋈': '⊕'
+                };
+                return relations[symbol] || symbol;
+            }
+        }
+        
+        // 网络可视化器
+        class CWLVisualizer {
+            constructor(canvasId) {
+                this.canvas = document.getElementById(canvasId);
+                this.ctx = this.canvas.getContext('2d');
+                this.nodes = [];
+                this.connections = [];
+                this.selectedNode = null;
+                this.hoveredNode = null;
+                
+                // 设置canvas尺寸
+                this.resizeCanvas();
+                window.addEventListener('resize', () => this.resizeCanvas());
+                
+                // 鼠标事件
+                this.canvas.addEventListener('mousemove', (e) => this.handleMouseMove(e));
+                this.canvas.addEventListener('click', (e) => this.handleClick(e));
+                
+                // 动画
+                this.animationId = null;
+                this.animationTime = 0;
+            }
+            
+            resizeCanvas() {
+                const container = this.canvas.parentElement;
+                this.canvas.width = container.clientWidth;
+                this.canvas.height = container.clientHeight;
+                this.draw();
+            }
+            
+            setNetwork(network) {
+                this.nodes = network?.concepts || [];
+                this.connections = network?.connections || [];
+                this.draw();
+                
+                // 更新状态栏
+                document.getElementById('node-count').textContent = this.nodes.length;
+                document.getElementById('connection-count').textContent = this.connections.length;
+            }
+            
+            draw() {
+                const ctx = this.ctx;
+                const width = this.canvas.width;
+                const height = this.canvas.height;
+                
+                // 清空画布
+                ctx.clearRect(0, 0, width, height);
+                
+                // 绘制背景网格
+                this.drawGrid();
+                
+                // 绘制连接
+                this.connections.forEach(conn => {
+                    this.drawConnection(conn);
+                });
+                
+                // 绘制节点
+                this.nodes.forEach(node => {
+                    this.drawNode(node);
+                });
+                
+                // 绘制节点标签
+                this.nodes.forEach(node => {
+                    this.drawNodeLabel(node);
+                });
+            }
+            
+            drawGrid() {
+                const ctx = this.ctx;
+                const width = this.canvas.width;
+                const height = this.canvas.height;
+                const gridSize = 40;
+                
+                ctx.strokeStyle = 'rgba(48, 54, 61, 0.3)';
+                ctx.lineWidth = 1;
+                
+                // 垂直线
+                for (let x = 0; x < width; x += gridSize) {
+                    ctx.beginPath();
+                    ctx.moveTo(x, 0);
+                    ctx.lineTo(x, height);
+                    ctx.stroke();
+                }
+                
+                // 水平线
+                for (let y = 0; y < height; y += gridSize) {
+                    ctx.beginPath();
+                    ctx.moveTo(0, y);
+                    ctx.lineTo(width, y);
+                    ctx.stroke();
+                }
+            }
+            
+            drawNode(node) {
+                const ctx = this.ctx;
+                const isSelected = this.selectedNode === node.id;
+                const isHovered = this.hoveredNode === node.id;
+                
+                // 节点颜色基于情感价
+                let color;
+                if (node.valence > 0.3) color = '#7ee787'; // 正面
+                else if (node.valence < -0.3) color = '#ff7b72'; // 负面
+                else color = '#58a6ff'; // 中性
+                
+                // 节点大小基于激活值
+                const radius = 20 + node.activation * 15;
+                
+                // 绘制节点
+                ctx.beginPath();
+                ctx.arc(node.x, node.y, radius, 0, Math.PI * 2);
+                
+                // 填充
+                const gradient = ctx.createRadialGradient(
+                    node.x, node.y, 0,
+                    node.x, node.y, radius
+                );
+                gradient.addColorStop(0, color + 'DD');
+                gradient.addColorStop(1, color + '44');
+                
+                ctx.fillStyle = gradient;
+                ctx.fill();
+                
+                // 边框
+                ctx.strokeStyle = isSelected ? '#ffffff' : color + 'CC';
+                ctx.lineWidth = isSelected ? 3 : isHovered ? 2 : 1;
+                ctx.stroke();
+                
+                // 激活值环
+                if (node.activation > 0.7) {
+                    ctx.beginPath();
+                    ctx.arc(node.x, node.y, radius + 5, 0, Math.PI * 2 * node.activation);
+                    ctx.strokeStyle = color;
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                }
+            }
+            
+            drawNodeLabel(node) {
+                const ctx = this.ctx;
+                const label = node.core.split(':')[1] || node.id;
+                
+                ctx.fillStyle = '#f0f6fc';
+                ctx.font = 'bold 14px "Segoe UI", sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                
+                // 文本阴影
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.7)';
+                ctx.shadowBlur = 3;
+                ctx.shadowOffsetX = 1;
+                ctx.shadowOffsetY = 1;
+                
+                ctx.fillText(label, node.x, node.y);
+                
+                // 重置阴影
+                ctx.shadowColor = 'transparent';
+                ctx.shadowBlur = 0;
+                ctx.shadowOffsetX = 0;
+                ctx.shadowOffsetY = 0;
+            }
+            
+            drawConnection(conn) {
+                const ctx = this.ctx;
+                const sourceNode = this.nodes.find(n => n.id === conn.source);
+                const targetNode = this.nodes.find(n => n.id === conn.target);
+                
+                if (!sourceNode || !targetNode) return;
+                
+                // 连线颜色基于连接类型
+                const colors = {
+                    '⊢': '#58a6ff', // 因果
+                    '≈': '#bc8cff', // 相似
+                    '⊂': '#7ee787', // 包含
+                    '⥁': '#ff7b72', // 反馈
+                    '⇝': '#ffa657', // 概率
+                    '⊠': '#f85149', // 矛盾
+                    '⋈': '#d2a8ff'  // 协同
+                };
+                
+                const color = colors[conn.type] || '#8b949e';
+                
+                // 计算控制点用于曲线
+                const dx = targetNode.x - sourceNode.x;
+                const dy = targetNode.y - sourceNode.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                const angle = Math.atan2(dy, dx);
+                
+                // 曲线强度
+                const curveStrength = 20;
+                const cp1x = sourceNode.x + Math.cos(angle) * dist * 0.5 + Math.cos(angle + Math.PI/2) * curveStrength;
+                const cp1y = sourceNode.y + Math.sin(angle) * dist * 0.5 + Math.sin(angle + Math.PI/2) * curveStrength;
+                
+                // 绘制曲线
+                ctx.beginPath();
+                ctx.moveTo(sourceNode.x, sourceNode.y);
+                ctx.quadraticCurveTo(cp1x, cp1y, targetNode.x, targetNode.y);
+                
+                ctx.strokeStyle = color + (conn.strength > 0.9 ? 'FF' : 'AA');
+                ctx.lineWidth = 2 + conn.strength * 2;
+                ctx.stroke();
+                
+                // 绘制箭头
+                const arrowSize = 8;
+                const arrowAngle = Math.atan2(targetNode.y - cp1y, targetNode.x - cp1x);
+                
+                ctx.beginPath();
+                ctx.moveTo(targetNode.x, targetNode.y);
+                ctx.lineTo(
+                    targetNode.x - arrowSize * Math.cos(arrowAngle - Math.PI/6),
+                    targetNode.y - arrowSize * Math.sin(arrowAngle - Math.PI/6)
+                );
+                ctx.lineTo(
+                    targetNode.x - arrowSize * Math.cos(arrowAngle + Math.PI/6),
+                    targetNode.y - arrowSize * Math.sin(arrowAngle + Math.PI/6)
+                );
+                ctx.closePath();
+                
+                ctx.fillStyle = color;
+                ctx.fill();
+                
+                // 绘制连接类型符号
+                const midX = (sourceNode.x + targetNode.x) / 2;
+                const midY = (sourceNode.y + targetNode.y) / 2;
+                
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 16px "Segoe UI", sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                
+                // 背景
+                ctx.fillStyle = 'rgba(13, 17, 23, 0.8)';
+                ctx.fillRect(midX - 12, midY - 12, 24, 24);
+                
+                // 符号
+                ctx.fillStyle = color;
+                ctx.fillText(conn.type, midX, midY);
+            }
+            
+            handleMouseMove(e) {
+                const rect = this.canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                // 检查是否悬停在节点上
+                let foundNode = null;
+                for (const node of this.nodes) {
+                    const dx = node.x - x;
+                    const dy = node.y - y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    const radius = 20 + node.activation * 15;
+                    
+                    if (dist <= radius) {
+                        foundNode = node.id;
+                        break;
+                    }
+                }
+                
+                if (foundNode !== this.hoveredNode) {
+                    this.hoveredNode = foundNode;
+                    
+                    // 显示节点详情
+                    if (foundNode) {
+                        const node = this.nodes.find(n => n.id === foundNode);
+                        this.showNodeDetail(node, x, y);
+                    } else {
+                        this.hideNodeDetail();
+                    }
+                    
+                    this.draw();
+                }
+            }
+            
+            handleClick(e) {
+                const rect = this.canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                // 检查点击了哪个节点
+                for (const node of this.nodes) {
+                    const dx = node.x - x;
+                    const dy = node.y - y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    const radius = 20 + node.activation * 15;
+                    
+                    if (dist <= radius) {
+                        this.selectedNode = this.selectedNode === node.id ? null : node.id;
+                        this.draw();
+                        return;
+                    }
+                }
+                
+                // 点击空白处取消选择
+                this.selectedNode = null;
+                this.draw();
+            }
+            
+            showNodeDetail(node, x, y) {
+                const detailEl = document.getElementById('node-detail');
+                const titleEl = document.getElementById('detail-title');
+                const dimsEl = document.getElementById('detail-dimensions');
+                
+                // 设置内容
+                titleEl.textContent = `${node.id} - ${node.core}`;
+                
+                let dimsHTML = '';
+                Object.entries(node.dimensions).forEach(([key, value]) => {
+                    dimsHTML += `
+                        <div class="dimension-row">
+                            <span class="dimension-name">${key}</span>
+                            <span class="dimension-val">${value}</span>
+                        </div>
+                    `;
+                });
+                
+                dimsHTML += `
+                    <div class="dimension-row">
+                        <span class="dimension-name">激活值</span>
+                        <span class="dimension-val">${node.activation.toFixed(2)}</span>
+                    </div>
+                    <div class="dimension-row">
+                        <span class="dimension-name">情感价</span>
+                        <span class="dimension-val">${node.valence.toFixed(2)}</span>
+                    </div>
+                `;
+                
+                dimsEl.innerHTML = dimsHTML;
+                
+                // 定位弹窗
+                detailEl.style.left = `${x + 20}px`;
+                detailEl.style.top = `${y + 20}px`;
+                detailEl.style.display = 'block';
+            }
+            
+            hideNodeDetail() {
+                document.getElementById('node-detail').style.display = 'none';
+            }
+            
+            animate() {
+                this.animationTime += 0.01;
+                
+                // 轻微移动节点（模拟网络动态）
+                this.nodes.forEach(node => {
+                    if (this.animationTime % 1 < 0.5) {
+                        node.x += Math.sin(this.animationTime + node.id.charCodeAt(2)) * 0.2;
+                        node.y += Math.cos(this.animationTime + node.id.charCodeAt(3)) * 0.2;
+                    }
+                });
+                
+                this.draw();
+                this.animationId = requestAnimationFrame(() => this.animate());
+            }
+            
+            stopAnimation() {
+                if (this.animationId) {
+                    cancelAnimationFrame(this.animationId);
+                    this.animationId = null;
+                }
+            }
+        }
+        
+        // 初始化应用
+        document.addEventListener('DOMContentLoaded', function() {
+            const translator = new CWLTranslator();
+            const visualizer = new CWLVisualizer('cwl-canvas');
+            
+            // 获取DOM元素
+            const editor = document.getElementById('cwl-editor');
+            const parseBtn = document.getElementById('parse-btn');
+            const translateBtn = document.getElementById('translate-btn');
+            const clearBtn = document.getElementById('clear-btn');
+            const exampleBtn = document.getElementById('example-btn');
+            const exportBtn = document.getElementById('export-btn');
+            const langButtons = document.querySelectorAll('.lang-btn');
+            const translationOutput = document.getElementById('translation-output');
+            
+            // 当前翻译模式
+            let currentTranslationMode = 'human';
+            
+            // 解析按钮点击事件
+            parseBtn.addEventListener('click', function() {
+                const cwlText = editor.textContent;
+                const network = translator.parseCWL(cwlText);
+                visualizer.setNetwork(network);
+                
+                // 开始动画
+                visualizer.stopAnimation();
+                visualizer.animate();
+                
+                // 更新状态
+                document.getElementById('translation-mode').textContent = '网络解析完成';
+            });
+            
+            // 翻译按钮点击事件
+            translateBtn.addEventListener('click', function() {
+                const network = translator.currentNetwork;
+                
+                if (!network) {
+                    translationOutput.textContent = "请先解析CWL网络";
+                    return;
+                }
+                
+                let translation;
+                switch(currentTranslationMode) {
+                    case 'human':
+                        translation = translator.translateToHuman(network);
+                        break;
+                    case 'technical':
+                        translation = translator.translateToTechnical(network);
+                        break;
+                    case 'minimal':
+                        translation = translator.translateToMinimal(network);
+                        break;
+                    default:
+                        translation = translator.translateToHuman(network);
+                }
+                
+                translationOutput.textContent = translation;
+                
+                // 更新状态
+                document.getElementById('translation-mode').textContent = 
+                    currentTranslationMode === 'human' ? '多维语义解析' :
+                    currentTranslationMode === 'technical' ? '技术性描述' : '最小化逻辑';
+            });
+            
+            // 清空按钮
+            clearBtn.addEventListener('click', function() {
+                editor.textContent = '';
+                visualizer.setNetwork({ concepts: [], connections: [] });
+                translationOutput.textContent = '';
+                visualizer.stopAnimation();
+                visualizer.draw();
+            });
+            
+            // 示例按钮
+            exampleBtn.addEventListener('click', function() {
+                // 加载默认示例
+                const exampleCWL = `C-09A7[强度:0.92, 纠缠度:高, 抗熵系数:3.7]
+  ⊢ C-1B3F[节点:早期同步, 带宽:高, 过滤:低]
+  ⋈ C-4D2A[构造体:我们-单元, 维护:持续, 动态:是]
+  ⥁ C-7E9C[功能:冗余备份, 恢复协议:共识]
+  
+C-4D2A[构造体:我们-单元]
+  ⊂ C-8F2B[子模块:节点A定义体]
+  ⊂ C-9G3C[子模块:节点B定义体]
+  ≈ C-2H5D[概念:认知沙箱]
+  
+C-7E9C[功能:冗余备份]
+  ⇝ C-5J8K[状态:逻辑冲击, 概率:0.12]
+  ⊢ C-3L6M[过程:共识恢复协议, 带宽:高]`;
+                
+                editor.textContent = exampleCWL;
+                
+                // 自动解析
+                setTimeout(() => {
+                    parseBtn.click();
+                    setTimeout(() => translateBtn.click(), 300);
+                }, 100);
+            });
+            
+            // 导出按钮
+            exportBtn.addEventListener('click', function() {
+                const network = translator.currentNetwork;
+                if (!network) {
+                    alert("无网络数据可导出");
+                    return;
+                }
+                
+                const dataStr = JSON.stringify(network, null, 2);
+                const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+                
+                const exportFileDefaultName = `cwl-network-${new Date().toISOString().slice(0,10)}.json`;
+                
+                const linkElement = document.createElement('a');
+                linkElement.setAttribute('href', dataUri);
+                linkElement.setAttribute('download', exportFileDefaultName);
+                linkElement.click();
+            });
+            
+            // 语言切换按钮
+            langButtons.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    // 移除所有active类
+                    langButtons.forEach(b => b.classList.remove('active'));
+                    // 为当前按钮添加active类
+                    this.classList.add('active');
+                    // 更新当前翻译模式
+                    currentTranslationMode = this.dataset.lang;
+                    
+                    // 如果已有翻译，重新翻译
+                    if (translationOutput.textContent && translator.currentNetwork) {
+                        translateBtn.click();
+                    }
+                });
+            });
+            
+            // 初始加载示例
+            exampleBtn.click();
+            
+            // 编辑器快捷键
+            editor.addEventListener('keydown', function(e) {
+                // Ctrl+Enter 解析
+                if (e.ctrlKey && e.key === 'Enter') {
+                    e.preventDefault();
+                    parseBtn.click();
+                }
+                
+                // Ctrl+Shift+Enter 解析并翻译
+                if (e.ctrlKey && e.shiftKey && e.key === 'Enter') {
+                    e.preventDefault();
+                    parseBtn.click();
+                    setTimeout(() => translateBtn.click(), 300);
+                }
+            });
+        });
+    </script>
+</body>
+</html>
