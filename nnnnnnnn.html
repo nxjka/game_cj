@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>汉字加密与数据分析系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(to right, #4a00e0, #8e2de2);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header .subtitle {
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            padding: 30px;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .input-section, .output-section {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .section-title {
+            color: #333;
+            border-bottom: 2px solid #8e2de2;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            font-size: 1.4em;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: bold;
+        }
+
+        textarea {
+            width: 100%;
+            height: 150px;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            resize: vertical;
+            transition: border-color 0.3s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #8e2de2;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        button {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(to right, #4a00e0, #8e2de2);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 7px 20px rgba(142, 45, 226, 0.4);
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .result-box {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #e0e0e0;
+        }
+
+        .result-box h4 {
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .data-preview {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+            border: 1px solid #e0e0e0;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        .data-table th, .data-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+
+        .data-table th {
+            background: linear-gradient(to right, #4a00e0, #8e2de2);
+            color: white;
+            position: sticky;
+            top: 0;
+        }
+
+        .data-table tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        .data-table tr:hover {
+            background-color: #f5f5f5;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-card .value {
+            font-size: 2em;
+            font-weight: bold;
+        }
+
+        .stat-card .label {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #8e2de2;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            border-top: 1px solid #eee;
+            margin-top: 30px;
+        }
+    </style>
+    <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>汉字加密与数据分析系统</h1>
+            <p class="subtitle">UTB-8编码加密 + 十六进制转换 + 数据统计分析</p>
+        </div>
+
+        <div class="main-content">
+            <div class="input-section">
+                <h2 class="section-title">数据输入与加密</h2>
+                
+                <div class="input-group">
+                    <label for="chineseInput">请输入汉字内容：</label>
+                    <textarea id="chineseInput" placeholder="请输入需要加密的汉字内容，例如：你好世界，加密测试！"></textarea>
+                </div>
+
+                <div class="btn-group">
+                    <button class="btn-primary" onclick="encryptData()">
+                        <span>🔐</span> 执行加密
+                    </button>
+                    <button class="btn-secondary" onclick="clearInput()">
+                        <span>🗑️</span> 清空输入
+                    </button>
+                    <button class="btn-secondary" onclick="loadSample()">
+                        <span>📋</span> 加载示例
+                    </button>
+                </div>
+
+                <div class="result-box">
+                    <h4>加密结果预览：</h4>
+                    <div id="encryptionResult"></div>
+                </div>
+
+                <div class="stats" id="encryptionStats">
+                    <!-- 统计信息将在这里动态生成 -->
+                </div>
+            </div>
+
+            <div class="output-section">
+                <h2 class="section-title">数据分析与导出</h2>
+                
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <p>正在处理数据...</p>
+                </div>
+
+                <div id="dataPreview">
+                    <p>加密完成后，数据统计表格将在此处显示</p>
+                </div>
+
+                <div class="btn-group">
+                    <button class="btn-primary" onclick="generateExcel()" id="exportBtn" disabled>
+                        <span>📊</span> 生成Excel表格
+                    </button>
+                    <button class="btn-secondary" onclick="showDataAnalysis()">
+                        <span>📈</span> 数据分析
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>© 2024 数据加密分析系统 | 基于UTB-8编码的汉字加密方案</p>
+        </div>
+    </div>
+
+    <script>
+        let encryptedData = null;
+        let analysisData = null;
+
+        // 加密函数
+        function encryptData() {
+            const input = document.getElementById('chineseInput').value.trim();
+            if (!input) {
+                alert('请输入汉字内容！');
+                return;
+            }
+
+            document.getElementById('loading').style.display = 'block';
+            
+            // 模拟处理延迟
+            setTimeout(() => {
+                try {
+                    // 1. UTB-8编码（实际上是UTF-8）
+                    const encoder = new TextEncoder();
+                    const utf8Bytes = encoder.encode(input);
+                    
+                    // 2. 转换为十六进制字符串
+                    let hexArray = Array.from(utf8Bytes).map(byte => 
+                        byte.toString(16).padStart(2, '0').toUpperCase()
+                    );
+                    
+                    // 3. 添加头尾
+                    const header = ['AA', 'BB', 'CC', 'DD', 'EE', 'FF'];
+                    const footer = ['FF', 'EE', 'DD', 'CC', 'BB', 'AA'];
+                    
+                    hexArray = [...header, ...hexArray, ...footer];
+                    
+                    // 4. 转换为十进制
+                    const decimalArray = hexArray.map(hex => parseInt(hex, 16));
+                    
+                    // 5. 统计数字出现的位置和次数
+                    analysisData = {};
+                    decimalArray.forEach((num, index) => {
+                        if (!analysisData[num]) {
+                            analysisData[num] = {
+                                count: 0,
+                                positions: []
+                            };
+                        }
+                        analysisData[num].count++;
+                        analysisData[num].positions.push(index);
+                    });
+                    
+                    encryptedData = {
+                        original: input,
+                        hexArray: hexArray,
+                        decimalArray: decimalArray,
+                        analysis: analysisData
+                    };
+                    
+                    // 显示加密结果
+                    displayEncryptionResult();
+                    // 显示数据分析
+                    showDataAnalysis();
+                    
+                    // 启用导出按钮
+                    document.getElementById('exportBtn').disabled = false;
+                    
+                } catch (error) {
+                    alert('加密过程中出现错误：' + error.message);
+                } finally {
+                    document.getElementById('loading').style.display = 'none';
+                }
+            }, 500);
+        }
+
+        // 显示加密结果
+        function displayEncryptionResult() {
+            const resultDiv = document.getElementById('encryptionResult');
+            const statsDiv = document.getElementById('encryptionStats');
+            
+            if (!encryptedData) return;
+            
+            // 显示加密信息
+            resultDiv.innerHTML = `
+                <p><strong>原文本：</strong>${encryptedData.original}</p>
+                <p><strong>加密后长度：</strong>${encryptedData.decimalArray.length} 字节</p>
+                <p><strong>十六进制：</strong>${encryptedData.hexArray.slice(0, 10).join(' ')}${encryptedData.hexArray.length > 10 ? '...' : ''}</p>
+                <p><strong>十进制：</strong>${encryptedData.decimalArray.slice(0, 10).join(', ')}${encryptedData.decimalArray.length > 10 ? '...' : ''}</p>
+            `;
+            
+            // 显示统计信息
+            statsDiv.innerHTML = `
+                <div class="stat-card">
+                    <div class="value">${encryptedData.decimalArray.length}</div>
+                    <div class="label">总字节数</div>
+                </div>
+                <div class="stat-card">
+                    <div class="value">${Object.keys(analysisData).length}</div>
+                    <div class="label">不同数字</div>
+                </div>
+                <div class="stat-card">
+                    <div class="value">${Math.max(...Object.values(analysisData).map(d => d.count))}</div>
+                    <div class="label">最大重复</div>
+                </div>
+                <div class="stat-card">
+                    <div class="value">${Math.min(...Object.values(analysisData).map(d => d.count))}</div>
+                    <div class="label">最小重复</div>
+                </div>
+            `;
+        }
+
+        // 显示数据分析
+        function showDataAnalysis() {
+            if (!analysisData) return;
+            
+            const previewDiv = document.getElementById('dataPreview');
+            
+            // 按数字大小排序（从小到大）
+            const sortedData = Object.entries(analysisData)
+                .map(([num, data]) => ({
+                    num: parseInt(num),
+                    count: data.count,
+                    positions: data.positions
+                }))
+                .sort((a, b) => a.num - b.num);
+            
+            // 创建表格 - 简化版，只显示三列
+            let tableHTML = `
+                <h4>数字出现位置统计表：</h4>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>数字（十进制）</th>
+                            <th>出现次数</th>
+                            <th>出现位置</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            sortedData.forEach(item => {
+                // 将位置数组转换为字符串
+                let positionsStr = item.positions.join(', ');
+                // 如果位置太多，可以适当截断显示
+                if (item.positions.length > 15) {
+                    positionsStr = item.positions.slice(0, 15).join(', ') + `... (共${item.positions.length}个位置)`;
+                }
+                
+                tableHTML += `
+                    <tr>
+                        <td>${item.num}</td>
+                        <td>${item.count}</td>
+                        <td>${positionsStr}</td>
+                    </tr>
+                `;
+            });
+            
+            tableHTML += '</tbody></table>';
+            previewDiv.innerHTML = tableHTML;
+        }
+
+        // 生成Excel文件 - 简化版，只包含三列
+        function generateExcel() {
+            if (!encryptedData || !analysisData) return;
+            
+            try {
+                // 准备Excel数据
+                const excelData = [];
+                
+                // 添加标题行
+                excelData.push(['汉字加密数据分析报表']);
+                excelData.push([]);
+                
+                // 添加基本信息
+                excelData.push(['原文本:', encryptedData.original]);
+                excelData.push(['加密时间:', new Date().toLocaleString()]);
+                excelData.push(['总字节数:', encryptedData.decimalArray.length]);
+                excelData.push(['不同数字数量:', Object.keys(analysisData).length]);
+                excelData.push([]);
+                
+                // 添加数据表头（只有三列）
+                excelData.push(['数字出现位置统计表']);
+                excelData.push(['数字(十进制)', '出现次数', '出现位置']);
+                
+                // 按数字大小排序（从小到大）
+                const sortedEntries = Object.entries(analysisData)
+                    .map(([num, data]) => ({
+                        num: parseInt(num),
+                        count: data.count,
+                        positions: data.positions.join(', ')
+                    }))
+                    .sort((a, b) => a.num - b.num);
+                
+                // 添加数据行
+                sortedEntries.forEach(item => {
+                    excelData.push([
+                        item.num,
+                        item.count,
+                        item.positions
+                    ]);
+                });
+                
+                // 创建Workbook
+                const wb = XLSX.utils.book_new();
+                const ws = XLSX.utils.aoa_to_sheet(excelData);
+                
+                // 设置列宽
+                const wscols = [
+                    {wch: 15},  // 数字列
+                    {wch: 12},  // 次数列
+                    {wch: 50}   // 位置列（较宽）
+                ];
+                ws['!cols'] = wscols;
+                
+                XLSX.utils.book_append_sheet(wb, ws, "加密数据分析");
+                
+                // 生成文件名
+                const filename = `汉字加密分析_${new Date().getTime()}.xlsx`;
+                
+                // 保存文件
+                XLSX.writeFile(wb, filename);
+                
+                alert(`Excel文件已生成：${filename}`);
+                
+            } catch (error) {
+                alert('生成Excel文件时出现错误：' + error.message);
+            }
+        }
+
+        // 辅助函数
+        function clearInput() {
+            document.getElementById('chineseInput').value = '';
+            document.getElementById('encryptionResult').innerHTML = '';
+            document.getElementById('encryptionStats').innerHTML = '';
+            document.getElementById('dataPreview').innerHTML = '<p>加密完成后，数据统计表格将在此处显示</p>';
+            document.getElementById('exportBtn').disabled = true;
+            encryptedData = null;
+            analysisData = null;
+        }
+
+        function loadSample() {
+            const sampleText = "欢迎使用汉字加密系统！这是一个演示示例，展示了如何将汉字转换为UTB-8编码，然后进行十六进制转换，添加特定头尾，最后统计分析每个数字的出现位置和次数。";
+            document.getElementById('chineseInput').value = sampleText;
+        }
+    </script>
+</body>
+</html>

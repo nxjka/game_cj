@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>四季更替 - 自然韵律</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            overflow: hidden;
+            height: 100vh;
+            color: #333;
+            transition: background-color 1.5s ease;
+        }
+        
+        .container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+        
+        /* 四季背景 */
+        .season-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            transition: opacity 1.5s ease;
+            background-size: cover;
+            background-position: center;
+            z-index: 1;
+        }
+        
+        .season-bg.active {
+            opacity: 1;
+        }
+        
+        /* 春季背景 */
+        .spring {
+            background: linear-gradient(to bottom, #a8e6cf, #dcedc1, #ffd3b6);
+        }
+        
+        /* 夏季背景 */
+        .summer {
+            background: linear-gradient(to bottom, #1a2980, #26d0ce);
+        }
+        
+        /* 秋季背景 */
+        .autumn {
+            background: linear-gradient(to bottom, #f7971e, #ffd200);
+        }
+        
+        /* 冬季背景 */
+        .winter {
+            background: linear-gradient(to bottom, #8e9eab, #eef2f3);
+        }
+        
+        /* 标题区域 */
+        .header {
+            position: relative;
+            z-index: 3;
+            text-align: center;
+            padding-top: 2rem;
+        }
+        
+        .title {
+            font-size: 3.5rem;
+            font-weight: 700;
+            color: rgba(255, 255, 255, 0.9);
+            text-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            letter-spacing: 3px;
+            margin-bottom: 0.5rem;
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            color: rgba(255, 255, 255, 0.8);
+            font-weight: 300;
+            letter-spacing: 8px;
+        }
+        
+        /* 季节指示器 */
+        .season-indicator {
+            position: absolute;
+            top: 2rem;
+            left: 2rem;
+            z-index: 3;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 10px 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .season-name {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: white;
+            text-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+        
+        /* 季节描述 */
+        .season-description {
+            position: absolute;
+            bottom: 5rem;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80%;
+            max-width: 800px;
+            z-index: 3;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 25px 35px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        .season-text {
+            font-size: 1.3rem;
+            line-height: 1.6;
+            color: white;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+            margin-bottom: 1rem;
+        }
+        
+        /* 季节切换按钮 */
+        .season-nav {
+            position: absolute;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 3;
+            display: flex;
+            gap: 1.5rem;
+        }
+        
+        .season-btn {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: none;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(5px);
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .season-btn:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        .season-btn.active {
+            background: rgba(255, 255, 255, 0.4);
+            transform: scale(1.1);
+        }
+        
+        /* 季节元素装饰 */
+        .season-elements {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 2;
+            pointer-events: none;
+        }
+        
+        /* 春季元素 - 花朵 */
+        .flower {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            opacity: 0.7;
+            animation: float 20s linear infinite;
+        }
+        
+        .flower:nth-child(1) {
+            top: 20%;
+            left: 10%;
+            animation-delay: 0s;
+            color: #ff9a9e;
+        }
+        
+        .flower:nth-child(2) {
+            top: 40%;
+            left: 85%;
+            animation-delay: 5s;
+            color: #fad0c4;
+        }
+        
+        .flower:nth-child(3) {
+            top: 70%;
+            left: 15%;
+            animation-delay: 10s;
+            color: #ffecd2;
+        }
+        
+        .flower:nth-child(4) {
+            top: 15%;
+            left: 70%;
+            animation-delay: 15s;
+            color: #a1c4fd;
+        }
+        
+        /* 夏季元素 - 太阳 */
+        .sun {
+            position: absolute;
+            top: 15%;
+            right: 15%;
+            width: 80px;
+            height: 80px;
+            background: radial-gradient(circle, #ffd700, #ff8c00);
+            border-radius: 50%;
+            box-shadow: 0 0 40px #ff8c00, 0 0 80px rgba(255, 140, 0, 0.5);
+            animation: pulse 3s infinite alternate;
+        }
+        
+        /* 秋季元素 - 落叶 */
+        .leaf {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            opacity: 0.8;
+            animation: fall 15s linear infinite;
+        }
+        
+        .leaf:nth-child(1) {
+            left: 10%;
+            animation-delay: 0s;
+            color: #ff6b35;
+        }
+        
+        .leaf:nth-child(2) {
+            left: 30%;
+            animation-delay: 3s;
+            color: #f7c242;
+        }
+        
+        .leaf:nth-child(3) {
+            left: 60%;
+            animation-delay: 6s;
+            color: #8b4513;
+        }
+        
+        .leaf:nth-child(4) {
+            left: 80%;
+            animation-delay: 9s;
+            color: #d2691e;
+        }
+        
+        .leaf:nth-child(5) {
+            left: 45%;
+            animation-delay: 12s;
+            color: #ff4500;
+        }
+        
+        /* 冬季元素 - 雪花 */
+        .snowflake {
+            position: absolute;
+            color: white;
+            font-size: 1.5rem;
+            opacity: 0.8;
+            animation: snow 15s linear infinite;
+        }
+        
+        .snowflake:nth-child(1) {
+            left: 10%;
+            animation-delay: 0s;
+        }
+        
+        .snowflake:nth-child(2) {
+            left: 20%;
+            animation-delay: 2s;
+        }
+        
+        .snowflake:nth-child(3) {
+            left: 40%;
+            animation-delay: 4s;
+        }
+        
+        .snowflake:nth-child(4) {
+            left: 60%;
+            animation-delay: 6s;
+        }
+        
+        .snowflake:nth-child(5) {
+            left: 80%;
+            animation-delay: 8s;
+        }
+        
+        .snowflake:nth-child(6) {
+            left: 30%;
+            animation-delay: 10s;
+        }
+        
+        .snowflake:nth-child(7) {
+            left: 70%;
+            animation-delay: 12s;
+        }
+        
+        /* 动画定义 */
+        @keyframes float {
+            0% {
+                transform: translateY(0) rotate(0deg);
+            }
+            100% {
+                transform: translateY(-100vh) rotate(360deg);
+            }
+        }
+        
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+                box-shadow: 0 0 40px #ff8c00, 0 0 80px rgba(255, 140, 0, 0.5);
+            }
+            100% {
+                transform: scale(1.1);
+                box-shadow: 0 0 60px #ff8c00, 0 0 100px rgba(255, 140, 0, 0.7);
+            }
+        }
+        
+        @keyframes fall {
+            0% {
+                top: -50px;
+                transform: rotate(0deg);
+            }
+            100% {
+                top: 100vh;
+                transform: rotate(1080deg);
+            }
+        }
+        
+        @keyframes snow {
+            0% {
+                top: -50px;
+                transform: translateX(0);
+            }
+            100% {
+                top: 100vh;
+                transform: translateX(50px);
+            }
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .title {
+                font-size: 2.5rem;
+            }
+            
+            .subtitle {
+                font-size: 1rem;
+                letter-spacing: 5px;
+            }
+            
+            .season-name {
+                font-size: 1.5rem;
+            }
+            
+            .season-description {
+                padding: 15px 20px;
+                bottom: 8rem;
+            }
+            
+            .season-text {
+                font-size: 1.1rem;
+            }
+            
+            .season-nav {
+                bottom: 1.5rem;
+            }
+            
+            .season-btn {
+                width: 50px;
+                height: 50px;
+                font-size: 1.2rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .title {
+                font-size: 2rem;
+            }
+            
+            .season-indicator {
+                top: 1rem;
+                left: 1rem;
+                padding: 8px 15px;
+            }
+            
+            .season-description {
+                width: 90%;
+                padding: 12px 15px;
+                bottom: 9rem;
+            }
+            
+            .season-nav {
+                gap: 0.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 四季背景 -->
+        <div class="season-bg spring active"></div>
+        <div class="season-bg summer"></div>
+        <div class="season-bg autumn"></div>
+        <div class="season-bg winter"></div>
+        
+        <!-- 季节装饰元素 -->
+        <div class="season-elements" id="seasonElements">
+            <!-- 春季花朵 -->
+            <div class="flower"><i class="fas fa-seedling"></i></div>
+            <div class="flower"><i class="fas fa-spa"></i></div>
+            <div class="flower"><i class="fas fa-leaf"></i></div>
+            <div class="flower"><i class="fas fa-feather-alt"></i></div>
+            
+            <!-- 夏季太阳 -->
+            <div class="sun"></div>
+            
+            <!-- 秋季落叶 -->
+            <div class="leaf"><i class="fas fa-leaf"></i></div>
+            <div class="leaf"><i class="fas fa-leaf"></i></div>
+            <div class="leaf"><i class="fas fa-leaf"></i></div>
+            <div class="leaf"><i class="fas fa-leaf"></i></div>
+            <div class="leaf"><i class="fas fa-leaf"></i></div>
+            
+            <!-- 冬季雪花 -->
+            <div class="snowflake"><i class="far fa-snowflake"></i></div>
+            <div class="snowflake"><i class="far fa-snowflake"></i></div>
+            <div class="snowflake"><i class="far fa-snowflake"></i></div>
+            <div class="snowflake"><i class="far fa-snowflake"></i></div>
+            <div class="snowflake"><i class="far fa-snowflake"></i></div>
+            <div class="snowflake"><i class="far fa-snowflake"></i></div>
+            <div class="snowflake"><i class="far fa-snowflake"></i></div>
+        </div>
+        
+        <!-- 标题区域 -->
+        <div class="header">
+            <h1 class="title">四季更替</h1>
+            <p class="subtitle">自然的韵律与循环</p>
+        </div>
+        
+        <!-- 季节指示器 -->
+        <div class="season-indicator">
+            <div class="season-name" id="seasonName">春</div>
+        </div>
+        
+        <!-- 季节描述 -->
+        <div class="season-description">
+            <p class="season-text" id="seasonText">
+                春天是万物复苏的季节，大地从沉睡中苏醒，新芽破土而出，花朵绽放，处处充满生机与希望。温暖的阳光融化冰雪，鸟儿开始歌唱，大自然披上绿色的新装。
+            </p>
+        </div>
+        
+        <!-- 季节切换按钮 -->
+        <div class="season-nav">
+            <button class="season-btn active" data-season="spring">
+                <i class="fas fa-seedling"></i>
+            </button>
+            <button class="season-btn" data-season="summer">
+                <i class="fas fa-sun"></i>
+            </button>
+            <button class="season-btn" data-season="autumn">
+                <i class="fas fa-leaf"></i>
+            </button>
+            <button class="season-btn" data-season="winter">
+                <i class="far fa-snowflake"></i>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // 季节数据
+        const seasons = {
+            spring: {
+                name: "春",
+                text: "春天是万物复苏的季节，大地从沉睡中苏醒，新芽破土而出，花朵绽放，处处充满生机与希望。温暖的阳光融化冰雪，鸟儿开始歌唱，大自然披上绿色的新装。",
+                color: "#a8e6cf"
+            },
+            summer: {
+                name: "夏",
+                text: "夏天是热情奔放的季节，阳光灿烂，万物繁茂。树木葱郁，百花争艳，蝉鸣声声，雷雨阵阵。这是一个充满活力与能量的季节，也是生命最旺盛的时期。",
+                color: "#1a2980"
+            },
+            autumn: {
+                name: "秋",
+                text: "秋天是丰收与变化的季节，金黄的稻穗低垂，果实累累。树叶由绿转黄、变红，最终飘落，大地铺上一层金黄的地毯。凉爽的秋风吹走夏日的炎热，带来收获的喜悦。",
+                color: "#f7971e"
+            },
+            winter: {
+                name: "冬",
+                text: "冬天是静谧与沉淀的季节，大地银装素裹，白雪皑皑。万物进入休眠状态，积蓄力量等待春天的到来。寒冷的空气中弥漫着宁静与祥和，这是一个内省与等待的季节。",
+                color: "#8e9eab"
+            }
+        };
+        
+        // 获取DOM元素
+        const seasonBgElements = document.querySelectorAll('.season-bg');
+        const seasonButtons = document.querySelectorAll('.season-btn');
+        const seasonNameElement = document.getElementById('seasonName');
+        const seasonTextElement = document.getElementById('seasonText');
+        const seasonElements = document.getElementById('seasonElements');
+        
+        // 当前季节索引
+        let currentSeason = 'spring';
+        
+        // 切换季节函数
+        function switchSeason(season) {
+            // 更新当前季节
+            currentSeason = season;
+            
+            // 更新背景
+            seasonBgElements.forEach(bg => {
+                bg.classList.remove('active');
+                if (bg.classList.contains(season)) {
+                    bg.classList.add('active');
+                }
+            });
+            
+            // 更新按钮状态
+            seasonButtons.forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.getAttribute('data-season') === season) {
+                    btn.classList.add('active');
+                }
+            });
+            
+            // 更新季节名称和描述
+            seasonNameElement.textContent = seasons[season].name;
+            seasonTextElement.textContent = seasons[season].text;
+            
+            // 更新季节元素显示
+            updateSeasonElements(season);
+        }
+        
+        // 更新季节装饰元素
+        function updateSeasonElements(season) {
+            // 重置所有元素为隐藏
+            const allElements = seasonElements.querySelectorAll('div');
+            allElements.forEach(el => {
+                el.style.display = 'none';
+            });
+            
+            // 根据季节显示相应元素
+            if (season === 'spring') {
+                const flowers = document.querySelectorAll('.flower');
+                flowers.forEach(flower => {
+                    flower.style.display = 'block';
+                });
+            } else if (season === 'summer') {
+                const sun = document.querySelector('.sun');
+                sun.style.display = 'block';
+            } else if (season === 'autumn') {
+                const leaves = document.querySelectorAll('.leaf');
+                leaves.forEach(leaf => {
+                    leaf.style.display = 'block';
+                });
+            } else if (season === 'winter') {
+                const snowflakes = document.querySelectorAll('.snowflake');
+                snowflakes.forEach(snowflake => {
+                    snowflake.style.display = 'block';
+                });
+            }
+        }
+        
+        // 为季节按钮添加点击事件
+        seasonButtons.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const season = this.getAttribute('data-season');
+                switchSeason(season);
+            });
+        });
+        
+        // 自动轮播季节
+        let autoPlayInterval;
+        let seasonIndex = 0;
+        const seasonList = ['spring', 'summer', 'autumn', 'winter'];
+        
+        function startAutoPlay() {
+            autoPlayInterval = setInterval(() => {
+                seasonIndex = (seasonIndex + 1) % seasonList.length;
+                switchSeason(seasonList[seasonIndex]);
+            }, 5000); // 每5秒切换一次
+        }
+        
+        function stopAutoPlay() {
+            clearInterval(autoPlayInterval);
+        }
+        
+        // 启动自动轮播
+        startAutoPlay();
+        
+        // 当用户与按钮交互时暂停自动轮播
+        seasonButtons.forEach(btn => {
+            btn.addEventListener('mouseenter', stopAutoPlay);
+            btn.addEventListener('mouseleave', startAutoPlay);
+        });
+        
+        // 初始化显示春季元素
+        updateSeasonElements('spring');
+        
+        // 添加键盘控制
+        document.addEventListener('keydown', (e) => {
+            const key = e.key;
+            
+            if (key === 'ArrowRight' || key === ' ') {
+                // 右箭头或空格键：切换到下一个季节
+                seasonIndex = (seasonList.indexOf(currentSeason) + 1) % seasonList.length;
+                switchSeason(seasonList[seasonIndex]);
+                stopAutoPlay();
+                setTimeout(startAutoPlay, 10000); // 10秒后重新开始自动轮播
+            } else if (key === 'ArrowLeft') {
+                // 左箭头：切换到上一个季节
+                seasonIndex = (seasonList.indexOf(currentSeason) - 1 + seasonList.length) % seasonList.length;
+                switchSeason(seasonList[seasonIndex]);
+                stopAutoPlay();
+                setTimeout(startAutoPlay, 10000); // 10秒后重新开始自动轮播
+            } else if (key >= '1' && key <= '4') {
+                // 数字键1-4：直接切换到对应季节
+                const index = parseInt(key) - 1;
+                switchSeason(seasonList[index]);
+                stopAutoPlay();
+                setTimeout(startAutoPlay, 10000); // 10秒后重新开始自动轮播
+            }
+        });
+    </script>
+</body>
+</html>
