@@ -3,11 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>滚动轨迹 · 完整版 | 跳跃·商城·排行榜</title>
+    <title>滚动轨迹·完全体·梦幻轨道</title>
     <style>
         * { box-sizing: border-box; user-select: none; }
         body { margin: 0; overflow: hidden; font-family: 'Segoe UI', system-ui, sans-serif; background: #0a0a1a; color: white; }
-        /* UI 面板 (使用绝对定位) */
         .ui-panel {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -16,7 +15,6 @@
         }
         .ui-panel > * { pointer-events: auto; }
 
-        /* HUD (平视显示) */
         #hud {
             position: absolute;
             top: 20px; left: 20px; right: 20px;
@@ -28,20 +26,16 @@
             padding: 10px 25px;
             border-radius: 60px;
             border: 1px solid rgba(255,215,0,0.3);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
-            color: white;
-            font-weight: bold;
             z-index: 100;
         }
-        #hud-left { display: flex; gap: 30px; align-items: center; }
-        #hud-right { display: flex; gap: 20px; align-items: center; }
-        .hud-item { display: flex; align-items: center; gap: 8px; background: rgba(0,0,0,0.4); padding: 5px 15px; border-radius: 40px; }
+        #hud-left, #hud-right { display: flex; gap: 20px; align-items: center; }
+        .hud-item { display: flex; align-items: center; gap: 5px; background: rgba(0,0,0,0.4); padding: 5px 15px; border-radius: 40px; }
         .hud-item span { font-size: 1.3rem; }
-        .coin-icon { color: gold; font-size: 1.8rem; line-height: 1; }
+        .coin-icon { color: gold; }
+        .diamond-icon { color: cyan; }
         .pause-btn {
             background: rgba(255,255,255,0.15);
             border: 1px solid rgba(255,255,255,0.3);
-            color: white;
             font-size: 1.8rem;
             width: 50px; height: 50px;
             border-radius: 30px;
@@ -49,128 +43,35 @@
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            transition: 0.2s;
         }
-        .pause-btn:hover { background: #ffaa33; color: #1a1a2e; }
 
-        /* 道具快捷栏 */
         #item-bar {
             position: absolute;
             bottom: 30px; left: 50%;
             transform: translateX(-50%);
             display: flex;
-            gap: 20px;
+            gap: 10px;
             background: rgba(0,0,0,0.6);
             backdrop-filter: blur(10px);
-            padding: 15px 30px;
+            padding: 15px 25px;
             border-radius: 80px;
             border: 1px solid #ffaa3355;
             z-index: 100;
         }
         .item-slot {
             background: #1e1e3f;
-            width: 80px; height: 80px;
-            border-radius: 30px;
+            width: 65px; height: 65px;
+            border-radius: 25px;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             border: 2px solid #4a4a8a;
-            color: white;
-            font-weight: bold;
             cursor: pointer;
-            transition: 0.2s;
-            box-shadow: 0 5px 0 #0a0a1a;
+            font-size: 0.9rem;
         }
-        .item-slot.active { border-color: gold; transform: scale(1.05); background: #2a2a5a; }
-        .item-slot .name { font-size: 0.8rem; opacity: 0.8; }
-        .item-slot .count { font-size: 1.6rem; line-height: 1; color: #ffaa33; }
-
-        /* 菜单面板 (全屏浮动) */
-        .menu-screen {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(10, 10, 30, 0.95);
-            backdrop-filter: blur(12px);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 200;
-            transition: opacity 0.3s;
-        }
-        .menu-card {
-            background: #1f1f3a;
-            border-radius: 60px;
-            padding: 40px 60px;
-            border: 2px solid #ffaa33;
-            box-shadow: 0 30px 50px rgba(0,0,0,0.8);
-            text-align: center;
-            min-width: 400px;
-        }
-        .menu-card h1 { font-size: 4rem; margin: 0; color: gold; text-shadow: 0 0 20px gold; }
-        .menu-card h2 { font-size: 2rem; margin: 10px 0 30px; color: #ccc; }
-        .menu-buttons { display: flex; flex-direction: column; gap: 20px; }
-        .menu-btn {
-            background: #2a2a5a;
-            border: none;
-            color: white;
-            font-size: 2rem;
-            padding: 15px 30px;
-            border-radius: 60px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.2s;
-            border: 2px solid #5a5aaa;
-        }
-        .menu-btn:hover { background: #ffaa33; color: #1a1a2e; border-color: white; }
-
-        /* 商城&排行榜样式 */
-        .shop-grid { display: flex; gap: 20px; margin: 30px 0; }
-        .shop-item {
-            background: #2d2d5a;
-            padding: 20px;
-            border-radius: 40px;
-            width: 180px;
-            border: 2px solid #7777cc;
-        }
-        .shop-item .price { color: gold; font-size: 2rem; }
-        .shop-item button {
-            background: gold;
-            border: none;
-            font-size: 1.5rem;
-            padding: 10px 20px;
-            border-radius: 40px;
-            font-weight: bold;
-            cursor: pointer;
-            margin-top: 10px;
-        }
-        .leaderboard-list {
-            background: #1a1a30;
-            border-radius: 40px;
-            padding: 20px 40px;
-            font-size: 1.8rem;
-            list-style: none;
-            width: 300px;
-        }
-        .leaderboard-list li { margin: 10px 0; border-bottom: 1px solid #444; padding: 5px; }
-
-        .back-btn {
-            background: #555;
-            color: white;
-            font-size: 1.5rem;
-            padding: 10px 30px;
-            border-radius: 40px;
-            cursor: pointer;
-            margin-top: 20px;
-            border: none;
-        }
-
-        #pause-menu { display: none; }
-        #shop-menu { display: none; }
-        #leaderboard-menu { display: none; }
-        #gameover-screen { display: none; }
-        #main-menu { display: flex; } /* 默认显示主菜单 */
+        .item-slot.active { border-color: gold; background: #2a2a5a; }
+        .item-slot .count { font-size: 1.3rem; color: #ffaa33; }
 
         .jump-btn {
             position: absolute;
@@ -188,97 +89,580 @@
             box-shadow: 0 10px 0 #b36b00;
             cursor: pointer;
             z-index: 150;
-            transition: 0.05s linear;
         }
         .jump-btn:active { transform: translateY(6px); box-shadow: 0 4px 0 #b36b00; }
+
+        #gacha-btn {
+            position: absolute;
+            top: 100px; right: 20px;
+            background: gold;
+            color: black;
+            font-size: 1.8rem;
+            padding: 15px 25px;
+            border-radius: 50px;
+            border: 3px solid white;
+            cursor: pointer;
+            font-weight: bold;
+            box-shadow: 0 0 20px gold;
+            z-index: 150;
+        }
+
+        .menu-screen {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(10, 10, 30, 0.95);
+            backdrop-filter: blur(12px);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 200;
+        }
+        .menu-card {
+            background: #1f1f3a;
+            border-radius: 60px;
+            padding: 30px 50px;
+            border: 2px solid #ffaa33;
+            text-align: center;
+            min-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        .menu-card h2 { font-size: 2.5rem; margin: 0 0 20px; color: gold; }
+        .menu-buttons { display: flex; flex-direction: column; gap: 15px; }
+        .menu-btn {
+            background: #2a2a5a;
+            border: none;
+            color: white;
+            font-size: 1.8rem;
+            padding: 10px 20px;
+            border-radius: 40px;
+            cursor: pointer;
+        }
+        .menu-btn:hover { background: #ffaa33; color: black; }
+        .back-btn {
+            background: #555;
+            color: white;
+            font-size: 1.5rem;
+            padding: 8px 25px;
+            border-radius: 40px;
+            cursor: pointer;
+            margin-top: 20px;
+            border: none;
+        }
+
+        .shop-grid { display: flex; gap: 20px; justify-content: center; margin: 20px 0; flex-wrap: wrap; }
+        .shop-item {
+            background: #2d2d5a;
+            padding: 15px;
+            border-radius: 40px;
+            width: 200px;
+        }
+        .shop-item .price { color: gold; font-size: 1.8rem; }
+        .shop-item .quantity-control {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            margin: 10px 0;
+        }
+        .shop-item .qty-btn {
+            background: #4a4a8a;
+            border: none;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 20px;
+            font-size: 2rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .shop-item .qty-input {
+            width: 80px;
+            height: 50px;
+            background: #1a1a3a;
+            border: 2px solid gold;
+            border-radius: 25px;
+            color: white;
+            font-size: 1.8rem;
+            text-align: center;
+            padding: 0 5px;
+            -moz-appearance: textfield;
+        }
+        .shop-item .qty-input::-webkit-outer-spin-button,
+        .shop-item .qty-input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        .shop-item button {
+            background: gold;
+            border: none;
+            font-size: 1.2rem;
+            padding: 8px 15px;
+            border-radius: 30px;
+            margin-top: 5px;
+            cursor: pointer;
+        }
+
+        .gacha-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+        .card-display {
+            width: 200px;
+            height: 250px;
+            background: linear-gradient(145deg, #2a2a5a, #1a1a3a);
+            border-radius: 40px;
+            border: 3px solid gold;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            transition: transform 0.2s;
+            margin: 10px 0;
+        }
+        .card-display.flip { animation: flip 0.6s; }
+        @keyframes flip { 0% { transform: rotateY(0deg); } 50% { transform: rotateY(180deg); } 100% { transform: rotateY(360deg); } }
+        
+        .gacha-buttons { display: flex; gap: 20px; }
+        .gacha-btn-sm {
+            background: gold;
+            border: none;
+            font-size: 1.8rem;
+            padding: 10px 25px;
+            border-radius: 40px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .gacha-custom {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-top: 10px;
+        }
+        .gacha-custom .qty-input {
+            width: 100px;
+            height: 50px;
+            background: #1a1a3a;
+            border: 2px solid gold;
+            border-radius: 25px;
+            color: white;
+            font-size: 2rem;
+            text-align: center;
+            -moz-appearance: textfield;
+        }
+        .gacha-custom .qty-input::-webkit-outer-spin-button,
+        .gacha-custom .qty-input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        .gacha-log {
+            background: #0a0a20;
+            padding: 10px;
+            border-radius: 30px;
+            max-height: 150px;
+            overflow-y: auto;
+            width: 100%;
+            font-size: 1.2rem;
+            color: #ccc;
+        }
+
+        .bag-categories {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        .cat-btn {
+            background: #2a2a5a;
+            padding: 10px 20px;
+            border-radius: 30px;
+            cursor: pointer;
+            border: 2px solid #7777cc;
+        }
+        .cat-btn.active { border-color: gold; background: #3a3a7a; }
+        .bag-content {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+            max-height: 300px;
+            overflow-y: auto;
+            padding: 10px;
+        }
+        .skin-item {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            border: 3px solid white;
+            cursor: pointer;
+            background-size: cover;
+        }
+        .shape-item {
+            width: 80px;
+            height: 80px;
+            border-radius: 20px;
+            border: 3px solid white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #2a2a5a;
+            font-size: 2rem;
+        }
+        .potion-item {
+            background: #2a2a5a;
+            padding: 10px 20px;
+            border-radius: 40px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.5rem;
+        }
+
+        .save-slots {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            margin: 20px 0;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .save-slot {
+            background: #2a2a5a;
+            border-radius: 40px;
+            padding: 15px 25px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border: 2px solid #7777cc;
+        }
+        .slot-info {
+            text-align: left;
+            font-size: 1.2rem;
+        }
+        .slot-info .time { color: #aaa; font-size: 0.9rem; }
+        .slot-actions {
+            display: flex;
+            gap: 15px;
+        }
+        .slot-btn {
+            background: #4a4a8a;
+            border: none;
+            color: white;
+            font-size: 1.2rem;
+            padding: 8px 20px;
+            border-radius: 40px;
+            cursor: pointer;
+            border: 1px solid #aaaaff;
+        }
+        .slot-btn.save { background: #2a7a2a; }
+        .slot-btn.load { background: #7a2a7a; }
+        .slot-btn:hover { filter: brightness(1.2); }
+
+        .cheat-input {
+            margin: 20px 0;
+        }
+        .cheat-input input {
+            background: #2a2a5a;
+            border: 2px solid gold;
+            color: white;
+            font-size: 2rem;
+            padding: 10px 20px;
+            border-radius: 40px;
+            width: 200px;
+            text-align: center;
+        }
+        .cheat-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin: 20px 0;
+            align-items: center;
+        }
+        .cheat-buttons .qty-btn {
+            background: #4a4a8a;
+            width: 60px;
+            height: 60px;
+            border-radius: 30px;
+            font-size: 2.5rem;
+        }
+        .cheat-buttons .qty-input {
+            width: 150px;
+            height: 70px;
+            background: #1a1a3a;
+            border: 2px solid gold;
+            border-radius: 35px;
+            color: white;
+            font-size: 2.5rem;
+            text-align: center;
+            -moz-appearance: textfield;
+        }
+        .cheat-buttons .qty-input::-webkit-outer-spin-button,
+        .cheat-buttons .qty-input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        .equip-slot {
+    background: #2a2a5a;
+    border-radius: 20px;
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #7777cc;
+}
+.equip-type-group {
+    margin: 20px 0;
+}
+.equip-type-group h4 {
+    color: gold;
+    margin: 10px 0;
+    border-bottom: 2px solid gold;
+    padding-bottom: 5px;
+}
+.equip-type-group button {
+    background: gold;
+    border: none;
+    color: black;
+    padding: 5px 10px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-weight: bold;
+    margin-left: 5px;
+}
+.equip-type-group button:hover {
+    background: #ffaa33;
+}
+
+        #main-menu, #shop-menu, #gacha-menu, #bag-menu, #save-menu, #cheat-password, #cheat-panel, #pause-menu, #gameover-screen { display: none; }
+        #main-menu { display: flex; }
     </style>
 </head>
 <body>
-    <!-- 3D渲染画布会自动插入 -->
-    
-    <!-- HUD 界面 -->
     <div class="ui-panel">
+        <!-- HUD -->
         <div id="hud">
             <div id="hud-left">
                 <div class="hud-item"><span class="coin-icon">🪙</span> <span id="coin-count">0</span></div>
+                <div class="hud-item"><span class="diamond-icon">💎</span> <span id="diamond-count">0</span></div>
                 <div class="hud-item"><span>🏆</span> <span id="score-display">0</span></div>
                 <div class="hud-item"><span>⚡</span> <span id="speed-indicator">1.0x</span></div>
+                <div class="hud-item"><span>❤️</span> <span id="hp-display">3/3</span></div>
             </div>
             <div id="hud-right">
                 <div class="pause-btn" id="pauseBtn">⏸️</div>
             </div>
         </div>
 
-        <!-- 道具快捷栏 -->
+        <!-- 快捷栏 (5个槽位) -->
         <div id="item-bar">
-            <div class="item-slot" id="item-speed" title="速度药剂：暂时减速30%持续5秒">
-                <span class="name">速度</span>
-                <span class="count" id="speed-count">0</span>
-            </div>
-            <div class="item-slot" id="item-impact" title="冲击：摧毁前方18个障碍">
-                <span class="name">冲击</span>
-                <span class="count" id="impact-count">0</span>
-            </div>
-            <div class="item-slot" id="item-freeze" title="冰冻：移除当前所有障碍">
-                <span class="name">冰冻</span>
-                <span class="count" id="freeze-count">0</span>
-            </div>
+            <div class="item-slot" id="item-speed" title="速度药剂"><span>⚡</span><span class="count" id="speed-count">0</span></div>
+            <div class="item-slot" id="item-impact" title="冲击药剂"><span>💥</span><span class="count" id="impact-count">0</span></div>
+            <div class="item-slot" id="item-freeze" title="冰冻药剂"><span>❄️</span><span class="count" id="freeze-count">0</span></div>
+            <div class="item-slot" id="item-flight" title="飞行药剂"><span>🕊️</span><span class="count" id="flight-count">0</span></div>
+            <div class="item-slot" id="item-revive" title="复活药剂"><span>💗</span><span class="count" id="revive-count">0</span></div>
         </div>
 
-        <!-- 跳跃按钮（移动端友好） -->
+        <!-- 跳跃按钮 -->
         <div class="jump-btn" id="jumpBtn">↯</div>
+        <!-- 抽卡入口 -->
+        <div id="gacha-btn">✨ 抽卡</div>
 
-        <!-- 菜单界面 -->
+        <!-- 主菜单 -->
         <div id="main-menu" class="menu-screen">
             <div class="menu-card">
-                <h1>滚动轨迹</h1>
-                <h2>终极挑战</h2>
+                <h1>滚动轨迹·梦幻轨道</h1>
                 <div class="menu-buttons">
                     <button class="menu-btn" id="startGameBtn">▶ 开始游戏</button>
                     <button class="menu-btn" id="openShopBtn">🛒 商城</button>
-                    <button class="menu-btn" id="openLeaderboardBtn">🏅 排行榜</button>
+                    <button class="menu-btn" id="openGachaBtn">✨ 抽卡</button>
+                    <button class="menu-btn" id="openBagBtn">🎒 背包</button>
+                    <button class="menu-btn" id="openSaveBtn">📁 存档管理</button>
+                    <button class="menu-btn" id="openCheatBtn">🔓 作弊</button>
+                    <button class="menu-btn" id="openEquipBtn">⚔️ 装备</button>
                 </div>
             </div>
         </div>
 
+        <!-- 商城界面 -->
         <div id="shop-menu" class="menu-screen">
             <div class="menu-card">
-                <h2>🛒 药剂商城</h2>
+                <h2>🛒 商城 (可编辑数量)</h2>
                 <div class="shop-grid">
+                    <!-- 速度药剂 -->
                     <div class="shop-item">
                         <div>⚡速度药剂</div>
                         <div class="price">30 🪙</div>
-                        <div><small>减速30%持续5s</small></div>
+                        <div class="quantity-control">
+                            <button class="qty-btn" id="speedQtyMinus">-</button>
+                            <input type="number" class="qty-input" id="speedQty" value="1" min="1" max="99999" step="1">
+                            <button class="qty-btn" id="speedQtyPlus">+</button>
+                        </div>
                         <button id="buySpeed">购买</button>
                     </div>
+                    <!-- 冲击药剂 -->
                     <div class="shop-item">
                         <div>💥冲击药剂</div>
                         <div class="price">50 🪙</div>
-                        <div><small>摧毁前方18障碍</small></div>
+                        <div class="quantity-control">
+                            <button class="qty-btn" id="impactQtyMinus">-</button>
+                            <input type="number" class="qty-input" id="impactQty" value="1" min="1" max="99999" step="1">
+                            <button class="qty-btn" id="impactQtyPlus">+</button>
+                        </div>
                         <button id="buyImpact">购买</button>
                     </div>
+                    <!-- 冰冻药剂 -->
                     <div class="shop-item">
                         <div>❄️冰冻药剂</div>
                         <div class="price">80 🪙</div>
-                        <div><small>清除全场障碍</small></div>
+                        <div class="quantity-control">
+                            <button class="qty-btn" id="freezeQtyMinus">-</button>
+                            <input type="number" class="qty-input" id="freezeQty" value="1" min="1" max="99999" step="1">
+                            <button class="qty-btn" id="freezeQtyPlus">+</button>
+                        </div>
                         <button id="buyFreeze">购买</button>
                     </div>
+                    <!-- 钻石兑换 -->
+                    <div class="shop-item">
+                        <div>💎 钻石</div>
+                        <div class="price">1000 🪙 → 1 💎</div>
+                        <div class="quantity-control">
+                            <button class="qty-btn" id="diamondQtyMinus">-</button>
+                            <input type="number" class="qty-input" id="diamondQty" value="1" min="1" max="99999" step="1">
+                            <button class="qty-btn" id="diamondQtyPlus">+</button>
+                        </div>
+                        <button id="buyDiamond">兑换</button>
+                    </div>
+                    <!-- 复活药剂 -->
+                    <div class="shop-item">
+                        <div>💗 复活药剂</div>
+                        <div class="price">8000 💎</div>
+                        <div class="quantity-control">
+                            <button class="qty-btn" id="reviveQtyMinus">-</button>
+                            <input type="number" class="qty-input" id="reviveQty" value="1" min="1" max="99999" step="1">
+                            <button class="qty-btn" id="reviveQtyPlus">+</button>
+                        </div>
+                        <button id="buyRevive">购买</button>
+                    </div>
                 </div>
-                <div>当前金币: <span id="shop-coins">0</span> 🪙</div>
+                <div>当前金币: <span id="shop-coins">0</span> 🪙  钻石: <span id="shop-diamonds">0</span> 💎</div>
                 <button class="back-btn" id="closeShopBtn">返回</button>
             </div>
         </div>
 
-        <div id="leaderboard-menu" class="menu-screen">
+        <!-- 抽卡界面 (新增自定义抽卡) -->
+        <div id="gacha-menu" class="menu-screen">
             <div class="menu-card">
-                <h2>🏆 排行榜</h2>
-                <ul class="leaderboard-list" id="leaderboard-list">
-                    <li>1. 加载中...</li>
-                </ul>
-                <button class="back-btn" id="closeLeaderboardBtn">返回</button>
+                <h2>✨ 卡池 · 稀有皮肤0.01% 复活药剂0.01%</h2>
+                <div class="gacha-area">
+                    <div class="card-display" id="gachaCard">✨</div>
+                    <div class="gacha-buttons">
+                        <button class="gacha-btn-sm" id="gachaSingle">1抽 💎1</button>
+                        <button class="gacha-btn-sm" id="gachaTen">10连 💎10</button>
+                        <button class="gacha-btn-sm" id="gachaHundred">100连 💎100</button>
+                    </div>
+                    <!-- 自定义抽卡控件 -->
+                    <div class="gacha-custom">
+                        <button class="qty-btn" id="customQtyMinus">-</button>
+                        <input type="number" class="qty-input" id="customQty" value="1" min="1" max="1000" step="1">
+                        <button class="qty-btn" id="customQtyPlus">+</button>
+                        <button class="gacha-btn-sm" id="gachaCustom">自定义抽卡</button>
+                    </div>
+                    <div class="gacha-log" id="gachaLog">点击抽卡</div>
+                    <div>钻石: <span id="gacha-diamonds">0</span> 💎  保底计数: <span id="pity-counter">0</span>/50  总抽卡: <span id="total-draws">0</span></div>
+                    <button class="back-btn" id="closeGachaBtn">返回</button>
+                </div>
             </div>
         </div>
 
+        <!-- 背包界面 -->
+        <div id="bag-menu" class="menu-screen">
+            <div class="menu-card">
+                <h2>🎒 背包</h2>
+                <div class="bag-categories">
+                    <div class="cat-btn active" id="catSkin">皮肤</div>
+                    <div class="cat-btn" id="catShape">形状</div>
+                    <div class="cat-btn" id="catPotion">药剂</div>
+                </div>
+                <div class="bag-content" id="bagContent"></div>
+                <button class="back-btn" id="closeBagBtn">返回</button>
+            </div>
+        </div>
+        <!-- 装备系统界面 -->
+<div id="equip-menu" class="menu-screen">
+    <div class="menu-card">
+        <h2>⚔️ 装备</h2>
+        <div style="display:flex; gap:20px;">
+            <div style="flex:1;">
+                <h3>当前穿戴</h3>
+                <div id="equipped-slots"></div>
+                <h3>属性</h3>
+                <div>❤️ 血量: <span id="stat-hp">3</span>/<span id="stat-maxhp">3</span></div>
+                <div>🛡️ 防御: <span id="stat-defense">0</span></div>
+                <div>💨 闪避: <span id="stat-dodge">0</span>%</div>
+            </div>
+            <div style="flex:2;">
+                <h3>背包装备</h3>
+                <div id="equip-inventory" style="max-height:300px; overflow-y:auto;"></div>
+            </div>
+        </div>
+        <button class="back-btn" id="closeEquipBtn">返回</button>
+    </div>
+</div>
+
+        <!-- 存档管理界面 -->
+        <div id="save-menu" class="menu-screen">
+            <div class="menu-card">
+                <h2>📁 存档管理 (手动)</h2>
+                <div class="save-slots" id="saveSlots"></div>
+                <button class="back-btn" id="closeSaveBtn">返回</button>
+            </div>
+        </div>
+
+        <!-- 作弊密码输入界面 -->
+        <div id="cheat-password" class="menu-screen">
+            <div class="menu-card">
+                <h2>🔒 输入作弊密码</h2>
+                <div class="cheat-input">
+                    <input type="password" id="cheatPasswordInput" maxlength="6" placeholder="******">
+                </div>
+                <div class="menu-buttons">
+                    <button class="menu-btn" id="cheatSubmit">确认</button>
+                    <button class="menu-btn" id="cheatCancel">返回</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 作弊面板 -->
+        <div id="cheat-panel" class="menu-screen">
+            <div class="menu-card">
+                <h2>💰 作弊 (添加资源)</h2>
+                <div style="margin:20px 0;">
+                    <div style="font-size:2rem;">金币</div>
+                    <div class="cheat-buttons">
+                        <button class="qty-btn" id="cheatCoinMinus">-</button>
+                        <input type="number" class="qty-input" id="cheatCoinQty" value="1000" min="1" max="99999" step="100">
+                        <button class="qty-btn" id="cheatCoinPlus">+</button>
+                    </div>
+                    <div style="font-size:2rem; margin-top:20px;">钻石</div>
+                    <div class="cheat-buttons">
+                        <button class="qty-btn" id="cheatDiamondMinus">-</button>
+                        <input type="number" class="qty-input" id="cheatDiamondQty" value="100" min="1" max="99999" step="10">
+                        <button class="qty-btn" id="cheatDiamondPlus">+</button>
+                    </div>
+                </div>
+                <div class="menu-buttons">
+                    <button class="menu-btn" id="cheatApply">添加</button>
+                    <button class="menu-btn" id="cheatClose">关闭</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 暂停菜单 -->
         <div id="pause-menu" class="menu-screen">
             <div class="menu-card">
                 <h2>⏸ 暂停</h2>
@@ -290,6 +674,7 @@
             </div>
         </div>
 
+        <!-- 游戏结束 -->
         <div id="gameover-screen" class="menu-screen">
             <div class="menu-card">
                 <h1>游戏结束</h1>
@@ -302,206 +687,867 @@
         </div>
     </div>
 
-    <script type="importmap">
-        { "imports": { "three": "https://unpkg.com/three@0.128.0/build/three.module.js" } }
-    </script>
+    <script type="importmap">{ "imports": { "three": "https://unpkg.com/three@0.128.0/build/three.module.js" } }</script>
 
     <script type="module">
         import * as THREE from 'three';
 
-        // ---------- 游戏配置 ----------
-        const LANE_COUNT = 3;
-        const LANE_WIDTH = 2.2;          // 稍宽一点便于跳跃
+        // ---------- 配置 ----------
+        const LANE_COUNT = 6;
+        const LANE_WIDTH = 1.7;
         const TOTAL_WIDTH = LANE_COUNT * LANE_WIDTH;
-        const BALL_RADIUS = 0.5;
-        const BALL_HEIGHT = 1.0;
-        const SEGMENT_LENGTH = 7.0;
-        const SEGMENT_COUNT = 15;
-        const BASE_SPEED = 0.12;
-        const MAX_SPEED = 0.45;
-        const ACCEL = 0.0004;
-
-        // 物理常量
+        const BALL_RADIUS = 0.45;
+        const BALL_HEIGHT = 0.9;
+        const SEGMENT_LENGTH = 7.5;
+        const SEGMENT_COUNT = 18;
+        const BASE_SPEED = 0.1;
+        const MAX_SPEED = 0.4;
+        const ACCEL = 0.0003;
         const GRAVITY = -0.02;
         const JUMP_FORCE = 0.5;
-        const GROUND_Y = BALL_HEIGHT;
+        // 玩家属性
+let playerHP = 3;               // 当前血量
+let maxHP = 3;                  // 最大血量
+let baseDefense = 0;            // 基础防御
+let baseDodge = 0;              // 基础闪避（百分比，0-100）
+let totalDefense = 0;           // 总防御（含装备）
+let totalDodge = 0;             // 总闪避（含装备）
+
+// 装备系统
+let equipmentSlots = {           // 当前穿戴的装备
+    head: null,
+    body: null,
+    feet: null,
+    weapon: null
+};
+let equipmentInventory = [];     // 背包中的装备（数组）
+
+// 装备类型定义
+const EQUIPMENT_TYPES = {
+    HEAD: 'head',
+    BODY: 'body',
+    FEET: 'feet',
+    WEAPON: 'weapon'
+};
+
+// 装备稀有度
+const RARITY = {
+    COMMON: 1,
+    RARE: 2,
+    EPIC: 3,
+    LEGENDARY: 4
+};
 
         // 全局变量
         let scene, camera, renderer;
-        let ball, ballCurrentLane = 1;
+        let ball;
+        let ballCurrentLane = Math.floor(LANE_COUNT/2);
         let targetX = 0;
-        let gameActive = false;         // 游戏是否运行
+        let gameActive = false;
         let paused = false;
         let currentSpeed = BASE_SPEED;
         let score = 0;
+        
+        // 永久数据
         let coins = 0;
+        let diamonds = 0;
+        let speedPotion = 0, impactPotion = 0, freezePotion = 0, flightPotion = 0, revivePotion = 0;
+        let pityCounter = 0;
+        let totalDraws = 0;
 
-        // 道具数量
-        let speedPotionCount = 0;
-        let impactPotionCount = 0;
-        let freezePotionCount = 0;
+        // 皮肤系统
+        const skinList = [
+            { name: '红', color: 0xff3333, texture: null },
+            { name: '橙', color: 0xff9933, texture: null },
+            { name: '黄', color: 0xffdd33, texture: null },
+            { name: '绿', color: 0x33ff33, texture: null },
+            { name: '蓝', color: 0x3333ff, texture: null },
+            { name: '青', color: 0x33ffff, texture: null },
+            { name: '紫', color: 0xaa33ff, texture: null },
+            { name: '粉', color: 0xff88cc, texture: null },
+            { name: '棕', color: 0x8b4513, texture: null },
+            { name: '灰', color: 0xaaaaaa, texture: null },
+            { name: '条纹彩球', texture: 'stripes' },
+            { name: '斑点彩球', texture: 'dots' },
+            { name: '格子彩球', texture: 'grid' },
+            { name: '彩虹', texture: 'rainbow' },
+            { name: '石头球', texture: 'stone', rare: true, ability: 'invincible' },
+            { name: '皮球', texture: 'leather', rare: true },
+            { name: '火焰球', texture: 'fire', special: 'fire' }
+        ];
+        let unlockedSkins = [0];
+        let currentSkin = 0;
+        // 装备模板（示例）
+const equipmentTemplates = [
+    { name: '木制头盔', type: 'head', baseHP: 1, baseDefense: 0, baseDodge: 0, price: 100 },
+    { name: '皮帽', type: 'head', baseHP: 0, baseDefense: 1, baseDodge: 1, price: 150 },
+    { name: '铁盔', type: 'head', baseHP: 2, baseDefense: 2, baseDodge: 0, price: 300 },
+    { name: '布衣', type: 'body', baseHP: 1, baseDefense: 0, baseDodge: 2, price: 120 },
+    { name: '皮甲', type: 'body', baseHP: 2, baseDefense: 1, baseDodge: 1, price: 250 },
+    { name: '锁子甲', type: 'body', baseHP: 3, baseDefense: 2, baseDodge: 0, price: 400 },
+    { name: '草鞋', type: 'feet', baseHP: 0, baseDefense: 0, baseDodge: 3, price: 80 },
+    { name: '皮鞋', type: 'feet', baseHP: 1, baseDefense: 1, baseDodge: 2, price: 200 },
+    { name: '铁靴', type: 'feet', baseHP: 2, baseDefense: 2, baseDodge: 1, price: 350 },
+    { name: '木棒', type: 'weapon', baseHP: 0, baseDefense: 0, baseDodge: 0, price: 50 }, // 武器可加攻击？目前只加属性
+    { name: '长剑', type: 'weapon', baseHP: 2, baseDefense: 1, baseDodge: 1, price: 300 },
+    { name: '盾牌', type: 'weapon', baseHP: 1, baseDefense: 3, baseDodge: 0, price: 400 },
+];
 
-        // 减速效果
-        let speedDebuffFactor = 1.0;      // 1.0 = 无减速
-        let debuffTimer = 0;
+        // 形状系统
+        const shapeList = [
+            { name: '球体', geo: 'sphere', simple: true },
+            { name: '立方体', geo: 'box', simple: true },
+            { name: '圆锥', geo: 'cone', simple: true },
+            { name: '圆柱', geo: 'cylinder', simple: true },
+            { name: '圆环', geo: 'torus', simple: false },
+            { name: '八面体', geo: 'octahedron', simple: false },
+            { name: '十二面体', geo: 'dodecahedron', simple: false },
+            { name: '星形', geo: 'star', simple: false }
+        ];
+        let unlockedShapes = [0];
+        let currentShape = 0;
 
-        // 跳跃
-        let isJumping = false;
-        let verticalVelocity = 0;
+        // 抽卡概率
+        const FLIGHT_PROB = 0.1;
+        const PITY_LIMIT = 50;
+        const RARE_SKIN_PROB = 0.0001;
+        const REVIVE_PROB = 0.0001;
+        const RARE_REQUIRED_DRAWS = 5000;
+
+        // 特效：尾迹粒子
+        let trailParticles = [];
+        const TRAIL_LENGTH = 15;
+
+        // 火焰粒子
+        let fireParticles = null;
+
+        // 临时状态
+        let speedDebuff = 1.0, debuffTimer = 0;
+        let invincible = false, flightTimer = 0;
+        let isJumping = false, verticalVelocity = 0;
 
         // 动态元素
         let segments = [];
-        let obstacles = [];               // { mesh, lane, z, type } type: 'cube','sphere','cone','hole'
-        let coinsList = [];                // { mesh, lane, z, collected }
+        let obstacles = [];
+        let coinsList = [];
 
-        // 排行榜数组
-        let leaderboard = [];
+        // 背景元素
+        let bgParticles1, bgParticles2, bgParticles3, knot;
 
-        // 金币计数显示
-        const coinSpan = document.getElementById('coin-count');
-        const scoreSpan = document.getElementById('score-display');
-        const speedIndicator = document.getElementById('speed-indicator');
+        // ---------- 辅助函数 ----------
+        function createTexture(type) {
+            const canvas = document.createElement('canvas');
+            canvas.width = 64;
+            canvas.height = 64;
+            const ctx = canvas.getContext('2d');
+            if (type === 'stripes') {
+                ctx.fillStyle = '#ff3333';
+                ctx.fillRect(0,0,64,64);
+                ctx.strokeStyle = '#ffff00';
+                ctx.lineWidth = 8;
+                for (let i=0; i<64; i+=16) {
+                    ctx.beginPath();
+                    ctx.moveTo(i,0);
+                    ctx.lineTo(i+32,64);
+                    ctx.stroke();
+                }
+            } else if (type === 'dots') {
+                ctx.fillStyle = '#3333ff';
+                ctx.fillRect(0,0,64,64);
+                ctx.fillStyle = '#ffff00';
+                for (let i=0; i<64; i+=20) {
+                    for (let j=0; j<64; j+=20) {
+                        ctx.beginPath();
+                        ctx.arc(i+8, j+8, 6, 0, Math.PI*2);
+                        ctx.fill();
+                    }
+                }
+            } else if (type === 'grid') {
+                ctx.fillStyle = '#33ff33';
+                ctx.fillRect(0,0,64,64);
+                ctx.strokeStyle = '#0000ff';
+                ctx.lineWidth = 4;
+                for (let i=0; i<=64; i+=16) {
+                    ctx.beginPath();
+                    ctx.moveTo(i,0);
+                    ctx.lineTo(i,64);
+                    ctx.stroke();
+                    ctx.beginPath();
+                    ctx.moveTo(0,i);
+                    ctx.lineTo(64,i);
+                    ctx.stroke();
+                }
+            } else if (type === 'rainbow') {
+                const gradient = ctx.createLinearGradient(0,0,64,64);
+                gradient.addColorStop(0,'red');
+                gradient.addColorStop(0.2,'orange');
+                gradient.addColorStop(0.4,'yellow');
+                gradient.addColorStop(0.6,'green');
+                gradient.addColorStop(0.8,'blue');
+                gradient.addColorStop(1,'purple');
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0,0,64,64);
+            } else if (type === 'stone') {
+                ctx.fillStyle = '#888888';
+                ctx.fillRect(0,0,64,64);
+                ctx.fillStyle = '#666666';
+                for (let i=0; i<200; i++) {
+                    ctx.beginPath();
+                    ctx.arc(Math.random()*64, Math.random()*64, 2+Math.random()*4, 0, Math.PI*2);
+                    ctx.fill();
+                }
+            } else if (type === 'leather') {
+                ctx.fillStyle = '#d2b48c';
+                ctx.fillRect(0,0,64,64);
+                ctx.strokeStyle = '#8b5a2b';
+                ctx.lineWidth = 2;
+                for (let i=0; i<64; i+=12) {
+                    ctx.beginPath();
+                    ctx.moveTo(i,0);
+                    ctx.lineTo(i+12,64);
+                    ctx.stroke();
+                }
+            } else if (type === 'fire') {
+                const gradient = ctx.createRadialGradient(32,32,0,32,32,32);
+                gradient.addColorStop(0,'#ff6600');
+                gradient.addColorStop(0.5,'#ff3300');
+                gradient.addColorStop(1,'#aa0000');
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0,0,64,64);
+            }
+            const tex = new THREE.CanvasTexture(canvas);
+            tex.wrapS = THREE.RepeatWrapping;
+            tex.wrapT = THREE.RepeatWrapping;
+            return tex;
+        }
+        // 生成星系纹理
+function createGalaxyTexture(color1, color2) {
+    const canvas = document.createElement('canvas');
+    canvas.width = 128;
+    canvas.height = 128;
+    const ctx = canvas.getContext('2d');
+    
+    // 绘制径向渐变模拟星系
+    const gradient = ctx.createRadialGradient(64, 64, 0, 64, 64, 64);
+    gradient.addColorStop(0, color1);
+    gradient.addColorStop(0.4, color2);
+    gradient.addColorStop(0.8, 'rgba(0,0,0,0)');
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, 128, 128);
+    
+    // 添加一些随机星点
+    ctx.fillStyle = 'white';
+    for (let i = 0; i < 50; i++) {
+        const x = Math.random() * 128;
+        const y = Math.random() * 128;
+        const r = Math.random() * 2;
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.fill();
+    }
+    
+    return new THREE.CanvasTexture(canvas);
+}
 
-        // 道具数量显示
-        const speedCountSpan = document.getElementById('speed-count');
-        const impactCountSpan = document.getElementById('impact-count');
-        const freezeCountSpan = document.getElementById('freeze-count');
+        function getSkinMaterial(index) {
+            const skin = skinList[index];
+            if (skin.texture) {
+                let tex;
+                if (typeof skin.texture === 'string') {
+                    tex = createTexture(skin.texture);
+                } else {
+                    tex = skin.texture;
+                }
+                return new THREE.MeshStandardMaterial({ map: tex, emissive: 0x222200 });
+            } else {
+                return new THREE.MeshStandardMaterial({ color: skin.color, emissive: 0x222200 });
+            }
+        }
+
+        function createShapeGeometry(index) {
+            const shape = shapeList[index];
+            switch (shape.geo) {
+                case 'sphere': return new THREE.SphereGeometry(BALL_RADIUS, 32);
+                case 'box': return new THREE.BoxGeometry(BALL_RADIUS*1.5, BALL_RADIUS*1.5, BALL_RADIUS*1.5);
+                case 'cone': return new THREE.ConeGeometry(BALL_RADIUS, BALL_RADIUS*2, 16);
+                case 'cylinder': return new THREE.CylinderGeometry(BALL_RADIUS, BALL_RADIUS, BALL_RADIUS*2, 16);
+                case 'torus': return new THREE.TorusGeometry(BALL_RADIUS*0.8, BALL_RADIUS*0.3, 16, 32);
+                case 'octahedron': return new THREE.OctahedronGeometry(BALL_RADIUS);
+                case 'dodecahedron': return new THREE.DodecahedronGeometry(BALL_RADIUS);
+                case 'star': return new THREE.IcosahedronGeometry(BALL_RADIUS);
+                default: return new THREE.SphereGeometry(BALL_RADIUS, 32);
+            }
+        }
+
+        function applySkinAndShape(skinIdx, shapeIdx) {
+            if (unlockedSkins.includes(skinIdx)) currentSkin = skinIdx;
+            if (unlockedShapes.includes(shapeIdx)) currentShape = shapeIdx;
+            
+            const material = getSkinMaterial(currentSkin);
+            const geometry = createShapeGeometry(currentShape);
+            if (ball) {
+                ball.geometry.dispose();
+                ball.geometry = geometry;
+                ball.material.dispose();
+                ball.material = material;
+            }
+
+            const skin = skinList[skinIdx];
+            if (skin.special === 'fire') {
+                if (!fireParticles) {
+                    const particleCount = 30;
+                    const geo = new THREE.BufferGeometry();
+                    const pos = new Float32Array(particleCount * 3);
+                    for (let i = 0; i < particleCount; i++) {
+                        pos[i*3] = (Math.random() - 0.5) * 1.8;
+                        pos[i*3+1] = (Math.random() - 0.5) * 1.8;
+                        pos[i*3+2] = (Math.random() - 0.5) * 1.8;
+                    }
+                    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+                    const mat = new THREE.PointsMaterial({ color: 0xff6600, size: 0.25, blending: THREE.AdditiveBlending });
+                    fireParticles = new THREE.Points(geo, mat);
+                    ball.add(fireParticles);
+                }
+            } else {
+                if (fireParticles) {
+                    ball.remove(fireParticles);
+                    fireParticles = null;
+                }
+            }
+        }
+
+        // ---------- 存档系统 ----------
+        const SAVE_SLOTS = 3;
+        function getCurrentGameData() {
+            return {
+                coins, diamonds,
+                speedPotion, impactPotion, freezePotion, flightPotion, revivePotion,
+                unlockedSkins: [...unlockedSkins],
+                currentSkin,
+                unlockedShapes: [...unlockedShapes],
+                currentShape,
+                pityCounter,
+                totalDraws,
+                playerHP, maxHP, baseDefense, baseDodge, equipmentSlots, equipmentInventory,
+                lastSave: Date.now()
+            };
+        }
+        function applyGameData(data) {
+            coins = data.coins ?? 0;
+            diamonds = data.diamonds ?? 0;
+            speedPotion = data.speedPotion ?? 0;
+            impactPotion = data.impactPotion ?? 0;
+            freezePotion = data.freezePotion ?? 0;
+            flightPotion = data.flightPotion ?? 0;
+            revivePotion = data.revivePotion ?? 0;
+            unlockedSkins = data.unlockedSkins && data.unlockedSkins.length ? data.unlockedSkins : [0];
+            currentSkin = data.currentSkin ?? 0;
+            unlockedShapes = data.unlockedShapes && data.unlockedShapes.length ? data.unlockedShapes : [0];
+            currentShape = data.currentShape ?? 0;
+            pityCounter = data.pityCounter ?? 0;
+            totalDraws = data.totalDraws ?? 0;
+            playerHP = data.playerHP ?? 3;
+maxHP = data.maxHP ?? 3;
+baseDefense = data.baseDefense ?? 0;
+baseDodge = data.baseDodge ?? 0;
+equipmentSlots = data.equipmentSlots ?? { head:null, body:null, feet:null, weapon:null };
+equipmentInventory = data.equipmentInventory ?? [];
+recalcStats();
+
+            if (!unlockedSkins.includes(currentSkin)) currentSkin = unlockedSkins[0] || 0;
+            if (!unlockedShapes.includes(currentShape)) currentShape = unlockedShapes[0] || 0;
+
+            if (ball) applySkinAndShape(currentSkin, currentShape);
+            updateHUD();
+        }
+        function saveSlot(index) {
+            const data = getCurrentGameData();
+            localStorage.setItem(`save_slot_${index}`, JSON.stringify(data));
+            renderSaveSlots();
+        }
+        function loadSlot(index) {
+            const saved = localStorage.getItem(`save_slot_${index}`);
+            if (!saved) { alert('存档槽为空'); return false; }
+            try {
+                const data = JSON.parse(saved);
+                applyGameData(data);
+                alert(`加载存档${index+1}成功`);
+                renderSaveSlots();
+                return true;
+            } catch (e) { alert('存档损坏'); return false; }
+        }
+        function renderSaveSlots() {
+            const container = document.getElementById('saveSlots');
+            container.innerHTML = '';
+            for (let i = 0; i < SAVE_SLOTS; i++) {
+                const key = `save_slot_${i}`;
+                const saved = localStorage.getItem(key);
+                let info = '空存档', timeStr = '';
+                if (saved) {
+                    try {
+                        const data = JSON.parse(saved);
+                        const date = new Date(data.lastSave || 0);
+                        timeStr = date.toLocaleString();
+                        info = `🪙${data.coins} 💎${data.diamonds} ✈️${data.flightPotion} 复活${data.revivePotion} 皮肤${data.unlockedSkins?.length||1}种 形状${data.unlockedShapes?.length||1}种`;
+                    } catch (e) { info = '损坏'; }
+                }
+                const slotDiv = document.createElement('div');
+                slotDiv.className = 'save-slot';
+                slotDiv.innerHTML = `
+                    <div class="slot-info">
+                        <div><strong>存档 ${i+1}</strong> ${timeStr}</div>
+                        <div class="time">${info}</div>
+                    </div>
+                    <div class="slot-actions">
+                        <button class="slot-btn save" data-slot="${i}">💾 保存</button>
+                        <button class="slot-btn load" data-slot="${i}">📂 加载</button>
+                    </div>
+                `;
+                container.appendChild(slotDiv);
+            }
+            document.querySelectorAll('.slot-btn.save').forEach(btn => {
+                btn.addEventListener('click', (e) => { e.stopPropagation(); saveSlot(parseInt(btn.dataset.slot)); });
+            });
+            document.querySelectorAll('.slot-btn.load').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (loadSlot(parseInt(btn.dataset.slot))) {
+                        if (gameActive) { gameActive = false; document.getElementById('main-menu').style.display = 'flex'; document.getElementById('pause-menu').style.display = 'none'; }
+                        document.getElementById('save-menu').style.display = 'none';
+                        document.getElementById('main-menu').style.display = 'flex';
+                    }
+                });
+            });
+        }
 
         // ---------- 初始化场景 ----------
         function initScene() {
             scene = new THREE.Scene();
             scene.background = new THREE.Color(0x0a0a20);
             
-            // 星星
+            // 基础星星
             const starsGeo = new THREE.BufferGeometry();
-            const starsPos = new Float32Array(1000 * 3);
-            for (let i = 0; i < 1000 * 3; i += 3) {
-                starsPos[i] = (Math.random() - 0.5) * 300;
-                starsPos[i+1] = (Math.random() - 0.5) * 300;
-                starsPos[i+2] = (Math.random() - 0.5) * 300 - 100;
+            const starsPos = new Float32Array(1500 * 3);
+            for (let i = 0; i < 1500*3; i+=3) {
+                starsPos[i] = (Math.random()-0.5)*400;
+                starsPos[i+1] = (Math.random()-0.5)*400;
+                starsPos[i+2] = (Math.random()-0.5)*400 - 150;
             }
             starsGeo.setAttribute('position', new THREE.BufferAttribute(starsPos, 3));
-            const starsMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.2 });
-            scene.add(new THREE.Points(starsGeo, starsMat));
+            scene.add(new THREE.Points(starsGeo, new THREE.PointsMaterial({color:0xffffff, size:0.15})));
 
-            camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
-            camera.position.set(0, 7, 15);
+            camera = new THREE.PerspectiveCamera(65, window.innerWidth/window.innerHeight, 0.1, 2000);
+            camera.position.set(0, 8, 18);
 
-            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer = new THREE.WebGLRenderer({antialias:true});
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.shadowMap.enabled = true;
-            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
             document.body.appendChild(renderer.domElement);
 
-            // 灯光
-            const ambient = new THREE.AmbientLight(0x40406b);
+            const ambient = new THREE.AmbientLight(0x404070);
             scene.add(ambient);
-            const dirLight = new THREE.DirectionalLight(0xfff5e6, 1.2);
+            const dirLight = new THREE.DirectionalLight(0xfff5e6, 1.3);
             dirLight.position.set(5, 20, 10);
             dirLight.castShadow = true;
-            dirLight.receiveShadow = true;
             dirLight.shadow.mapSize.width = 1024;
             dirLight.shadow.mapSize.height = 1024;
-            const d = 20;
+            const d = 25;
             dirLight.shadow.camera.left = -d;
             dirLight.shadow.camera.right = d;
             dirLight.shadow.camera.top = d;
             dirLight.shadow.camera.bottom = -d;
-            dirLight.shadow.camera.near = 1;
-            dirLight.shadow.camera.far = 30;
             scene.add(dirLight);
 
-            // 小球
-            const ballGeo = new THREE.SphereGeometry(BALL_RADIUS, 32);
-            const ballMat = new THREE.MeshStandardMaterial({ color: 0xffaa33, emissive: 0x442200 });
-            ball = new THREE.Mesh(ballGeo, ballMat);
+            ball = new THREE.Mesh(new THREE.SphereGeometry(BALL_RADIUS, 32), new THREE.MeshStandardMaterial({ color: 0xffaa33, emissive: 0x222200 }));
             ball.castShadow = true;
             ball.receiveShadow = true;
-            ball.position.set(0, GROUND_Y, 0);
+            ball.position.set(0, BALL_HEIGHT, 0);
             scene.add(ball);
-            
-            // 轨道网格
-            const gridHelper = new THREE.GridHelper(100, 50, 0x3399ff, 0x224488);
+
+            const gridHelper = new THREE.GridHelper(150, 80, 0x3399ff, 0x224488);
             gridHelper.position.y = -0.01;
             scene.add(gridHelper);
+
+            // 尾迹粒子
+            for (let i = 0; i < TRAIL_LENGTH; i++) {
+                const particleGeo = new THREE.SphereGeometry(0.1, 8);
+                const particleMat = new THREE.MeshStandardMaterial({ color: 0xffaa33, emissive: 0x442200, transparent: true, opacity: 0.5 });
+                const particle = new THREE.Mesh(particleGeo, particleMat);
+                particle.visible = false;
+                scene.add(particle);
+                trailParticles.push(particle);
+            }
+
+            // 背景粒子层1 (蓝色)
+            const bgParticles1Geo = new THREE.BufferGeometry();
+            const bgParticles1Pos = new Float32Array(800 * 3);
+            for (let i = 0; i < 800; i++) {
+                const theta = Math.random() * Math.PI * 2;
+                const phi = Math.acos(2 * Math.random() - 1);
+                const r = 80 + Math.random() * 30;
+                bgParticles1Pos[i*3] = Math.sin(phi) * Math.cos(theta) * r;
+                bgParticles1Pos[i*3+1] = Math.sin(phi) * Math.sin(theta) * r * 0.3;
+                bgParticles1Pos[i*3+2] = Math.cos(phi) * r;
+            }
+            bgParticles1Geo.setAttribute('position', new THREE.BufferAttribute(bgParticles1Pos, 3));
+            const bgParticles1Mat = new THREE.PointsMaterial({ color: 0x88aaff, size: 0.4, transparent: true, blending: THREE.AdditiveBlending });
+            bgParticles1 = new THREE.Points(bgParticles1Geo, bgParticles1Mat);
+            camera.add(bgParticles1);
+
+            // 背景粒子层2 (橙色)
+            const bgParticles2Geo = new THREE.BufferGeometry();
+            const bgParticles2Pos = new Float32Array(400 * 3);
+            for (let i = 0; i < 400; i++) {
+                const theta = Math.random() * Math.PI * 2;
+                const phi = Math.acos(2 * Math.random() - 1);
+                const r = 120 + Math.random() * 40;
+                bgParticles2Pos[i*3] = Math.sin(phi) * Math.cos(theta) * r;
+                bgParticles2Pos[i*3+1] = Math.sin(phi) * Math.sin(theta) * r * 0.3;
+                bgParticles2Pos[i*3+2] = Math.cos(phi) * r;
+            }
+            bgParticles2Geo.setAttribute('position', new THREE.BufferAttribute(bgParticles2Pos, 3));
+            const bgParticles2Mat = new THREE.PointsMaterial({ color: 0xffaa88, size: 0.6, transparent: true, blending: THREE.AdditiveBlending });
+            bgParticles2 = new THREE.Points(bgParticles2Geo, bgParticles2Mat);
+            camera.add(bgParticles2);
+
+            // 背景粒子层3 (紫色，新增加)
+            const bgParticles3Geo = new THREE.BufferGeometry();
+            const bgParticles3Pos = new Float32Array(300 * 3);
+            for (let i = 0; i < 300; i++) {
+                const theta = Math.random() * Math.PI * 2;
+                const phi = Math.acos(2 * Math.random() - 1);
+                const r = 160 + Math.random() * 50;
+                bgParticles3Pos[i*3] = Math.sin(phi) * Math.cos(theta) * r;
+                bgParticles3Pos[i*3+1] = Math.sin(phi) * Math.sin(theta) * r * 0.2;
+                bgParticles3Pos[i*3+2] = Math.cos(phi) * r;
+            }
+            bgParticles3Geo.setAttribute('position', new THREE.BufferAttribute(bgParticles3Pos, 3));
+            const bgParticles3Mat = new THREE.PointsMaterial({ color: 0xcc88ff, size: 0.8, transparent: true, blending: THREE.AdditiveBlending });
+            bgParticles3 = new THREE.Points(bgParticles3Geo, bgParticles3Mat);
+            if (bgParticles3) camera.add(bgParticles3);
+            // ---------- 星系背景 ----------
+const galaxyGroup = new THREE.Group();
+const galaxyCount = 12; // 星系数量
+const galaxyRadius = 200; // 分布半径
+
+for (let i = 0; i < galaxyCount; i++) {
+    // 随机生成颜色
+    const hue = Math.random();
+    const color1 = new THREE.Color().setHSL(hue, 0.8, 0.6).getStyle();
+    const color2 = new THREE.Color().setHSL((hue + 0.3) % 1, 0.9, 0.4).getStyle();
+    
+    const texture = createGalaxyTexture(color1, color2);
+    const material = new THREE.SpriteMaterial({ 
+        map: texture, 
+        blending: THREE.AdditiveBlending,
+        depthTest: true,
+        depthWrite: false,
+        transparent: true,
+        opacity: 0.8
+    });
+    const sprite = new THREE.Sprite(material);
+    
+    // 随机位置（球面分布）
+    const theta = Math.random() * Math.PI * 2;
+    const phi = Math.acos(2 * Math.random() - 1);
+    const r = galaxyRadius + Math.random() * 100;
+    sprite.position.x = Math.sin(phi) * Math.cos(theta) * r;
+    sprite.position.y = Math.sin(phi) * Math.sin(theta) * r * 0.3; // 垂直方向压扁
+    sprite.position.z = Math.cos(phi) * r - 50; // 稍微偏移
+    
+    // 随机缩放
+    const scale = 10 + Math.random() * 15;
+    sprite.scale.set(scale, scale, 1);
+    
+    galaxyGroup.add(sprite);
+}
+camera.add(galaxyGroup);
+// 将星系组保存到场景用户数据以便动画中访问
+scene.userData.galaxyGroup = galaxyGroup;
+
+            // 发光环带
+            const knotGeo = new THREE.TorusKnotGeometry(35, 8, 120, 16);
+            const knotMat = new THREE.MeshStandardMaterial({ color: 0xaa44ff, emissive: 0x442288, wireframe: true, transparent: true, opacity: 0.5 });
+            knot = new THREE.Mesh(knotGeo, knotMat);
+            knot.position.set(0, 15, -80);
+            scene.add(knot);
+
+            // 远处山脉轮廓 (新增加)
+            const mountainGroup = new THREE.Group();
+            for (let i = 0; i < 20; i++) {
+                const height = 15 + Math.random() * 20;
+                const width = 5 + Math.random() * 10;
+                const geo = new THREE.ConeGeometry(width, height, 8);
+                const mat = new THREE.MeshStandardMaterial({ color: 0x334466, emissive: 0x112233 });
+                const cone = new THREE.Mesh(geo, mat);
+                cone.position.x = -60 + Math.random() * 120;
+                cone.position.y = height/2 - 5;
+                cone.position.z = -150 + Math.random() * 100;
+                cone.castShadow = true;
+                cone.receiveShadow = true;
+                mountainGroup.add(cone);
+            }
+            scene.add(mountainGroup);
+
+            // 漂浮晶体 (新增加)
+            const crystalGroup = new THREE.Group();
+            for (let i = 0; i < 30; i++) {
+                const geo = new THREE.OctahedronGeometry(0.5 + Math.random()*1);
+                const mat = new THREE.MeshStandardMaterial({ color: 0x66ccff, emissive: 0x113366 });
+                const crystal = new THREE.Mesh(geo, mat);
+                crystal.position.x = -50 + Math.random() * 100;
+                crystal.position.y = 10 + Math.random() * 30;
+                crystal.position.z = -120 + Math.random() * 80;
+                crystal.castShadow = true;
+                crystal.receiveShadow = true;
+                crystalGroup.add(crystal);
+            }
+            scene.add(camera);
+            scene.add(crystalGroup);
         }
 
-        // ---------- 辅助函数：生成障碍物 (多样形状) ----------
-        function createObstacle(lane, zPos, type = null) {
-            if (!type) {
-                const r = Math.random();
-                if (r < 0.3) type = 'cube';
-                else if (r < 0.6) type = 'sphere';
-                else if (r < 0.8) type = 'cone';
-                else type = 'hole'; // 空洞
+        // 更新尾迹
+        function updateTrail() {
+            if (!gameActive || paused) return;
+            for (let i = TRAIL_LENGTH-1; i > 0; i--) {
+                if (trailParticles[i-1].visible) {
+                    trailParticles[i].position.copy(trailParticles[i-1].position);
+                    trailParticles[i].material.color.copy(trailParticles[i-1].material.color);
+                    trailParticles[i].visible = true;
+                } else {
+                    trailParticles[i].visible = false;
+                }
             }
+            trailParticles[0].position.copy(ball.position);
+            trailParticles[0].position.y -= 0.2;
+            trailParticles[0].material.color.copy(ball.material.color);
+            trailParticles[0].visible = true;
+
+            for (let i = 0; i < TRAIL_LENGTH; i++) {
+                if (trailParticles[i].visible) {
+                    const opacity = 1.0 - i / TRAIL_LENGTH;
+                    trailParticles[i].material.opacity = opacity * 0.6;
+                }
+            }
+        }
+
+        // 生成障碍 (移动)
+        function createObstacle(lane, zPos) {
+            const type = Math.random();
+            let shape;
+            if (type < 0.25) shape = 'cube';
+            else if (type < 0.5) shape = 'sphere';
+            else if (type < 0.75) shape = 'cone';
+            else shape = 'hole';
+            
             const x = (lane - (LANE_COUNT-1)/2) * LANE_WIDTH;
             let mesh;
-            if (type === 'cube') {
-                const geo = new THREE.BoxGeometry(LANE_WIDTH*0.7, 0.9, 0.9);
-                const mat = new THREE.MeshStandardMaterial({ color: 0xff5555, emissive: 0x330000 });
+            if (shape === 'cube') {
+                const geo = new THREE.BoxGeometry(LANE_WIDTH*0.7, 0.8, 0.8);
+                const mat = new THREE.MeshStandardMaterial({ color: 0xff5555 });
                 mesh = new THREE.Mesh(geo, mat);
                 mesh.position.set(x, 0.6, zPos);
-            } else if (type === 'sphere') {
-                const geo = new THREE.SphereGeometry(0.5, 16);
-                const mat = new THREE.MeshStandardMaterial({ color: 0xffaa33, emissive: 0x331100 });
+            } else if (shape === 'sphere') {
+                const geo = new THREE.SphereGeometry(0.45, 16);
+                const mat = new THREE.MeshStandardMaterial({ color: 0xffaa33 });
                 mesh = new THREE.Mesh(geo, mat);
                 mesh.position.set(x, 0.6, zPos);
-            } else if (type === 'cone') {
-                const geo = new THREE.ConeGeometry(0.5, 1.2, 8);
-                const mat = new THREE.MeshStandardMaterial({ color: 0x77aaff, emissive: 0x113366 });
+            } else if (shape === 'cone') {
+                const geo = new THREE.ConeGeometry(0.5, 1.0, 8);
+                const mat = new THREE.MeshStandardMaterial({ color: 0x77aaff });
                 mesh = new THREE.Mesh(geo, mat);
-                mesh.position.set(x, 0.8, zPos);
-            } else if (type === 'hole') {
-                // 空洞用红色环表示
+                mesh.position.set(x, 0.7, zPos);
+            } else {
                 const geo = new THREE.TorusGeometry(0.6, 0.1, 16, 32);
-                const mat = new THREE.MeshStandardMaterial({ color: 0xff0000, emissive: 0x440000 });
+                const mat = new THREE.MeshStandardMaterial({ color: 0xff0000 });
                 mesh = new THREE.Mesh(geo, mat);
                 mesh.rotation.x = Math.PI/2;
                 mesh.position.set(x, 0.1, zPos);
-                // 同时加一个透明底
             }
             mesh.castShadow = true;
             mesh.receiveShadow = true;
-            return { mesh, lane, z: zPos, type };
+
+            const moveType = Math.random() < 0.3 ? 'horizontal' : (Math.random() < 0.5 ? 'vertical' : 'none');
+            const speed = 0.02 + Math.random() * 0.03;
+            const range = 0.8;
+            const originalX = x;
+            const originalY = mesh.position.y;
+
+            return { mesh, lane, z: zPos, type: shape,
+                moveType, speed, range, originalX, originalY,
+                time: Math.random() * 100 };
         }
 
-        // 生成金币
         function createCoin(lane, zPos) {
             const x = (lane - (LANE_COUNT-1)/2) * LANE_WIDTH;
             const geo = new THREE.CylinderGeometry(0.3, 0.3, 0.1, 8);
-            const mat = new THREE.MeshStandardMaterial({ color: 0xffd700, emissive: 0x443300 });
+            const mat = new THREE.MeshStandardMaterial({ color: 0xffd700 });
             const mesh = new THREE.Mesh(geo, mat);
             mesh.rotation.x = Math.PI/2;
             mesh.position.set(x, 0.5, zPos);
             mesh.castShadow = true;
-            return { mesh, lane, z: zPos, collected: false };
+            const value = Math.floor(Math.random() * 10) + 1;
+            return { mesh, lane, z: zPos, value, collected: false };
         }
 
-        // 生成轨道段 (带障碍/金币)
-        function createSegment(zPos) {
-            const group = new THREE.Group();
-            const baseMat = new THREE.MeshStandardMaterial({ color: 0x2a2a5a });
-            const baseGeo = new THREE.BoxGeometry(TOTAL_WIDTH, 0.2, SEGMENT_LENGTH - 0.5);
-            const base = new THREE.Mesh(baseGeo, baseMat);
-            base.position.y = 0;
-            base.receiveShadow = true;
-            base.castShadow = true;
-            group.add(base);
+        // 增强的轨道段创建函数
+       // 增强的轨道段创建函数——立体道路型
+// 增强的轨道段创建函数——纯黑色阶梯路面
+// 增强的轨道段创建函数——纯黑色阶梯路面（无引导灯，悬浮环可变色）
+function createSegment(zPos) {
+    const group = new THREE.Group();
+    const segLength = SEGMENT_LENGTH - 0.8;
+    const halfLength = segLength / 2;
 
-            // 分隔线
-            const lineMat = new THREE.MeshStandardMaterial({ color: 0x88aaff });
-            for (let i = 0; i < LANE_COUNT-1; i++) {
-                const lineGeo = new THREE.BoxGeometry(0.1, 0.3, SEGMENT_LENGTH - 1);
-                const line = new THREE.Mesh(lineGeo, lineMat);
-                line.position.set((i+1)*LANE_WIDTH - TOTAL_WIDTH/2, 0.2, 0);
-                group.add(line);
-            }
-            group.position.z = zPos;
-            return group;
+    // ---------- 基础路面 (纯黑色) ----------
+    const roadMat = new THREE.MeshStandardMaterial({ color: 0x000000, emissive: 0x111111 });
+    const roadGeo = new THREE.BoxGeometry(TOTAL_WIDTH, 0.5, segLength);
+    const road = new THREE.Mesh(roadGeo, roadMat);
+    road.position.y = 0.25;
+    road.receiveShadow = true;
+    road.castShadow = true;
+    group.add(road);
+
+    // 路面两侧的白色边缘线
+    const edgeMat = new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0x333333 });
+    for (let side = -1; side <= 1; side += 2) {
+        const edgeGeo = new THREE.BoxGeometry(0.2, 0.1, segLength);
+        const edge = new THREE.Mesh(edgeGeo, edgeMat);
+        edge.position.set(side * (TOTAL_WIDTH/2 + 0.1), 0.5, 0);
+        edge.receiveShadow = true;
+        group.add(edge);
+    }
+
+    // ---------- 阶梯纹理 (真正薄片，模拟台阶) ----------
+    const stepMat = new THREE.MeshStandardMaterial({ color: 0x333333 });
+    const stepDepth = 0.8; // 每个台阶深度
+    const stepCount = Math.floor(segLength / stepDepth);
+    for (let i = 0; i < stepCount; i++) {
+        const z = -halfLength + stepDepth/2 + i * stepDepth;
+        const stepGeo = new THREE.BoxGeometry(TOTAL_WIDTH - 0.4, 0.15, stepDepth - 0.1);
+        const step = new THREE.Mesh(stepGeo, stepMat);
+        step.position.set(0, 0.5, z); // 略高于路面
+        step.castShadow = true;
+        step.receiveShadow = true;
+        group.add(step);
+    }
+
+    // ---------- 车道分隔线 (凸起隔离带) ----------
+    const dividerMat = new THREE.MeshStandardMaterial({ color: 0x88aaff, emissive: 0x224488 });
+    for (let i = 1; i < LANE_COUNT; i++) {
+        const x = i * LANE_WIDTH - TOTAL_WIDTH/2;
+        // 底座
+        const baseGeo = new THREE.BoxGeometry(0.3, 0.3, segLength - 0.5);
+        const base = new THREE.Mesh(baseGeo, dividerMat);
+        base.position.set(x, 0.4, 0);
+        base.castShadow = true;
+        base.receiveShadow = true;
+        group.add(base);
+        // 顶部反光条
+        const stripGeo = new THREE.BoxGeometry(0.2, 0.1, segLength - 0.8);
+        const stripMat = new THREE.MeshStandardMaterial({ color: 0xffaa00, emissive: 0x442200 });
+        const strip = new THREE.Mesh(stripGeo, stripMat);
+        strip.position.set(x, 0.65, 0);
+        strip.castShadow = true;
+        group.add(strip);
+        // 防眩板（小立柱）
+        for (let k = -halfLength + 1; k < halfLength; k += 1.5) {
+            const postGeo = new THREE.BoxGeometry(0.1, 0.6, 0.1);
+            const post = new THREE.Mesh(postGeo, dividerMat);
+            post.position.set(x, 0.7, k);
+            post.castShadow = true;
+            group.add(post);
         }
+    }
 
-        // 初始化世界
+    // ---------- 两侧护栏 ----------
+    const railMat = new THREE.MeshStandardMaterial({ color: 0xcccccc, emissive: 0x222222 });
+    for (let side = -1; side <= 1; side += 2) {
+        const x = side * (TOTAL_WIDTH/2 + 0.6);
+        // 立柱
+        for (let k = -halfLength + 0.8; k < halfLength; k += 1.2) {
+            const pillarGeo = new THREE.CylinderGeometry(0.2, 0.2, 1.0, 8);
+            const pillar = new THREE.Mesh(pillarGeo, railMat);
+            pillar.position.set(x, 0.8, k);
+            pillar.castShadow = true;
+            pillar.receiveShadow = true;
+            group.add(pillar);
+        }
+        // 横杆 (上下两根)
+        for (let y = 0.6; y <= 1.0; y += 0.4) {
+            const barGeo = new THREE.CylinderGeometry(0.1, 0.1, segLength + 1, 6);
+            const bar = new THREE.Mesh(barGeo, railMat);
+            bar.position.set(x, y, 0);
+            bar.rotation.z = Math.PI/2;
+            bar.castShadow = true;
+            bar.receiveShadow = true;
+            group.add(bar);
+        }
+    }
+
+    // ---------- 支撑柱 (模拟高架桥) ----------
+    const pillarMat = new THREE.MeshStandardMaterial({ color: 0x666666, emissive: 0x111111 });
+    const pillarPositions = [-TOTAL_WIDTH/3, 0, TOTAL_WIDTH/3];
+    for (let i = 0; i < pillarPositions.length; i++) {
+        for (let k = -halfLength + 1.5; k < halfLength; k += 3.0) {
+            const pillarGeo = new THREE.CylinderGeometry(0.5, 0.6, 1.0, 6);
+            const pillar = new THREE.Mesh(pillarGeo, pillarMat);
+            pillar.position.set(pillarPositions[i], -0.5, k);
+            pillar.castShadow = true;
+            pillar.receiveShadow = true;
+            group.add(pillar);
+        }
+    }
+
+    // ---------- 路灯 ----------
+    const lampBaseMat = new THREE.MeshStandardMaterial({ color: 0xaaaaaa });
+    const lampShadeMat = new THREE.MeshStandardMaterial({ color: 0xffdd99, emissive: 0x442200 });
+    for (let side = -1; side <= 1; side += 2) {
+        for (let k = -halfLength + 2; k < halfLength; k += 4.0) {
+            const x = side * (TOTAL_WIDTH/2 + 1.2);
+            // 灯柱
+            const poleGeo = new THREE.CylinderGeometry(0.15, 0.2, 1.8, 6);
+            const pole = new THREE.Mesh(poleGeo, lampBaseMat);
+            pole.position.set(x, 1.2, k);
+            pole.castShadow = true;
+            group.add(pole);
+            // 灯罩
+            const shadeGeo = new THREE.SphereGeometry(0.25, 6);
+            const shade = new THREE.Mesh(shadeGeo, lampShadeMat);
+            shade.position.set(x + 0.3, 1.8, k);
+            shade.castShadow = true;
+            group.add(shade);
+        }
+    }
+
+    // ---------- 两侧灯带 (保留) ----------
+    const sideMat = new THREE.MeshStandardMaterial({ color: 0xffaa33, emissive: 0x442200 });
+    const leftBar = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.2, segLength - 1), sideMat);
+    leftBar.position.set(-TOTAL_WIDTH/2 - 0.3, 0.3, 0);
+    group.add(leftBar);
+    const rightBar = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.2, segLength - 1), sideMat);
+    rightBar.position.set(TOTAL_WIDTH/2 + 0.3, 0.3, 0);
+    group.add(rightBar);
+
+    // 悬浮环 (保留，设置材质名称以便变色)
+    const ringMat = new THREE.MeshStandardMaterial({ color: 0x66ccff, emissive: 0x113366 });
+    ringMat.name = 'ring'; // 便于识别
+    for (let side = -1; side <= 1; side += 2) {
+        for (let offset = -2; offset <= 2; offset += 2) {
+            const ringGeo = new THREE.TorusGeometry(0.6, 0.1, 6, 12);
+            const ring = new THREE.Mesh(ringGeo, ringMat.clone()); // 克隆材质以便独立变色
+            ring.position.set(side * (TOTAL_WIDTH/2 + 1.5), 1.8 + Math.abs(offset)*0.3, offset * 1.5);
+            ring.rotation.x = Math.PI/2;
+            ring.rotation.z = Math.PI/2;
+            ring.castShadow = true;
+            group.add(ring);
+        }
+    }
+
+    group.position.z = zPos;
+    return group;
+}
+
         function initWorld() {
             segments.forEach(s => scene.remove(s));
             obstacles.forEach(o => scene.remove(o.mesh));
@@ -513,132 +1559,316 @@
                 scene.add(seg);
                 segments.push(seg);
                 
-                // 随机障碍 (40% 概率, 但前两段留安全区)
-                if (i >= 2 && Math.random() < 0.45) {
-                    const lane = Math.floor(Math.random() * LANE_COUNT);
-                    const obsZ = i * SEGMENT_LENGTH + 2;
-                    const { mesh } = createObstacle(lane, obsZ);
-                    scene.add(mesh);
-                    obstacles.push({ mesh, lane, z: obsZ, type: 'obstacle' });
-                }
-                // 随机金币 (60%)
-                if (Math.random() < 0.6) {
-                    const lane = Math.floor(Math.random() * LANE_COUNT);
-                    const coinZ = i * SEGMENT_LENGTH + 3;
-                    const coin = createCoin(lane, coinZ);
-                    scene.add(coin.mesh);
-                    coinsList.push(coin);
+                if (i >= 2) {
+                    if (Math.random() < 0.4) {
+                        const lane = Math.floor(Math.random() * LANE_COUNT);
+                        const obsZ = i * SEGMENT_LENGTH + 2;
+                        const obs = createObstacle(lane, obsZ);
+                        scene.add(obs.mesh);
+                        obstacles.push(obs);
+                    }
+                    if (Math.random() < 0.6) {
+                        const lane = Math.floor(Math.random() * LANE_COUNT);
+                        const coinZ = i * SEGMENT_LENGTH + 3;
+                        const coin = createCoin(lane, coinZ);
+                        scene.add(coin.mesh);
+                        coinsList.push(coin);
+                    }
                 }
             }
         }
 
-        // 重置游戏状态
         function resetGame() {
             gameActive = true;
             paused = false;
-            ball.position.set(0, GROUND_Y, 0);
-            ballCurrentLane = 1;
+            ball.position.set(0, BALL_HEIGHT, 0);
+            ballCurrentLane = Math.floor(LANE_COUNT/2);
             currentSpeed = BASE_SPEED;
             score = 0;
-            coins = 0;
-            speedDebuffFactor = 1.0;
-            debuffTimer = 0;
+            speedDebuff = 1.0; debuffTimer = 0;
+            invincible = false; flightTimer = 0;
             isJumping = false;
-            verticalVelocity = 0;
             updateHUD();
             initWorld();
             document.getElementById('pause-menu').style.display = 'none';
             document.getElementById('gameover-screen').style.display = 'none';
+            applySkinAndShape(currentSkin, currentShape);
         }
 
-        // 暂停切换
-        function togglePause() {
-            if (!gameActive) return;
-            paused = !paused;
-            document.getElementById('pause-menu').style.display = paused ? 'flex' : 'none';
-        }
-
-        // 游戏结束
-        function gameOver() {
-            gameActive = false;
-            document.getElementById('gameover-score').textContent = Math.floor(score);
-            document.getElementById('gameover-screen').style.display = 'flex';
-            // 更新排行榜
-            updateLeaderboard(score);
-        }
-
-        // 更新HUD
         function updateHUD() {
-            coinSpan.textContent = coins;
-            scoreSpan.textContent = Math.floor(score);
-            speedIndicator.textContent = (currentSpeed / BASE_SPEED).toFixed(1) + 'x';
-            speedCountSpan.textContent = speedPotionCount;
-            impactCountSpan.textContent = impactPotionCount;
-            freezeCountSpan.textContent = freezePotionCount;
+            document.getElementById('coin-count').textContent = coins;
+            document.getElementById('diamond-count').textContent = diamonds;
+            document.getElementById('score-display').textContent = Math.floor(score);
+            document.getElementById('speed-indicator').textContent = (currentSpeed/BASE_SPEED).toFixed(1)+'x';
+            document.getElementById('speed-count').textContent = speedPotion;
+            document.getElementById('impact-count').textContent = impactPotion;
+            document.getElementById('freeze-count').textContent = freezePotion;
+            document.getElementById('flight-count').textContent = flightPotion;
+            document.getElementById('revive-count').textContent = revivePotion;
+            document.getElementById('hp-display').textContent = `${playerHP}/${maxHP}`;
         }
+        // 计算总属性
+function recalcStats() {
+    totalDefense = baseDefense;
+    totalDodge = baseDodge;
+    maxHP = 3; // 基础血量，可以加上装备加成
+    for (let slot in equipmentSlots) {
+        if (equipmentSlots[slot]) {
+            const eq = equipmentSlots[slot];
+            maxHP += eq.hp;
+            totalDefense += eq.defense;
+            totalDodge += eq.dodge;
+        }
+    }
+    if (playerHP > maxHP) playerHP = maxHP;
+    updateHUD();
+}
 
-        // 道具使用
-        function useSpeed() {
-            if (speedPotionCount <= 0 || !gameActive || paused) return;
-            speedPotionCount--;
-            speedDebuffFactor = 0.7; // 减速30%
-            debuffTimer = 500; // 5秒 (帧数约50帧/秒? 实际使用update中的计数器)
-            updateHUD();
+// 穿戴装备
+function equipItem(item) {
+    const type = item.type;
+    if (equipmentSlots[type]) {
+        // 将当前装备放回背包
+        equipmentInventory.push(equipmentSlots[type]);
+    }
+    equipmentSlots[type] = item;
+    // 从背包移除该装备
+    const index = equipmentInventory.findIndex(e => e === item);
+    if (index !== -1) equipmentInventory.splice(index, 1);
+    recalcStats();
+    renderEquipmentUI(); // 刷新UI
+}
+
+// 卸下装备
+function unequipItem(type) {
+    if (equipmentSlots[type]) {
+        equipmentInventory.push(equipmentSlots[type]);
+        equipmentSlots[type] = null;
+        recalcStats();
+        renderEquipmentUI();
+    }
+}
+
+// 装备升级（消耗金币，提升等级）
+function upgradeEquipment(item) {
+    if (!item) return false;
+    const cost = 50 * (item.level || 1);
+    if (coins >= cost) {
+        coins -= cost;
+        item.level = (item.level || 1) + 1;
+        // 提升属性：每级增加10%基础属性
+        item.hp = Math.floor(item.baseHP * (1 + 0.1 * item.level));
+        item.defense = Math.floor(item.baseDefense * (1 + 0.1 * item.level));
+        item.dodge = Math.floor(item.baseDodge * (1 + 0.1 * item.level));
+        recalcStats();
+        renderEquipmentUI();
+        updateHUD();
+        return true;
+    }
+    return false;
+}
+
+// 装备升阶（消耗金币，提升稀有度）
+function ascendEquipment(item) {
+    if (!item) return false;
+    if (item.rarity >= RARITY.LEGENDARY) return false;
+    const cost = 200 * (item.rarity + 1);
+    if (coins >= cost) {
+        coins -= cost;
+        item.rarity++;
+        // 升阶大幅提升属性
+        item.baseHP = Math.floor(item.baseHP * 1.5);
+        item.baseDefense = Math.floor(item.baseDefense * 1.5);
+        item.baseDodge = Math.floor(item.baseDodge * 1.5);
+        // 重置等级或保留？这里重置等级为1，重新计算
+        item.level = 1;
+        item.hp = item.baseHP;
+        item.defense = item.baseDefense;
+        item.dodge = item.baseDodge;
+        recalcStats();
+        renderEquipmentUI();
+        updateHUD();
+        return true;
+    }
+    return false;
+}
+
+        // 抽卡逻辑
+        function performDraw(quantity) {
+            if (diamonds < quantity) { alert('钻石不足'); return []; }
+            diamonds -= quantity;
+            totalDraws += quantity;
+            let results = [];
+            for (let i = 0; i < quantity; i++) {
+                pityCounter++;
+                let item = null;
+                if (pityCounter >= PITY_LIMIT) {
+                    item = { type: 'potion', name: '飞行药剂', id: 'flight' };
+                    flightPotion++;
+                    pityCounter = 0;
+                } else {
+                    let rareSkin = false;
+                    if (totalDraws >= RARE_REQUIRED_DRAWS && Math.random() < RARE_SKIN_PROB) {
+                        rareSkin = true;
+                        const rareSkins = skinList.reduce((acc, s, idx) => s.rare ? [...acc, idx] : acc, []);
+                        if (rareSkins.length) {
+                            const skinIdx = rareSkins[Math.floor(Math.random() * rareSkins.length)];
+                            if (!unlockedSkins.includes(skinIdx)) unlockedSkins.push(skinIdx);
+                            item = { type: 'skin', name: skinList[skinIdx].name + '皮肤', index: skinIdx };
+                        }
+                    }
+                    if (!rareSkin) {
+                        if (Math.random() < REVIVE_PROB) {
+                            revivePotion++;
+                            item = { type: 'potion', name: '复活药剂', id: 'revive' };
+                        } else {
+                            const r = Math.random();
+                            if (r < FLIGHT_PROB) {
+                                item = { type: 'potion', name: '飞行药剂', id: 'flight' };
+                                flightPotion++;
+                                pityCounter = 0;
+                            } else {
+                                const sub = Math.random();
+                                if (sub < 0.4) {
+                                    const skinIdx = Math.floor(Math.random() * skinList.length);
+                                    if (!unlockedSkins.includes(skinIdx)) unlockedSkins.push(skinIdx);
+                                    item = { type: 'skin', name: skinList[skinIdx].name + '皮肤', index: skinIdx };
+                                } else if (sub < 0.8) {
+                                    const shapeIdx = Math.floor(Math.random() * shapeList.length);
+                                    if (!unlockedShapes.includes(shapeIdx)) unlockedShapes.push(shapeIdx);
+                                    item = { type: 'shape', name: shapeList[shapeIdx].name, index: shapeIdx };
+                                } else {
+                                    const potionType = Math.floor(Math.random() * 3);
+                                    if (potionType === 0) { speedPotion++; item = { type: 'potion', name: '速度药剂', id: 'speed' }; }
+                                    else if (potionType === 1) { impactPotion++; item = { type: 'potion', name: '冲击药剂', id: 'impact' }; }
+                                    else { freezePotion++; item = { type: 'potion', name: '冰冻药剂', id: 'freeze' }; }
+                                }
+                            }
+                        }
+                    }
+                    // 在 rareSkin 之后，处理普通抽卡
+if (!rareSkin) {
+    if (Math.random() < REVIVE_PROB) {
+        // 复活药剂
+    } else {
+        const r = Math.random();
+        if (r < 0.25) { // 皮肤
+            // 原皮肤逻辑
+        } else if (r < 0.5) { // 形状
+            // 原形状逻辑
+        } else if (r < 0.7) { // 药剂
+            // 原药剂逻辑（速度、冲击、冰冻）
+        } else { // 装备
+            const template = equipmentTemplates[Math.floor(Math.random() * equipmentTemplates.length)];
+            // 创建装备实例
+            const newEq = {
+                ...template,
+                id: Date.now() + Math.random(),
+                level: 1,
+                rarity: RARITY.COMMON,
+                hp: template.baseHP,
+                defense: template.baseDefense,
+                dodge: template.baseDodge
+            };
+            equipmentInventory.push(newEq);
+            item = { type: 'equipment', name: template.name };
         }
-        function useImpact() {
-            if (impactPotionCount <= 0 || !gameActive || paused) return;
-            impactPotionCount--;
-            // 摧毁离球最近的18个障碍物
-            let sorted = [...obstacles].sort((a,b) => Math.abs(a.mesh.position.z - ball.position.z) - Math.abs(b.mesh.position.z - ball.position.z));
-            let count = 0;
-            for (let obs of sorted) {
-                if (count >= 18) break;
-                scene.remove(obs.mesh);
-                obstacles = obstacles.filter(o => o.mesh !== obs.mesh);
-                count++;
+    }
+}
+                }
+                results.push(item);
             }
             updateHUD();
-        }
-        function useFreeze() {
-            if (freezePotionCount <= 0 || !gameActive || paused) return;
-            freezePotionCount--;
-            obstacles.forEach(obs => scene.remove(obs.mesh));
-            obstacles = [];
-            updateHUD();
+            document.getElementById('pity-counter').textContent = pityCounter;
+            document.getElementById('total-draws').textContent = totalDraws;
+            return results;
         }
 
-        // 碰撞检测 (球 vs 障碍/金币/空洞)
-        function checkCollisionsAndCollect() {
+        // 碰撞检测
+        function checkCollisions() {
             if (!gameActive) return;
             const ballBox = new THREE.Box3().setFromObject(ball);
             
-            // 障碍物碰撞
-            for (let obs of obstacles) {
-                const obsBox = new THREE.Box3().setFromObject(obs.mesh);
-                if (ballBox.intersectsBox(obsBox)) {
-                    if (obs.type === 'hole') {
-                        // 空洞必须跳跃才能过
-                        if (!isJumping) gameOver();
-                        // 如果跳跃中，忽略并移除空洞（避免重复碰撞）
-                        else {
-                            scene.remove(obs.mesh);
-                            obstacles = obstacles.filter(o => o.mesh !== obs.mesh);
+            const currentSkinObj = skinList[currentSkin];
+            const stoneInvincible = currentSkinObj.ability === 'invincible';
+
+            if (!invincible && !stoneInvincible) {
+                for (let obs of obstacles) {
+                    const obsBox = new THREE.Box3().setFromObject(obs.mesh);
+                    if (ballBox.intersectsBox(obsBox)) {
+                        if (obs.mesh.geometry.type === 'TorusGeometry' && !isJumping) {
+                            if (!invincible && !stoneInvincible) {
+    for (let obs of obstacles) {
+        const obsBox = new THREE.Box3().setFromObject(obs.mesh);
+        if (ballBox.intersectsBox(obsBox)) {
+            // 计算伤害
+            let damage = 1; // 基础伤害
+            // 防御减伤
+            damage = Math.max(1, damage - totalDefense); // 至少1点伤害
+            // 闪避判定
+            if (Math.random() * 100 < totalDodge) {
+                // 闪避成功，不受伤害
+                continue;
+            }
+            playerHP -= damage;
+            if (playerHP <= 0) {
+                gameOver();
+            } else {
+                // 受到伤害后短暂无敌？可以增加一个无敌帧
+                invincible = true;
+                flightTimer = 50; // 0.5秒左右无敌
+                // 移除障碍物（或保留？一般撞到障碍物后障碍物消失）
+                scene.remove(obs.mesh);
+                obstacles = obstacles.filter(o => o !== obs);
+            }
+            updateHUD();
+            return;
+        }
+    }
+}
+                        } else if (obs.mesh.geometry.type !== 'TorusGeometry') {
+                            if (!invincible && !stoneInvincible) {
+    for (let obs of obstacles) {
+        const obsBox = new THREE.Box3().setFromObject(obs.mesh);
+        if (ballBox.intersectsBox(obsBox)) {
+            // 计算伤害
+            let damage = 1; // 基础伤害
+            // 防御减伤
+            damage = Math.max(1, damage - totalDefense); // 至少1点伤害
+            // 闪避判定
+            if (Math.random() * 100 < totalDodge) {
+                // 闪避成功，不受伤害
+                continue;
+            }
+            playerHP -= damage;
+            if (playerHP <= 0) {
+                gameOver();
+            } else {
+                // 受到伤害后短暂无敌？可以增加一个无敌帧
+                invincible = true;
+                flightTimer = 50; // 0.5秒左右无敌
+                // 移除障碍物（或保留？一般撞到障碍物后障碍物消失）
+                scene.remove(obs.mesh);
+                obstacles = obstacles.filter(o => o !== obs);
+            }
+            updateHUD();
+            return;
+        }
+    }
+}
                         }
-                    } else {
-                        gameOver();
+                        return;
                     }
-                    return;
                 }
             }
-            
-            // 金币收集
+
             coinsList = coinsList.filter(coin => {
                 if (coin.collected) return false;
                 const coinBox = new THREE.Box3().setFromObject(coin.mesh);
                 if (ballBox.intersectsBox(coinBox)) {
                     coin.collected = true;
                     scene.remove(coin.mesh);
-                    coins++;
+                    coins += coin.value;
                     updateHUD();
                     return false;
                 }
@@ -646,75 +1876,63 @@
             });
         }
 
-        // 更新动态生成
-        function manageWorld() {
-            let maxZ = Math.max(...segments.map(s => s.position.z));
-            if (ball.position.z > maxZ - SEGMENT_LENGTH * 2) {
-                const newZ = maxZ + SEGMENT_LENGTH;
-                const seg = createSegment(newZ);
-                scene.add(seg);
-                segments.push(seg);
-                
-                // 障碍物
-                if (Math.random() < 0.4) {
-                    const lane = Math.floor(Math.random() * LANE_COUNT);
-                    const obsZ = newZ + 2;
-                    const { mesh } = createObstacle(lane, obsZ);
-                    scene.add(mesh);
-                    obstacles.push({ mesh, lane, z: obsZ, type: 'obstacle' });
-                }
-                // 金币
-                if (Math.random() < 0.5) {
-                    const lane = Math.floor(Math.random() * LANE_COUNT);
-                    const coinZ = newZ + 3;
-                    const coin = createCoin(lane, coinZ);
-                    scene.add(coin.mesh);
-                    coinsList.push(coin);
-                }
-            }
-            
-            // 移除后方元素
-            const threshold = ball.position.z - 25;
-            segments = segments.filter(s => { if (s.position.z < threshold) { scene.remove(s); return false; } return true; });
-            obstacles = obstacles.filter(o => { if (o.mesh.position.z < threshold) { scene.remove(o.mesh); return false; } return true; });
-            coinsList = coinsList.filter(c => { if (c.mesh.position.z < threshold) { scene.remove(c.mesh); return false; } return true; });
-        }
-
-        // 跳跃逻辑
-        function updateJump() {
-            if (!gameActive || paused) return;
-            if (isJumping) {
-                ball.position.y += verticalVelocity;
-                verticalVelocity += GRAVITY;
-                if (ball.position.y <= GROUND_Y) {
-                    ball.position.y = GROUND_Y;
-                    isJumping = false;
-                    verticalVelocity = 0;
-                }
-            }
-        }
-
-        // 排行榜
-        function loadLeaderboard() {
-            const stored = localStorage.getItem('rolling_leaderboard');
-            leaderboard = stored ? JSON.parse(stored) : [];
-            renderLeaderboard();
-        }
-        function updateLeaderboard(newScore) {
-            leaderboard.push(Math.floor(newScore));
-            leaderboard.sort((a,b) => b - a);
-            leaderboard = leaderboard.slice(0, 5);
-            localStorage.setItem('rolling_leaderboard', JSON.stringify(leaderboard));
-            renderLeaderboard();
-        }
-        function renderLeaderboard() {
-            const list = document.getElementById('leaderboard-list');
-            list.innerHTML = '';
-            if (leaderboard.length === 0) list.innerHTML = '<li>暂无记录</li>';
-            else {
-                leaderboard.forEach((s, i) => {
-                    list.innerHTML += `<li>${i+1}. ${s}</li>`;
+        // 分数解锁形状
+        function checkShapeUnlock() {
+            if (score >= 10000) {
+                shapeList.forEach((shape, idx) => {
+                    if (shape.simple && !unlockedShapes.includes(idx)) {
+                        unlockedShapes.push(idx);
+                    }
                 });
+            }
+        }
+
+        // 道具使用
+        function useSpeed() { if (speedPotion>0) { speedPotion--; speedDebuff=0.7; debuffTimer=500; updateHUD(); } }
+        function useImpact() { if (impactPotion>0) { impactPotion--; let sorted=[...obstacles].sort((a,b)=>Math.abs(a.mesh.position.z-ball.position.z)-Math.abs(b.mesh.position.z-ball.position.z)); for(let i=0;i<Math.min(18,sorted.length);i++) { scene.remove(sorted[i].mesh); obstacles = obstacles.filter(o=>o.mesh!==sorted[i].mesh); } updateHUD(); } }
+        function useFreeze() { if (freezePotion>0) { freezePotion--; obstacles.forEach(o=>scene.remove(o.mesh)); obstacles=[]; updateHUD(); } }
+        function useFlight() { if (flightPotion>0) { flightPotion--; invincible=true; flightTimer=500; ball.material.emissive.setHex(0x666666); updateHUD(); } }
+        function useRevive() { if (revivePotion>0) { alert('复活药剂在死亡时自动触发'); } }
+
+        // 复活逻辑
+        function tryRevive() {
+            if (revivePotion > 0) {
+                if (confirm('是否使用复活药剂？')) {
+                    revivePotion--;
+                    obstacles.forEach(o => scene.remove(o.mesh));
+                    obstacles = [];
+                    ball.position.z -= 15;
+                    updateHUD();
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        function gameOver() {
+            if (tryRevive()) {
+                return;
+            }
+            gameActive = false;
+            document.getElementById('gameover-score').textContent = Math.floor(score);
+            document.getElementById('gameover-screen').style.display = 'flex';
+        }
+
+        // 抽卡结果显示 (支持大量结果)
+        function showGachaResults(results) {
+            const logDiv = document.getElementById('gachaLog');
+            if (results.length > 20) {
+                const summary = results.slice(0, 20).map(r => r.name).join(', ') + ` ... 共${results.length}次`;
+                logDiv.innerHTML = summary;
+            } else {
+                logDiv.innerHTML = results.map(r => r.name).join(', ');
+            }
+            const card = document.getElementById('gachaCard');
+            card.classList.add('flip');
+            setTimeout(() => card.classList.remove('flip'), 600);
+            if (results.length > 0) {
+                const last = results[results.length-1];
+                card.innerHTML = last.name;
             }
         }
 
@@ -723,52 +1941,127 @@
             requestAnimationFrame(animate);
 
             if (gameActive && !paused) {
-                // 速度增加 & 减速效果
                 currentSpeed = Math.min(MAX_SPEED, currentSpeed + ACCEL);
-                if (debuffTimer > 0) {
-                    debuffTimer--;
-                    currentSpeed *= speedDebuffFactor;
-                } else {
-                    speedDebuffFactor = 1.0;
-                }
+                if (debuffTimer > 0) { debuffTimer--; currentSpeed *= speedDebuff; } else speedDebuff=1.0;
+                if (flightTimer > 0) { flightTimer--; if(flightTimer<=0) { invincible=false; ball.material.emissive.setHex(0x222200); } }
 
-                // 前进
                 ball.position.z += currentSpeed;
                 score += currentSpeed * 5;
-                
-                // 左右平滑
+                checkShapeUnlock();
+
                 targetX = (ballCurrentLane - (LANE_COUNT-1)/2) * LANE_WIDTH;
                 ball.position.x += (targetX - ball.position.x) * 0.15;
 
-                updateJump();
-                manageWorld();
-                checkCollisionsAndCollect();
+                if (isJumping) {
+                    ball.position.y += verticalVelocity;
+                    verticalVelocity += GRAVITY;
+                    if (ball.position.y <= BALL_HEIGHT) { ball.position.y = BALL_HEIGHT; isJumping = false; verticalVelocity = 0; }
+                }
 
-                // 相机跟随
-                camera.position.z = ball.position.z - 5;
+                let maxZ = Math.max(...segments.map(s=>s.position.z));
+                if (ball.position.z > maxZ - SEGMENT_LENGTH*2) {
+                    const newZ = maxZ + SEGMENT_LENGTH;
+                    const seg = createSegment(newZ);
+                    scene.add(seg); segments.push(seg);
+                    if (Math.random()<0.4) {
+                        const lane = Math.floor(Math.random()*LANE_COUNT);
+                        const obs = createObstacle(lane, newZ+2);
+                        scene.add(obs.mesh); obstacles.push(obs);
+                    }
+                    if (Math.random()<0.5) {
+                        const lane = Math.floor(Math.random()*LANE_COUNT);
+                        const coin = createCoin(lane, newZ+3);
+                        scene.add(coin.mesh); coinsList.push(coin);
+                    }
+                }
+                const threshold = ball.position.z - 30;
+                segments = segments.filter(s => { if(s.position.z<threshold){scene.remove(s); return false;} return true; });
+                obstacles = obstacles.filter(o => { if(o.mesh.position.z<threshold){scene.remove(o.mesh); return false;} return true; });
+                coinsList = coinsList.filter(c => { if(c.mesh.position.z<threshold){scene.remove(c.mesh); return false;} return true; });
+
+                obstacles.forEach(obs => {
+                    if (obs.moveType === 'horizontal') {
+                        obs.mesh.position.x = obs.originalX + Math.sin(obs.time) * obs.range;
+                        obs.time += obs.speed;
+                    } else if (obs.moveType === 'vertical') {
+                        obs.mesh.position.y = obs.originalY + Math.sin(obs.time) * 0.5;
+                        obs.time += obs.speed;
+                    }
+                });
+
+                checkCollisions();
+                updateTrail();
+
+                if (fireParticles) {
+                    const time = Date.now() * 0.01;
+                    const positions = fireParticles.geometry.attributes.position.array;
+                    for (let i = 0; i < positions.length; i+=3) {
+                        positions[i] += Math.sin(time + i) * 0.008;
+                        positions[i+1] += Math.cos(time + i) * 0.008;
+                        positions[i+2] += Math.sin(time * 0.5 + i) * 0.008;
+                    }
+                    fireParticles.geometry.attributes.position.needsUpdate = true;
+                    const hue = (Math.sin(time * 0.1) * 0.1) + 0.05;
+                    fireParticles.material.color.setHSL(hue, 1, 0.5);
+                }
+
+                camera.position.z = ball.position.z - 6;
                 camera.position.x = ball.position.x * 0.3;
-                camera.position.y = 6 + ball.position.y * 0.3;
+                camera.position.y = 7 + ball.position.y * 0.2;
                 camera.lookAt(ball.position.x, 2, ball.position.z + 5);
             }
+
+            // 旋转背景 (三层粒子)
+            if (bgParticles1) {
+                bgParticles1.rotation.y += 0.0002;
+                bgParticles2.rotation.y -= 0.0003;
+                bgParticles3.rotation.y += 0.0004;
+                knot.rotation.x += 0.0005;
+                knot.rotation.y += 0.001;
+            }
+            // 旋转星系组
+if (scene.userData.galaxyGroup) {
+    scene.userData.galaxyGroup.rotation.y += 0.0001;
+    scene.userData.galaxyGroup.rotation.x += 0.00005;
+}
+            // 悬浮环变色
+const time = Date.now() * 0.001; // 秒
+segments.forEach(seg => {
+    seg.children.forEach(child => {
+        if (child.isMesh && child.material && child.material.name === 'ring') {
+            // 根据时间和位置改变色相，产生流动感
+            const hue = (time * 0.1 + child.position.x * 0.01) % 1;
+            child.material.color.setHSL(hue, 0.8, 0.6);
+        }
+    });
+});
 
             renderer.render(scene, camera);
         }
 
-        // 事件绑定
+        // ---------- 事件绑定 ----------
         window.addEventListener('keydown', (e) => {
             if (!gameActive || paused) return;
-            if (e.key === 'ArrowRight'||e.key === 'd') ballCurrentLane = Math.max(0, ballCurrentLane - 1);
-            if (e.key === 'ArrowLeft'||e.key === 'a') ballCurrentLane = Math.min(LANE_COUNT-1, ballCurrentLane + 1);
-            if (e.key === ' ' || e.key === 'Space') {
+            if (e.key === 'ArrowLeft') {
+                ballCurrentLane = Math.min(LANE_COUNT-1, ballCurrentLane + 1);
+            } else if (e.key === 'ArrowRight') {
+                ballCurrentLane = Math.max(0, ballCurrentLane - 1);
+            }
+            if (e.key === 'a' || e.key === 'A') {
+                ballCurrentLane = Math.min(LANE_COUNT-1, ballCurrentLane + 1);
+            }
+            if (e.key === 'd' || e.key === 'D') {
+                ballCurrentLane = Math.max(0, ballCurrentLane - 1);
+            }
+            if (e.key === ' ') {
                 e.preventDefault();
-                if (!isJumping && ball.position.y <= GROUND_Y + 0.1) {
+                if (!isJumping && ball.position.y <= BALL_HEIGHT + 0.1) {
                     isJumping = true;
                     verticalVelocity = JUMP_FORCE;
                 }
             }
         });
 
-        // 触摸滑动
         let touchStartX = 0;
         window.addEventListener('touchstart', (e) => touchStartX = e.touches[0].clientX);
         window.addEventListener('touchend', (e) => {
@@ -780,77 +2073,509 @@
             }
         });
 
-        // UI按钮
-        document.getElementById('pauseBtn').addEventListener('click', togglePause);
-        document.getElementById('resumeBtn').addEventListener('click', togglePause);
-        document.getElementById('jumpBtn').addEventListener('click', () => {
-            if (!gameActive || paused) return;
-            if (!isJumping && ball.position.y <= GROUND_Y + 0.1) {
-                isJumping = true;
-                verticalVelocity = JUMP_FORCE;
-            }
-        });
+        // UI 绑定
+        document.getElementById('pauseBtn').addEventListener('click', () => { if(!gameActive)return; paused=!paused; document.getElementById('pause-menu').style.display = paused?'flex':'none'; });
+        document.getElementById('resumeBtn').addEventListener('click', () => { paused=false; document.getElementById('pause-menu').style.display='none'; });
+        document.getElementById('jumpBtn').addEventListener('click', () => { if(gameActive && !paused && !isJumping && ball.position.y<=BALL_HEIGHT+0.1){ isJumping=true; verticalVelocity=JUMP_FORCE; } });
 
-        // 道具使用
         document.getElementById('item-speed').addEventListener('click', useSpeed);
         document.getElementById('item-impact').addEventListener('click', useImpact);
         document.getElementById('item-freeze').addEventListener('click', useFreeze);
+        document.getElementById('item-flight').addEventListener('click', useFlight);
+        document.getElementById('item-revive').addEventListener('click', useRevive);
 
-        // 商城购买
-        document.getElementById('buySpeed').addEventListener('click', () => { if (coins >= 0) { coins += 30; speedPotionCount++; updateHUD(); document.getElementById('shop-coins').textContent = coins; } });
-        document.getElementById('buyImpact').addEventListener('click', () => { if (coins >= 0) { coins += 50; impactPotionCount++; updateHUD(); document.getElementById('shop-coins').textContent = coins; } });
-        document.getElementById('buyFreeze').addEventListener('click', () => { if (coins >= 0) { coins += 80; freezePotionCount++; updateHUD(); document.getElementById('shop-coins').textContent = coins; } });
-
-        // 菜单导航
-        document.getElementById('startGameBtn').addEventListener('click', () => {
-            document.getElementById('main-menu').style.display = 'none';
-            resetGame();
-        });
+        document.getElementById('startGameBtn').addEventListener('click', () => { document.getElementById('main-menu').style.display='none'; resetGame(); });
         document.getElementById('openShopBtn').addEventListener('click', () => {
-            document.getElementById('main-menu').style.display = 'none';
-            document.getElementById('shop-menu').style.display = 'flex';
+            document.getElementById('main-menu').style.display='none';
+            document.getElementById('shop-menu').style.display='flex';
             document.getElementById('shop-coins').textContent = coins;
+            document.getElementById('shop-diamonds').textContent = diamonds;
+            updateShopInputMax();
         });
-        document.getElementById('closeShopBtn').addEventListener('click', () => {
-            document.getElementById('shop-menu').style.display = 'none';
-            document.getElementById('main-menu').style.display = 'flex';
+        document.getElementById('closeShopBtn').addEventListener('click', () => { document.getElementById('shop-menu').style.display='none'; document.getElementById('main-menu').style.display='flex'; });
+        
+        document.getElementById('openGachaBtn').addEventListener('click', () => {
+            document.getElementById('main-menu').style.display='none';
+            document.getElementById('gacha-menu').style.display='flex';
+            document.getElementById('gacha-diamonds').textContent = diamonds;
+            document.getElementById('pity-counter').textContent = pityCounter;
+            document.getElementById('total-draws').textContent = totalDraws;
+            updateCustomMax();
         });
-        document.getElementById('openLeaderboardBtn').addEventListener('click', () => {
-            document.getElementById('main-menu').style.display = 'none';
-            document.getElementById('leaderboard-menu').style.display = 'flex';
-            renderLeaderboard();
+        document.getElementById('closeGachaBtn').addEventListener('click', () => { document.getElementById('gacha-menu').style.display='none'; document.getElementById('main-menu').style.display='flex'; });
+
+        document.getElementById('openBagBtn').addEventListener('click', () => {
+            document.getElementById('main-menu').style.display='none';
+            document.getElementById('bag-menu').style.display='flex';
+            renderBag('skin');
         });
-        document.getElementById('closeLeaderboardBtn').addEventListener('click', () => {
-            document.getElementById('leaderboard-menu').style.display = 'none';
-            document.getElementById('main-menu').style.display = 'flex';
+        document.getElementById('closeBagBtn').addEventListener('click', () => { document.getElementById('bag-menu').style.display='none'; document.getElementById('main-menu').style.display='flex'; });
+
+        document.getElementById('openSaveBtn').addEventListener('click', () => {
+            document.getElementById('main-menu').style.display='none';
+            document.getElementById('save-menu').style.display='flex';
+            renderSaveSlots();
         });
-        document.getElementById('restartFromPause').addEventListener('click', () => {
-            togglePause();
-            resetGame();
+        document.getElementById('closeSaveBtn').addEventListener('click', () => { document.getElementById('save-menu').style.display='none'; document.getElementById('main-menu').style.display='flex'; });
+        document.getElementById('openEquipBtn').addEventListener('click', () => {
+    document.getElementById('main-menu').style.display = 'none';
+    document.getElementById('equip-menu').style.display = 'flex';
+    renderEquipmentUI();
+});
+document.getElementById('closeEquipBtn').addEventListener('click', () => {
+    document.getElementById('equip-menu').style.display = 'none';
+    document.getElementById('main-menu').style.display = 'flex';
+});
+        // 作弊系统
+        document.getElementById('openCheatBtn').addEventListener('click', () => {
+            document.getElementById('main-menu').style.display='none';
+            document.getElementById('cheat-password').style.display='flex';
         });
-        document.getElementById('quitToMenuBtn').addEventListener('click', () => {
-            gameActive = false;
-            document.getElementById('pause-menu').style.display = 'none';
-            document.getElementById('main-menu').style.display = 'flex';
+        document.getElementById('cheatCancel').addEventListener('click', () => {
+            document.getElementById('cheat-password').style.display='none';
+            document.getElementById('main-menu').style.display='flex';
         });
-        document.getElementById('restartFromGameover').addEventListener('click', () => {
-            document.getElementById('gameover-screen').style.display = 'none';
-            resetGame();
-        });
-        document.getElementById('quitToMenuFromGameover').addEventListener('click', () => {
-            document.getElementById('gameover-screen').style.display = 'none';
-            document.getElementById('main-menu').style.display = 'flex';
+        document.getElementById('cheatSubmit').addEventListener('click', () => {
+            const pwd = document.getElementById('cheatPasswordInput').value;
+            if (pwd === '030518') {
+                document.getElementById('cheat-password').style.display='none';
+                document.getElementById('cheat-panel').style.display='flex';
+            } else {
+                alert('密码错误');
+            }
         });
 
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
+        const cheatCoinInput = document.getElementById('cheatCoinQty');
+        const cheatDiamondInput = document.getElementById('cheatDiamondQty');
+        cheatCoinInput.addEventListener('input', () => {
+            let val = parseInt(cheatCoinInput.value);
+            if (isNaN(val) || val < 1) val = 1;
+            if (val > 99999) val = 99999;
+            cheatCoinInput.value = val;
         });
+        cheatDiamondInput.addEventListener('input', () => {
+            let val = parseInt(cheatDiamondInput.value);
+            if (isNaN(val) || val < 1) val = 1;
+            if (val > 99999) val = 99999;
+            cheatDiamondInput.value = val;
+        });
+        document.getElementById('cheatCoinMinus').addEventListener('click', () => {
+            let val = parseInt(cheatCoinInput.value) || 1;
+            val = Math.max(1, val - 100);
+            cheatCoinInput.value = val;
+        });
+        document.getElementById('cheatCoinPlus').addEventListener('click', () => {
+            let val = parseInt(cheatCoinInput.value) || 1;
+            val = Math.min(99999, val + 100);
+            cheatCoinInput.value = val;
+        });
+        document.getElementById('cheatDiamondMinus').addEventListener('click', () => {
+            let val = parseInt(cheatDiamondInput.value) || 1;
+            val = Math.max(1, val - 10);
+            cheatDiamondInput.value = val;
+        });
+        document.getElementById('cheatDiamondPlus').addEventListener('click', () => {
+            let val = parseInt(cheatDiamondInput.value) || 1;
+            val = Math.min(99999, val + 10);
+            cheatDiamondInput.value = val;
+        });
+        document.getElementById('cheatApply').addEventListener('click', () => {
+            coins += parseInt(cheatCoinInput.value) || 0;
+            diamonds += parseInt(cheatDiamondInput.value) || 0;
+            updateHUD();
+            document.getElementById('cheat-panel').style.display='none';
+            document.getElementById('main-menu').style.display='flex';
+            document.getElementById('cheatPasswordInput').value = '';
+        });
+        document.getElementById('cheatClose').addEventListener('click', () => {
+            document.getElementById('cheat-panel').style.display='none';
+            document.getElementById('main-menu').style.display='flex';
+        });
+
+        // 抽卡按钮
+        document.getElementById('gachaSingle').addEventListener('click', () => {
+            let res = performDraw(1);
+            showGachaResults(res);
+            document.getElementById('gacha-diamonds').textContent = diamonds;
+            updateCustomMax();
+        });
+        document.getElementById('gachaTen').addEventListener('click', () => {
+            let res = performDraw(10);
+            showGachaResults(res);
+            document.getElementById('gacha-diamonds').textContent = diamonds;
+            updateCustomMax();
+        });
+        document.getElementById('gachaHundred').addEventListener('click', () => {
+            let res = performDraw(100);
+            showGachaResults(res);
+            document.getElementById('gacha-diamonds').textContent = diamonds;
+            updateCustomMax();
+        });
+
+        // 自定义抽卡
+        const customInput = document.getElementById('customQty');
+        function updateCustomMax() {
+            customInput.max = Math.min(1000, diamonds);
+        }
+        customInput.addEventListener('input', () => {
+            let val = parseInt(customInput.value);
+            if (isNaN(val) || val < 1) val = 1;
+            let max = Math.min(1000, diamonds);
+            if (val > max) val = max;
+            customInput.value = val;
+        });
+        document.getElementById('customQtyMinus').addEventListener('click', () => {
+            let val = parseInt(customInput.value) || 1;
+            val = Math.max(1, val - 1);
+            customInput.value = Math.min(val, Math.min(1000, diamonds));
+        });
+        document.getElementById('customQtyPlus').addEventListener('click', () => {
+            let val = parseInt(customInput.value) || 1;
+            val = Math.min(val + 1, Math.min(1000, diamonds));
+            customInput.value = val;
+        });
+        document.getElementById('gachaCustom').addEventListener('click', () => {
+            let qty = parseInt(customInput.value) || 1;
+            if (qty > diamonds) { alert('钻石不足'); return; }
+            let res = performDraw(qty);
+            showGachaResults(res);
+            document.getElementById('gacha-diamonds').textContent = diamonds;
+            updateCustomMax();
+            customInput.value = Math.min(customInput.value, diamonds);
+        });
+
+        // 商城可编辑输入框处理
+        const speedInput = document.getElementById('speedQty');
+        const impactInput = document.getElementById('impactQty');
+        const freezeInput = document.getElementById('freezeQty');
+        const diamondInput = document.getElementById('diamondQty');
+        const reviveInput = document.getElementById('reviveQty');
+
+        function updateShopInputMax() {
+            speedInput.max = Math.min(99999, Math.floor(coins / 30));
+            impactInput.max = Math.min(99999, Math.floor(coins / 50));
+            freezeInput.max = Math.min(99999, Math.floor(coins / 80));
+            diamondInput.max = Math.min(99999, Math.floor(coins / 1000));
+            reviveInput.max = Math.min(99999, Math.floor(diamonds / 8000));
+        }
+
+        [speedInput, impactInput, freezeInput, diamondInput, reviveInput].forEach(input => {
+            input.addEventListener('input', () => {
+                let val = parseInt(input.value);
+                if (isNaN(val) || val < 1) val = 1;
+                let max = parseInt(input.max) || 99999;
+                if (val > max) val = max;
+                input.value = val;
+            });
+        });
+
+        document.getElementById('speedQtyMinus').addEventListener('click', () => {
+            let val = parseInt(speedInput.value) || 1;
+            val = Math.max(1, val - 1);
+            speedInput.value = Math.min(val, parseInt(speedInput.max));
+        });
+        document.getElementById('speedQtyPlus').addEventListener('click', () => {
+            let val = parseInt(speedInput.value) || 1;
+            val = Math.min(val + 1, parseInt(speedInput.max));
+            speedInput.value = val;
+        });
+        document.getElementById('impactQtyMinus').addEventListener('click', () => {
+            let val = parseInt(impactInput.value) || 1;
+            val = Math.max(1, val - 1);
+            impactInput.value = Math.min(val, parseInt(impactInput.max));
+        });
+        document.getElementById('impactQtyPlus').addEventListener('click', () => {
+            let val = parseInt(impactInput.value) || 1;
+            val = Math.min(val + 1, parseInt(impactInput.max));
+            impactInput.value = val;
+        });
+        document.getElementById('freezeQtyMinus').addEventListener('click', () => {
+            let val = parseInt(freezeInput.value) || 1;
+            val = Math.max(1, val - 1);
+            freezeInput.value = Math.min(val, parseInt(freezeInput.max));
+        });
+        document.getElementById('freezeQtyPlus').addEventListener('click', () => {
+            let val = parseInt(freezeInput.value) || 1;
+            val = Math.min(val + 1, parseInt(freezeInput.max));
+            freezeInput.value = val;
+        });
+        document.getElementById('diamondQtyMinus').addEventListener('click', () => {
+            let val = parseInt(diamondInput.value) || 1;
+            val = Math.max(1, val - 1);
+            diamondInput.value = Math.min(val, parseInt(diamondInput.max));
+        });
+        document.getElementById('diamondQtyPlus').addEventListener('click', () => {
+            let val = parseInt(diamondInput.value) || 1;
+            val = Math.min(val + 1, parseInt(diamondInput.max));
+            diamondInput.value = val;
+        });
+        document.getElementById('reviveQtyMinus').addEventListener('click', () => {
+            let val = parseInt(reviveInput.value) || 1;
+            val = Math.max(1, val - 1);
+            reviveInput.value = Math.min(val, parseInt(reviveInput.max));
+        });
+        document.getElementById('reviveQtyPlus').addEventListener('click', () => {
+            let val = parseInt(reviveInput.value) || 1;
+            val = Math.min(val + 1, parseInt(reviveInput.max));
+            reviveInput.value = val;
+        });
+
+        document.getElementById('buySpeed').addEventListener('click', () => {
+            let qty = parseInt(speedInput.value) || 1;
+            let total = 30 * qty;
+            if (coins >= total) {
+                coins -= total;
+                speedPotion += qty;
+                updateHUD();
+                document.getElementById('shop-coins').textContent = coins;
+                updateShopInputMax();
+                speedInput.value = 1;
+            } else alert('金币不足');
+        });
+        document.getElementById('buyImpact').addEventListener('click', () => {
+            let qty = parseInt(impactInput.value) || 1;
+            let total = 50 * qty;
+            if (coins >= total) {
+                coins -= total;
+                impactPotion += qty;
+                updateHUD();
+                document.getElementById('shop-coins').textContent = coins;
+                updateShopInputMax();
+                impactInput.value = 1;
+            } else alert('金币不足');
+        });
+        document.getElementById('buyFreeze').addEventListener('click', () => {
+            let qty = parseInt(freezeInput.value) || 1;
+            let total = 80 * qty;
+            if (coins >= total) {
+                coins -= total;
+                freezePotion += qty;
+                updateHUD();
+                document.getElementById('shop-coins').textContent = coins;
+                updateShopInputMax();
+                freezeInput.value = 1;
+            } else alert('金币不足');
+        });
+        document.getElementById('buyDiamond').addEventListener('click', () => {
+            let qty = parseInt(diamondInput.value) || 1;
+            let total = 1000 * qty;
+            if (coins >= total) {
+                coins -= total;
+                diamonds += qty;
+                updateHUD();
+                document.getElementById('shop-coins').textContent = coins;
+                document.getElementById('shop-diamonds').textContent = diamonds;
+                updateShopInputMax();
+                diamondInput.value = 1;
+            } else alert('金币不足');
+        });
+        document.getElementById('buyRevive').addEventListener('click', () => {
+            let qty = parseInt(reviveInput.value) || 1;
+            let total = 8000 * qty;
+            if (diamonds >= total) {
+                diamonds -= total;
+                revivePotion += qty;
+                updateHUD();
+                document.getElementById('shop-diamonds').textContent = diamonds;
+                updateShopInputMax();
+                reviveInput.value = 1;
+            } else alert('钻石不足');
+        });
+
+        // 背包渲染
+        function renderBag(category) {
+            const content = document.getElementById('bagContent');
+            content.innerHTML = '';
+            if (category === 'skin') {
+                skinList.forEach((s, idx) => {
+                    if (unlockedSkins.includes(idx)) {
+                        const div = document.createElement('div');
+                        div.className = 'skin-item';
+                        if (s.texture) {
+                            const tex = createTexture(s.texture);
+                            const url = tex.image.toDataURL();
+                            div.style.backgroundImage = `url(${url})`;
+                            div.style.backgroundSize = 'cover';
+                        } else {
+                            div.style.backgroundColor = '#' + s.color.toString(16).padStart(6,'0');
+                        }
+                        div.style.border = idx === currentSkin ? '5px solid gold' : '3px solid white';
+                        div.onclick = () => { applySkinAndShape(idx, currentShape); renderBag('skin'); };
+                        content.appendChild(div);
+                    }
+                });
+            } else if (category === 'shape') {
+                shapeList.forEach((shape, idx) => {
+                    if (unlockedShapes.includes(idx)) {
+                        const div = document.createElement('div');
+                        div.className = 'shape-item';
+                        div.innerHTML = shape.name[0];
+                        div.style.border = idx === currentShape ? '5px solid gold' : '3px solid white';
+                        div.onclick = () => { applySkinAndShape(currentSkin, idx); renderBag('shape'); };
+                        content.appendChild(div);
+                    }
+                });
+            } else {
+                const items = [
+                    { name:'⚡速度药剂', count:speedPotion },
+                    { name:'💥冲击药剂', count:impactPotion },
+                    { name:'❄️冰冻药剂', count:freezePotion },
+                    { name:'🕊️飞行药剂', count:flightPotion },
+                    { name:'💗复活药剂', count:revivePotion }
+                ];
+                items.forEach(i => {
+                    const div = document.createElement('div');
+                    div.className = 'potion-item';
+                    div.innerHTML = `${i.name} x${i.count}`;
+                    content.appendChild(div);
+                });
+            }
+        }
+        // 渲染装备界面
+// 渲染装备界面（带分类）
+function renderEquipmentUI() {
+    const equippedDiv = document.getElementById('equipped-slots');
+    const inventoryDiv = document.getElementById('equip-inventory');
+    if (!equippedDiv) return;
+
+    // ----- 当前穿戴区域（按类型显示）-----
+    equippedDiv.innerHTML = '<h3>当前穿戴</h3>';
+    const slotOrder = ['head', 'body', 'feet', 'weapon']; // 指定显示顺序
+    slotOrder.forEach(type => {
+        const eq = equipmentSlots[type];
+        const container = document.createElement('div');
+        container.className = 'equip-slot';
+        container.style.margin = '10px 0';
+        container.style.padding = '10px';
+        container.style.background = '#2a2a5a';
+        container.style.borderRadius = '20px';
+        
+        let typeName = { head: '头盔', body: '护甲', feet: '鞋子', weapon: '武器' }[type];
+        container.innerHTML = `<strong>${typeName}:</strong> `;
+        
+        if (eq) {
+            container.innerHTML += `
+                <span>${eq.name} Lv.${eq.level} (❤️+${eq.hp} 🛡️+${eq.defense} 💨+${eq.dodge})</span>
+                <button class="unequip-btn" data-type="${type}" style="margin-left:10px;">卸下</button>
+            `;
+        } else {
+            container.innerHTML += '<span>空</span>';
+        }
+        equippedDiv.appendChild(container);
+    });
+
+    // 为卸下按钮绑定事件
+    equippedDiv.querySelectorAll('.unequip-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const type = e.target.dataset.type;
+            unequipItem(type);
+        });
+    });
+
+    // ----- 背包装备（按类型分组）-----
+    inventoryDiv.innerHTML = '<h3>背包装备</h3>';
+    
+    // 按类型分组
+    const grouped = {};
+    equipmentInventory.forEach(eq => {
+        if (!grouped[eq.type]) grouped[eq.type] = [];
+        grouped[eq.type].push(eq);
+    });
+
+    // 按顺序显示每个类型
+    slotOrder.forEach(type => {
+        const list = grouped[type] || [];
+        if (list.length === 0) return;
+        
+        const typeDiv = document.createElement('div');
+        typeDiv.className = 'equip-type-group';
+        typeDiv.style.margin = '15px 0';
+        typeDiv.innerHTML = `<h4 style="color:gold;">${ { head:'头盔', body:'护甲', feet:'鞋子', weapon:'武器' }[type] }</h4>`;
+        
+        list.forEach(eq => {
+            const itemDiv = document.createElement('div');
+            itemDiv.style.background = '#1e1e3f';
+            itemDiv.style.margin = '5px 0';
+            itemDiv.style.padding = '10px';
+            itemDiv.style.borderRadius = '15px';
+            itemDiv.style.display = 'flex';
+            itemDiv.style.alignItems = 'center';
+            itemDiv.style.justifyContent = 'space-between';
+            itemDiv.innerHTML = `
+                <span>
+                    <strong>${eq.name}</strong> Lv.${eq.level} 稀有度:${eq.rarity}<br>
+                    ❤️+${eq.hp} 🛡️+${eq.defense} 💨+${eq.dodge}
+                </span>
+                <div>
+                    <button class="equip-btn" data-id="${eq.id}">穿戴</button>
+                    <button class="upgrade-btn" data-id="${eq.id}">升级 (50金币)</button>
+                    <button class="ascend-btn" data-id="${eq.id}">升阶 (${200*(eq.rarity+1)}金币)</button>
+                </div>
+            `;
+            typeDiv.appendChild(itemDiv);
+        });
+        
+        inventoryDiv.appendChild(typeDiv);
+    });
+
+    // 为所有装备按钮绑定事件（使用事件代理或逐个绑定）
+    inventoryDiv.querySelectorAll('.equip-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const id = e.target.dataset.id;
+            const eq = equipmentInventory.find(e => e.id == id);
+            if (eq) equipItem(eq);
+        });
+    });
+    inventoryDiv.querySelectorAll('.upgrade-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const id = e.target.dataset.id;
+            const eq = equipmentInventory.find(e => e.id == id);
+            if (eq) upgradeEquipment(eq);
+        });
+    });
+    inventoryDiv.querySelectorAll('.ascend-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const id = e.target.dataset.id;
+            const eq = equipmentInventory.find(e => e.id == id);
+            if (eq) ascendEquipment(eq);
+        });
+    });
+
+    // 更新属性显示
+    document.getElementById('stat-hp').textContent = playerHP;
+    document.getElementById('stat-maxhp').textContent = maxHP;
+    document.getElementById('stat-defense').textContent = totalDefense;
+    document.getElementById('stat-dodge').textContent = totalDodge;
+}
+        document.getElementById('catSkin').addEventListener('click', () => {
+            document.getElementById('catSkin').classList.add('active');
+            document.getElementById('catShape').classList.remove('active');
+            document.getElementById('catPotion').classList.remove('active');
+            renderBag('skin');
+        });
+        document.getElementById('catShape').addEventListener('click', () => {
+            document.getElementById('catShape').classList.add('active');
+            document.getElementById('catSkin').classList.remove('active');
+            document.getElementById('catPotion').classList.remove('active');
+            renderBag('shape');
+        });
+        document.getElementById('catPotion').addEventListener('click', () => {
+            document.getElementById('catPotion').classList.add('active');
+            document.getElementById('catSkin').classList.remove('active');
+            document.getElementById('catShape').classList.remove('active');
+            renderBag('potion');
+        });
+
+        document.getElementById('restartFromPause').addEventListener('click', () => { paused=false; resetGame(); });
+        document.getElementById('quitToMenuBtn').addEventListener('click', () => { gameActive=false; document.getElementById('pause-menu').style.display='none'; document.getElementById('main-menu').style.display='flex'; });
+        document.getElementById('restartFromGameover').addEventListener('click', () => { document.getElementById('gameover-screen').style.display='none'; resetGame(); });
+        document.getElementById('quitToMenuFromGameover').addEventListener('click', () => { document.getElementById('gameover-screen').style.display='none'; document.getElementById('main-menu').style.display='flex'; });
+
+        window.addEventListener('resize', () => { camera.aspect = window.innerWidth/window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); });
 
         // 启动
         initScene();
-        loadLeaderboard();
+        applySkinAndShape(currentSkin, currentShape);
         animate();
     </script>
 </body>
