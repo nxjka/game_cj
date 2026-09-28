@@ -1,0 +1,1668 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>状态控制器控制协议 V1.0 · 仿真/硬件双格式生成器</title>
+<style>
+*{box-sizing:border-box}
+:root{
+  --bg:#0d1117;--panel:#161b22;--panel2:#1b2230;--border:#2a3444;
+  --text:#c9d5e1;--muted:#7d8da1;--accent:#4ea1ff;--ok:#3fb950;--warn:#d29922;--danger:#f85149;
+  --temp:#d29922;--qspi:#4ea1ff;--kz:#c586c0;--pf:#6fd3a0;--tr:#ff9f6e;
+  --jl:#f9c74f;--kztd:#90be6d;--jzmk:#f8961e;
+}
+body{margin:0;background:var(--bg);color:var(--text);
+  font:13px/1.6 -apple-system,"Segoe UI","Microsoft YaHei",sans-serif}
+code,pre,input.mono,textarea.mono{font-family:Consolas,"Courier New",monospace}
+
+.topbar{position:sticky;top:0;z-index:60;display:flex;align-items:center;gap:10px;
+  padding:9px 18px;background:#0b0f14;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.topbar h1{font-size:14px;margin:0;font-weight:600}
+.pill{font-size:11px;color:var(--muted);border:1px solid var(--border);
+  padding:2px 8px;border-radius:10px;white-space:nowrap}
+.pill.hl{color:#9dcbff;border-color:#1f4a75;background:#122336}
+.pill.warn{color:#ffd479;border-color:#5a4a12;background:#1f1a08}
+.pill.ok{color:#6fd3a0;border-color:#2a5c33;background:#0d1c13}
+.spacer{flex:1}
+
+.modebar{position:sticky;top:44px;z-index:55;display:flex;gap:6px;align-items:center;
+  padding:8px 18px;background:#0a0e13;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.modebar .lbl{font-size:11px;color:#55637a;letter-spacing:1px;margin-right:4px}
+.modebtn{background:#121a25;border:1px solid #1e2836;color:#7d8da1;
+  border-radius:8px;padding:5px 14px;font-size:12px;cursor:pointer;
+  font-family:inherit;transition:.15s;white-space:nowrap;display:flex;
+  align-items:center;gap:6px}
+.modebtn:hover{border-color:#2f6ea8;color:#a8d3ff}
+.modebtn.active{background:#16324f;border-color:#4ea1ff;color:#cfe6ff;
+  box-shadow:0 0 0 1px #1f5b96 inset}
+.modebtn .num{font-family:Consolas,monospace;font-size:10px;color:#55637a}
+.modebtn.active .num{color:#4ea1ff}
+
+.subbar{position:sticky;top:85px;z-index:54;display:flex;gap:6px;align-items:center;
+  padding:7px 18px;background:#0d1219;border-bottom:1px solid #1a2431;flex-wrap:wrap}
+.subbar .lbl{font-size:11px;color:#55637a;letter-spacing:1px;margin-right:4px}
+.subbar.hide{display:none}
+.subbtn{background:#121a25;border:1px solid #1e2836;color:#7d8da1;
+  border-radius:8px;padding:4px 12px;font-size:12px;cursor:pointer;
+  font-family:inherit;transition:.15s;white-space:nowrap}
+.subbtn:hover{border-color:#2f6ea8;color:#a8d3ff}
+.subbtn.active[data-sub="cal"]{background:#3a2808;border-color:#f8961e;color:#ffd479;box-shadow:0 0 0 1px #f8961e inset}
+.subbtn.active[data-sub="ctrl"]{background:#1e3316;border-color:#90be6d;color:#c8e5a8;box-shadow:0 0 0 1px #90be6d inset}
+.subbtn.active[data-sub="stim"]{background:#3a2e0a;border-color:#f9c74f;color:#ffeeb3;box-shadow:0 0 0 1px #f9c74f inset}
+.subbtn .src{font-size:9px;color:#55637a;margin-left:4px;font-family:Consolas,monospace}
+.subbtn.active .src{color:#a8d3ff}
+
+.modepanel{margin:10px 14px;padding:12px 16px;border-radius:10px;
+  background:linear-gradient(135deg,#0f1a28 0%,#121a26 100%);
+  border:1px solid #1f3a55;font-size:11.5px;color:#8fb3d9;line-height:1.85}
+.modepanel .title{font-size:13px;color:#e6edf5;font-weight:600;margin-bottom:6px;
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.modepanel .title .sw{font-size:10px;color:#55637a;font-family:Consolas,monospace}
+.modepanel .cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+  gap:8px 20px;margin-top:6px}
+.modepanel b{color:#a8d3ff}
+.modepanel code{color:#6fd3a0;background:none}
+.modepanel .tagline{display:inline-block;font-size:10px;border-radius:8px;padding:1px 8px;
+  border:1px solid #2a3444;background:#0b1017;color:#7d8da1}
+.modepanel .tagline.hl{color:#ffd479;border-color:#5a4a12;background:#1f1a08}
+.modepanel .tagline.ok{color:#6fd3a0;border-color:#2a5c33;background:#0d1c13}
+.mode-color-badge{display:inline-flex;align-items:center;gap:6px;
+  font-size:11px;color:#c9d5e1;background:#0b1017;border:1px solid var(--border);
+  border-radius:8px;padding:2px 10px}
+.mode-color-badge i{width:10px;height:10px;border-radius:2px;background:var(--mode-color,#4ea1ff)}
+.mode-color-badge .src{font-size:10px;color:#7d8da1;font-family:Consolas,monospace}
+
+.app{display:grid;grid-template-columns:180px minmax(0,1fr) 460px;
+  gap:14px;padding:14px;align-items:start}
+@media(max-width:1340px){
+  .app{grid-template-columns:1fr}
+  .sidebar,.outpanel{position:static!important;max-height:none!important}
+}
+
+.sidebar{position:sticky;top:120px;max-height:calc(100vh - 136px);overflow:auto;
+  background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:8px}
+.sidebar a{display:block;color:var(--muted);text-decoration:none;font-size:12px;
+  padding:5px 9px;border-radius:6px;white-space:nowrap}
+.sidebar a:hover{background:var(--panel2);color:var(--accent)}
+.sidebar a.mode-on{border-left:2px solid #3fb950;padding-left:7px}
+.sidebar .grp{font-size:10px;color:#55637a;padding:9px 9px 3px;letter-spacing:1px}
+
+.sec-title{font-size:12px;color:#55637a;letter-spacing:1px;margin:20px 0 10px;
+  border-left:2px solid #2b3a4d;padding-left:8px}
+.sec-title:first-child{margin-top:0}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:10px;
+  padding:14px 16px;margin-bottom:12px}
+.card h3{margin:0 0 4px;font-size:14px;color:#e6edf5;font-weight:600;
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.tag{font-size:10px;font-weight:400;color:var(--accent);
+  border:1px solid #1f4a75;background:#122336;padding:1px 7px;border-radius:8px}
+.tag.mode{color:#6fd3a0;border-color:#2a5c33;background:#0d1c13}
+.tag.jl{color:#f9c74f;border-color:#5a4a12;background:#1f1a08}
+.tag.kztd{color:#90be6d;border-color:#2a5c33;background:#0d1c13}
+.tag.jzmk{color:#f8961e;border-color:#5a3a10;background:#1f1408}
+.desc{color:var(--muted);font-size:11.5px;margin:0 0 10px}
+.hint{color:var(--warn);font-size:11px;margin:6px 0;padding:5px 9px;
+  background:#1a1508;border-left:2px solid #d29922;border-radius:0 5px 5px 0}
+.hint.ok{color:#6fd3a0;background:#0d1c13;border-color:#3fb950}
+.hint.mode{color:#9dcbff;background:#0d1725;border-color:#4ea1ff}
+.hint.jl{color:#f9c74f;background:#1a1508;border-color:#f9c74f}
+.hint.kztd{color:#c8e5a8;background:#0d1c13;border-color:#90be6d}
+.hint.jzmk{color:#ffd479;background:#1a1208;border-color:#f8961e}
+.hint code{color:#ffd479;background:none}
+.hint b{color:#ffd479}
+
+.grid2{display:grid;grid-template-columns:repeat(auto-fill,minmax(215px,1fr));
+  gap:9px 14px;margin-bottom:10px}
+.grid2 label{display:flex;flex-direction:column;gap:3px;font-size:11.5px;color:var(--muted)}
+input[type=number],input[type=text],select,textarea{
+  background:#0b1017;border:1px solid var(--border);color:var(--text);
+  border-radius:6px;padding:5px 8px;font-size:12.5px;font-family:inherit;outline:none;width:100%}
+input[type=number]{font-family:Consolas,monospace}
+input:focus,select:focus,textarea:focus{border-color:var(--accent)}
+textarea{resize:vertical;line-height:1.7}
+
+button{background:var(--panel2);color:var(--text);border:1px solid var(--border);
+  border-radius:6px;padding:5px 12px;font-size:12px;cursor:pointer;
+  font-family:inherit;transition:.15s;white-space:nowrap}
+button:hover{border-color:var(--accent);color:var(--accent)}
+button.primary{background:#123152;border-color:#1f5b96;color:#9dcbff}
+button.primary:hover{background:#17406b;color:#cfe6ff}
+button.mini{padding:2px 8px;font-size:11px}
+.actions{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;align-items:center}
+
+.toolbar{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:8px}
+.bitgrid{border:1px solid var(--border);border-radius:8px;padding:7px;background:#0b1017}
+.bitgrid-row{display:flex;align-items:center;gap:3px;margin-bottom:3px}
+.bitgrid-row:last-child{margin-bottom:0}
+.bitgrid-label{font-size:10px;color:#55637a;width:88px;flex:none;font-family:Consolas,monospace}
+.bitcell{display:flex;align-items:center;gap:2px;font-size:10px;color:var(--muted);
+  background:#121a25;border:1px solid #1e2836;border-radius:4px;
+  padding:1px 4px 1px 3px;cursor:pointer;user-select:none;width:46px;flex:none;
+  position:relative;transition:opacity .15s, box-shadow .15s, filter .15s}
+.bitcell input{margin:0;width:12px;height:12px;cursor:pointer;accent-color:var(--accent)}
+.bitcell:has(input:checked){background:#16324f;border-color:#2f6ea8;color:#a8d3ff}
+.bitcell.sp{background:#221508;border-color:#5a4110}
+.bitcell.sp:has(input:checked){background:#4a2f08;border-color:var(--temp);color:#ffd479}
+.bitcell.qspi{background:#0d1c2e;border-color:#1f4a75}
+.bitcell.qspi:has(input:checked){background:#123152;border-color:var(--qspi);color:#a8d3ff}
+.bitcell.kz{background:#1c0f1e;border-color:#4a2a50}
+.bitcell.kz:has(input:checked){background:#2e1535;border-color:var(--kz);color:#e5b8f0}
+.bitcell.pf{background:#0d1f17;border-color:#1f4a35}
+.bitcell.pf:has(input:checked){background:#123326;border-color:var(--pf);color:#a8e5c0}
+.bitcell.tr{background:#1f1410;border-color:#4a2a18}
+.bitcell.tr:has(input:checked){background:#331f12;border-color:var(--tr);color:#ffc9a8}
+.bitcell.jl{background:#1f1a08;border-color:#5a4a12}
+.bitcell.jl:has(input:checked){background:#332608;border-color:var(--jl);color:#ffeeb3}
+.bitcell.kztd{background:#0d1c13;border-color:#2a5c33}
+.bitcell.kztd:has(input:checked){background:#12331f;border-color:var(--kztd);color:#c8e5a8}
+.bitcell.jzmk{background:#1f1408;border-color:#5a3a10}
+.bitcell.jzmk:has(input:checked){background:#331f08;border-color:var(--jzmk);color:#ffd479}
+.bitcell .sp-dot{position:absolute;top:1px;right:2px;width:4px;height:4px;
+  border-radius:50%;background:#55637a}
+.bitcell.sp .sp-dot{background:var(--temp)}
+.bitcell.qspi .sp-dot{background:var(--qspi)}
+.bitcell.kz .sp-dot{background:var(--kz)}
+.bitcell.pf .sp-dot{background:var(--pf)}
+.bitcell.tr .sp-dot{background:var(--tr)}
+.bitcell.jl .sp-dot{background:var(--jl)}
+.bitcell.kztd .sp-dot{background:var(--kztd)}
+.bitcell.jzmk .sp-dot{background:var(--jzmk)}
+.bitcell.mode-inactive{opacity:.28;filter:grayscale(.8)}
+.bitcell.mode-inactive:hover{opacity:.7;filter:grayscale(.2)}
+.bitcell.mode-active{box-shadow:0 0 0 1.5px var(--mode-color,#4ea1ff),
+  0 0 10px -2px var(--mode-color,#4ea1ff);z-index:2}
+.bitcell.mode-active:has(input:checked){box-shadow:0 0 0 1.5px var(--mode-color,#4ea1ff),
+  0 0 12px var(--mode-color,#4ea1ff),0 0 22px -4px var(--mode-color,#4ea1ff)}
+
+.grid-legend{display:flex;gap:14px;align-items:center;flex-wrap:wrap;
+  margin:6px 0 8px;font-size:11px;color:var(--muted)}
+.grid-legend .item{display:inline-flex;align-items:center;gap:5px}
+.grid-legend .swatch{width:14px;height:10px;border-radius:3px;
+  background:#121a25;border:1px solid #1e2836}
+.grid-legend .swatch.active{background:#121a25;border:1.5px solid var(--mode-color,#4ea1ff);
+  box-shadow:0 0 6px -1px var(--mode-color,#4ea1ff)}
+.grid-legend .swatch.inactive{opacity:.35;filter:grayscale(.75)}
+
+.preview{margin-top:10px;background:#070a0e;border:1px solid #1d2632;border-radius:8px;
+  padding:9px 11px;font-family:Consolas,monospace;font-size:12px;color:#8fb3d9;
+  white-space:pre-wrap;word-break:break-all;line-height:1.7;min-height:18px}
+.preview .len{color:#55637a;font-size:10.5px;margin-left:6px}
+
+.sigmap{display:none;margin-top:10px;background:#070a0e;border:1px solid #1d2632;
+  border-radius:8px;padding:10px 12px;font-size:11px;line-height:1.8;
+  max-height:360px;overflow:auto}
+.sigmap.show{display:block}
+.sigmap table{width:100%;border-collapse:collapse;font-family:Consolas,monospace}
+.sigmap th{color:#55637a;text-align:left;font-weight:400;padding:3px 8px;
+  border-bottom:1px solid #1d2632;font-size:10px;letter-spacing:.5px;
+  position:sticky;top:0;background:#070a0e;z-index:1}
+.sigmap td{padding:2px 8px;color:#8fb3d9;border-bottom:1px solid #10161e}
+.sigmap tr:hover td{background:#101822}
+.sigmap tr.mode-dim td{opacity:.4}
+.sigmap tr.mode-hi td{background:#101c2c}
+.sigmap .ch{color:#ffd479;font-weight:600}
+.sigmap .name{color:#6fd3a0}
+.sigmap .def{color:#7d8da1}
+.sigmap .sec{color:#a8d3ff;background:#0d1725;font-weight:600}
+.sigmap .jl{color:#f9c74f}
+.sigmap .kztd{color:#90be6d}
+.sigmap .jzmk{color:#f8961e}
+
+/* 输出面板 */
+.outpanel{position:sticky;top:120px;max-height:calc(100vh - 136px);overflow:auto;
+  background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:12px}
+.outpanel h2{font-size:12px;margin:0 0 8px;color:var(--muted);font-weight:600;
+  letter-spacing:.5px;display:flex;justify-content:space-between;align-items:center;
+  flex-wrap:wrap;gap:4px}
+.badge{background:#123152;color:#9dcbff;border-radius:9px;padding:0 7px;font-size:11px}
+.badge.mode{background:#0d1c13;color:#6fd3a0}
+.badge.sub{background:#1f1a08;color:#f9c74f}
+
+/* 格式切换 */
+.fmtbar{display:flex;gap:5px;align-items:center;margin:0 0 8px;flex-wrap:wrap}
+.fmtbar .lbl{font-size:10px;color:#55637a;letter-spacing:1px;margin-right:3px}
+.fmtbtn{background:#121a25;border:1px solid #1e2836;color:#7d8da1;
+  border-radius:6px;padding:3px 10px;font-size:11px;cursor:pointer;
+  font-family:inherit;transition:.15s;white-space:nowrap}
+.fmtbtn:hover{border-color:#2f6ea8;color:#a8d3ff}
+.fmtbtn.active{background:#16324f;border-color:#4ea1ff;color:#cfe6ff}
+.fmtbtn.fmt-hw.active{background:#2a1810;border-color:#ff9f6e;color:#ffc9a8}
+.fmtbtn.fmt-both.active{background:#1a1f2a;border-color:#8fb3d9;color:#c9d5e1}
+
+.outlist{max-height:300px;overflow:auto;border:1px solid var(--border);
+  border-radius:8px;background:#070a0e;padding:6px}
+.oline{display:flex;gap:6px;align-items:flex-start;padding:2px 3px;border-radius:4px;
+  font-family:Consolas,monospace;font-size:10.5px;line-height:1.75}
+.oline:hover{background:#101822}
+.oline .ln{color:#3d4a5c;width:24px;text-align:right;flex:none}
+.oline code{flex:1;color:#8fb3d9;word-break:break-all}
+.oline code .cmt{color:#55637a;font-style:italic}
+.oline code .ck{color:#6fd3a0;font-weight:600}
+.oline code .crc{color:#ffd479;font-weight:600}
+.oline code .hl{color:#4ea1ff;font-weight:600}
+.oline code .tl{color:#c586c0;font-weight:600}
+.oline code .sep{color:#f85149;margin:0 6px}
+.oline .del{background:none;border:none;color:#435063;padding:0 4px;font-size:14px;
+  line-height:1.4;cursor:pointer}
+.oline .del:hover{color:#f85149;border:none}
+.empty{color:#4d5a6b;font-size:11.5px;text-align:center;padding:16px 0}
+.outbtns{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.outbtns button{flex:1;min-width:66px}
+.note{color:var(--muted);font-size:11px;margin-top:8px;line-height:1.75;
+  background:#0a0e13;border:1px solid var(--border);border-radius:6px;padding:8px 10px}
+.note code{color:#ffd479}
+.note b{color:#a8d3ff}
+
+/* CRC 表 */
+.crctable{background:#070a0e;border:1px solid #1d2632;border-radius:6px;
+  padding:8px 10px;font-family:Consolas,monospace;font-size:11px;
+  color:#8fb3d9;line-height:1.8;margin-top:8px;display:none}
+.crctable.show{display:block}
+.crctable .k{color:#55637a}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <h1>状态控制器控制协议 V1.0 · 双格式输出</h1>
+  <span class="pill hl">配置端 4 Mbps</span>
+  <span class="pill ok">CRC16-MODBUS 自动计算</span>
+  <span class="pill warn">32 逻辑 SPI</span>
+  <span class="spacer"></span>
+  <span class="pill">仿真：CMD LEN DATA…　硬件：55 AA LEN CMD DATA… CRC 48 4A</span>
+</div>
+
+<div class="modebar">
+  <span class="lbl">板卡模式（0x07）</span>
+  <button class="modebtn active" data-mode="0"><span class="num">bk=0</span>默认（三处理）</button>
+  <button class="modebtn" data-mode="1"><span class="num">bk=1</span>TR</button>
+  <button class="modebtn" data-mode="2"><span class="num">bk=2</span>Flash</button>
+  <button class="modebtn" data-mode="3"><span class="num">bk=3</span>PF</button>
+</div>
+
+<div class="subbar" id="subbar">
+  <span class="lbl">模式 0 子类型</span>
+  <button class="subbtn active" data-sub="cal">校准模块<span class="src">校准和校准公分.xlsx</span></button>
+  <button class="subbtn" data-sub="ctrl">控制模块<span class="src">控制模块配置·.xlsx</span></button>
+  <button class="subbtn" data-sub="stim">激励模块<span class="src">激励模块定义表.xlsx</span></button>
+</div>
+
+<div class="modepanel" id="modepanel">
+  <div class="title">
+    <span id="mode-title">模式 0 · 默认模式</span>
+    <span class="sw" id="mode-sw">bk_mode = 3'd0</span>
+    <span class="tagline ok" id="mode-tag">lsl_dir = {4'b1110, oe, 5'b11110, oe, 1'b1}</span>
+    <span class="mode-color-badge"><i id="mode-color-dot"></i><span id="mode-color-label">活跃通道标识</span></span>
+    <span class="mode-color-badge"><span class="src" id="mode-src">源：—</span></span>
+  </div>
+  <div class="cols" id="mode-cols"></div>
+</div>
+
+<div class="app">
+
+  <nav class="sidebar">
+    <div class="grp">TTL</div>
+    <a href="#cmd-01">0x01 离散量控制</a>
+    <a href="#cmd-08">0x08 离散量模式</a>
+    <a href="#cmd-09">0x09 离散量脉宽</a>
+    <a href="#cmd-0A">0x0A 离散量触发</a>
+    <div class="grp">SPI / QSPI</div>
+    <a href="#cmd-02">0x02 SPI 配置</a>
+    <a href="#cmd-03">0x03 SPI 数据</a>
+    <a href="#cmd-04">0x04 SPI 通道位图</a>
+    <a href="#cmd-05">0x05 SPI 发送</a>
+    <a href="#cmd-06">0x06 QSPI 配置</a>
+    <div class="grp">UART</div>
+    <a href="#cmd-0C">0x0C 串口基础配置</a>
+    <a href="#cmd-0D">0x0D 串口数据</a>
+    <a href="#cmd-0E">0x0E 串口发送使能</a>
+    <div class="grp">1553 / 其他</div>
+    <a href="#cmd-0F">0x0F 1553 数据</a>
+    <a href="#cmd-10">0x10 1553 发送</a>
+    <a href="#cmd-0B">0x0B 时钟使能</a>
+    <a href="#cmd-07">0x07 板卡模式</a>
+  </nav>
+
+  <main>
+
+    <div class="sec-title">TTL 离散量（96 路）</div>
+
+    <section class="card" id="cmd-01">
+      <h3>0x01 离散量控制 <span class="tag">数据 12 字节</span>
+        <span class="tag mode" id="tag-01-mode" style="display:none"></span>
+        <span class="tag" id="tag-01-sub" style="display:none"></span></h3>
+      <p class="desc">控制 96 路 TTL 输出电平。勾选 = 1。字节 1 对应 bit96~89。</p>
+      <div class="hint" id="hint-01">信号名与通道高亮随 <b>板卡模式</b> 与 <b>模式 0 子类型</b> 动态切换。</div>
+      <div class="grid-legend" id="legend-ttl1"></div>
+      <div class="toolbar">
+        <button class="mini" data-act="all" data-grid="grid-ttl1">全 1</button>
+        <button class="mini" data-act="none" data-grid="grid-ttl1">全 0</button>
+        <button class="mini" data-act="inv" data-grid="grid-ttl1">取反</button>
+        <button class="mini" data-act="rev" data-grid="grid-ttl1">字节倒序</button>
+        <button class="mini" data-toggle="map-ttl1">信号名</button>
+        <span style="color:var(--muted);font-size:11px">HEX：</span>
+        <input type="text" class="mono" id="hex-ttl1" style="flex:1;min-width:190px" spellcheck="false">
+      </div>
+      <div class="bitgrid" id="grid-ttl1"></div>
+      <div class="sigmap" id="map-ttl1"></div>
+      <div class="actions"><button class="primary" data-add="01">加入列表</button></div>
+      <pre class="preview" id="preview-01">—</pre>
+    </section>
+
+    <section class="card" id="cmd-08">
+      <h3>0x08 离散量模式控制 <span class="tag">数据 12 字节</span>
+        <span class="tag mode" id="tag-08-mode" style="display:none"></span>
+        <span class="tag" id="tag-08-sub" style="display:none"></span></h3>
+      <p class="desc">设置 96 路离散量输出模式。勾选 = 1（脉冲），不勾选 = 0（电平）。</p>
+      <div class="grid-legend" id="legend-ttl8"></div>
+      <div class="toolbar">
+        <button class="mini" data-act="all" data-grid="grid-ttl8">全 1</button>
+        <button class="mini" data-act="none" data-grid="grid-ttl8">全 0</button>
+        <button class="mini" data-act="inv" data-grid="grid-ttl8">取反</button>
+        <button class="mini" data-act="rev" data-grid="grid-ttl8">字节倒序</button>
+        <button class="mini" data-toggle="map-ttl8">信号名</button>
+        <span style="color:var(--muted);font-size:11px">HEX：</span>
+        <input type="text" class="mono" id="hex-ttl8" style="flex:1;min-width:190px" spellcheck="false">
+      </div>
+      <div class="bitgrid" id="grid-ttl8"></div>
+      <div class="sigmap" id="map-ttl8"></div>
+      <div class="actions"><button class="primary" data-add="08">加入列表</button></div>
+      <pre class="preview" id="preview-08">—</pre>
+    </section>
+
+    <section class="card" id="cmd-09">
+      <h3>0x09 离散量脉宽控制 <span class="tag">数据 10 字节</span>
+        <span class="tag mode" id="tag-09-mode" style="display:none"></span>
+        <span class="tag" id="tag-09-sub" style="display:none"></span></h3>
+      <p class="desc">配置指定 TTL 通道的脉冲周期、脉宽、次数。周期/脉宽单位 10ns，次数 0 表示连续。</p>
+      <div class="grid2">
+        <label>TTL 通道号 (1~96) <span id="p9-name" style="color:#6fd3a0"></span>
+          <input type="number" id="p9-ch" value="1" min="1" max="96"></label>
+        <label>周期 (10ns, 32bit)
+          <input type="number" id="p9-period" value="1000" min="0" max="4294967295"></label>
+        <label>脉宽 (10ns, 32bit)
+          <input type="number" id="p9-width" value="500" min="0" max="4294967295"></label>
+        <label>脉冲数 (0 = 连续)
+          <input type="number" id="p9-count" value="10" min="0" max="255"></label>
+      </div>
+      <div class="actions"><button class="primary" data-add="09">加入列表</button></div>
+      <pre class="preview" id="preview-09">—</pre>
+    </section>
+
+    <section class="card" id="cmd-0A">
+      <h3>0x0A 离散量脉冲触发控制 <span class="tag">数据 2 字节</span>
+        <span class="tag mode" id="tag-0A-mode" style="display:none"></span>
+        <span class="tag" id="tag-0A-sub" style="display:none"></span></h3>
+      <p class="desc">触发指定 TTL 通道的脉冲发送。</p>
+      <div class="grid2">
+        <label>TTL 通道号 (1~96) <span id="pA-name" style="color:#6fd3a0"></span>
+          <input type="number" id="pA-ch" value="1" min="1" max="96"></label>
+        <label>控制发送
+          <select id="pA-en"><option value="1" selected>1 - 启动脉冲</option>
+            <option value="0">0 - 不启动</option></select></label>
+      </div>
+      <div class="actions"><button class="primary" data-add="0A">加入列表</button></div>
+      <pre class="preview" id="preview-0A">—</pre>
+    </section>
+
+    <div class="sec-title">SPI / QSPI</div>
+
+    <section class="card" id="cmd-02">
+      <h3>0x02 SPI 配置指令 <span class="tag">数据 20 字节</span></h3>
+      <p class="desc">配置 SPI 时序参数。CLK 周期、CS 提前/滞后时间单位为 10ns。</p>
+      <div class="grid2">
+        <label>SPI_CLK 周期 (10ns, 32bit)
+          <input type="number" id="p2-clk" value="100" min="0" max="4294967295"></label>
+        <label>LOAD 信号延时 (时钟周期)
+          <input type="number" id="p2-loadd" value="1" min="0" max="255"></label>
+        <label>LOAD 信号持续时间 (时钟周期)
+          <input type="number" id="p2-loaddur" value="1" min="0" max="255"></label>
+        <label>LOAD 电平模式
+          <select id="p2-loadpol"><option value="1" selected>1 - 高有效</option>
+            <option value="0">0 - 低有效</option></select></label>
+        <label>Select1 电平模式
+          <select id="p2-sel1"><option value="0" selected>0 - 低有效</option>
+            <option value="1">1 - 高有效</option></select></label>
+        <label>Select2 电平模式
+          <select id="p2-sel2"><option value="0" selected>0 - 低有效</option>
+            <option value="1">1 - 高有效</option></select></label>
+        <label>CPAL 采样沿
+          <select id="p2-cpal"><option value="0" selected>0 - 上升沿</option>
+            <option value="1">1 - 下降沿</option></select></label>
+        <label>CPOL 空闲电平
+          <select id="p2-cpol"><option value="0" selected>0 - 空闲 0</option>
+            <option value="1">1 - 空闲 1</option></select></label>
+        <label>CS 提前时间 (10ns, 32bit)
+          <input type="number" id="p2-cslead" value="0" min="0" max="4294967295"></label>
+        <label>CS 结束滞后时间 (10ns, 32bit)
+          <input type="number" id="p2-cslag" value="0" min="0" max="4294967295"></label>
+        <label>数据位序
+          <select id="p2-bitorder"><option value="1" selected>1 - 低位先发</option>
+            <option value="0">0 - 高位先发</option></select></label>
+      </div>
+      <div class="actions"><button class="primary" data-add="02">加入列表</button></div>
+      <pre class="preview" id="preview-02">—</pre>
+    </section>
+
+    <section class="card" id="cmd-03">
+      <h3>0x03 SPI 数据指令 <span class="tag">数据 7+N 字节</span></h3>
+      <p class="desc">向指定 SPI 通道下发数据。字节 6 固定 0x01。</p>
+      <div class="grid2">
+        <label>通道号 (1~32) <span id="p3-name" style="color:#6fd3a0"></span>
+          <input type="number" id="p3-ch" value="1" min="1" max="32"></label>
+        <label>总位数 (bit)
+          <input type="number" id="p3-total" value="32" min="0" max="65535"></label>
+        <label>单次位数 (bit)
+          <input type="number" id="p3-single" value="8" min="0" max="65535"></label>
+        <label>SEL 选择 (字节 6)
+          <input type="number" id="p3-sel" value="1" min="0" max="255"></label>
+      </div>
+      <label style="display:flex;flex-direction:column;gap:3px;font-size:11.5px;color:var(--muted)">
+        数据内容（十六进制字节）
+        <textarea class="mono" id="p3-data" rows="2" spellcheck="false">11 22 33</textarea>
+      </label>
+      <div class="hint" id="p3-warn" style="display:none"></div>
+      <div class="actions"><button class="primary" data-add="03">加入列表</button></div>
+      <pre class="preview" id="preview-03">—</pre>
+    </section>
+
+    <section class="card" id="cmd-04">
+      <h3>0x04 SPI 通道配置指令 <span class="tag">数据 4 字节</span></h3>
+      <p class="desc">配置要触发的 SPI 通道位图。bit0 = CH1，bit31 = CH32。</p>
+      <div class="grid-legend" id="legend-spi4"></div>
+      <div class="toolbar">
+        <button class="mini" data-act="all" data-grid="grid-spi4">全选</button>
+        <button class="mini" data-act="none" data-grid="grid-spi4">清空</button>
+        <button class="mini" data-act="inv" data-grid="grid-spi4">取反</button>
+        <button class="mini" data-toggle="map-spi4">映射表</button>
+        <span style="color:var(--muted);font-size:11px">HEX：</span>
+        <input type="text" class="mono" id="hex-spi4" style="flex:1;min-width:190px" spellcheck="false">
+      </div>
+      <div class="bitgrid" id="grid-spi4"></div>
+      <div class="sigmap" id="map-spi4"></div>
+      <div class="actions"><button class="primary" data-add="04">加入列表</button></div>
+      <pre class="preview" id="preview-04">—</pre>
+    </section>
+
+    <section class="card" id="cmd-05">
+      <h3>0x05 SPI 发送指令 <span class="tag">数据 1 字节</span></h3>
+      <div class="grid2">
+        <label>控制发送
+          <select id="p5-en"><option value="1" selected>1 - 启动脉冲</option>
+            <option value="0">0 - 不启动</option></select></label>
+      </div>
+      <div class="actions"><button class="primary" data-add="05">加入列表</button></div>
+      <pre class="preview" id="preview-05">—</pre>
+    </section>
+
+    <section class="card" id="cmd-06">
+      <h3>0x06 QSPI 配置地址数据指令 <span class="tag">数据 9 字节</span></h3>
+      <div class="grid2">
+        <label>地址 (32bit，实际取低 24 位)
+          <input type="number" id="p6-addr" value="0" min="0" max="4294967295"></label>
+        <label>数据 (32bit)
+          <input type="number" id="p6-data" value="1515870810" min="0" max="4294967295"></label>
+        <label>模式
+          <select id="p6-mode"><option value="0">00 - 单线</option>
+            <option value="1">01 - 双线</option>
+            <option value="2" selected>02 - 四线</option></select></label>
+      </div>
+      <div class="actions"><button class="primary" data-add="06">加入列表</button></div>
+      <pre class="preview" id="preview-06">—</pre>
+    </section>
+
+    <div class="sec-title">UART 对外串口（16 路）</div>
+
+    <section class="card" id="cmd-0C">
+      <h3>0x0C 对外串口基础配置 <span class="tag">数据 8 字节</span></h3>
+      <div class="grid2">
+        <label>波特率 (32bit)
+          <input type="number" id="pC-baud" value="4000000" min="0" max="4294967295"></label>
+        <label>umod (3 位有效)
+          <input type="number" id="pC-umod" value="0" min="0" max="7"></label>
+        <label>通道号 (1~16)
+          <input type="number" id="pC-ch" value="1" min="1" max="16"></label>
+        <label>停止位
+          <select id="pC-stop"><option value="0" selected>0 - 1 停止位</option>
+            <option value="1">1 - 1.5 停止位</option>
+            <option value="2">2 - 2 停止位</option></select></label>
+        <label>校验位
+          <select id="pC-check"><option value="0" selected>0 - 无校验</option>
+            <option value="1">1 - 奇校验</option>
+            <option value="2">2 - 偶校验</option></select></label>
+      </div>
+      <div class="actions">
+        <button class="primary" data-add="0C">加入列表</button>
+        <button class="mini" id="btn-C-all">1~16 通道批量生成</button>
+      </div>
+      <pre class="preview" id="preview-0C">—</pre>
+    </section>
+
+    <section class="card" id="cmd-0D">
+      <h3>0x0D 对外串口数据配置 <span class="tag">数据 3+N 字节</span></h3>
+      <div class="grid2">
+        <label>通道号 (1~16)
+          <input type="number" id="pD-ch" value="1" min="1" max="16"></label>
+        <label>发送长度 (自动)
+          <input type="text" id="pD-len" value="auto" readonly style="color:#7d8da1"></label>
+      </div>
+      <label style="display:flex;flex-direction:column;gap:3px;font-size:11.5px;color:var(--muted)">
+        数据内容
+        <textarea class="mono" id="pD-data" rows="2" spellcheck="false">01 AA BB CC</textarea>
+      </label>
+      <div class="actions"><button class="primary" data-add="0D">加入列表</button></div>
+      <pre class="preview" id="preview-0D">—</pre>
+    </section>
+
+    <section class="card" id="cmd-0E">
+      <h3>0x0E 对外串口发送使能 <span class="tag">数据 2 字节</span></h3>
+      <div class="grid2">
+        <label>通道号 (1~16)
+          <input type="number" id="pE-ch" value="1" min="1" max="16"></label>
+        <label>控制发送
+          <select id="pE-en"><option value="1" selected>1 - 启动发送</option>
+            <option value="0">0 - 不启动</option></select></label>
+      </div>
+      <div class="actions">
+        <button class="primary" data-add="0E">加入列表</button>
+        <button class="mini" id="btn-E-all">1~16 通道批量生成</button>
+      </div>
+      <pre class="preview" id="preview-0E">—</pre>
+    </section>
+
+    <div class="sec-title">1553 / 其他</div>
+
+    <section class="card" id="cmd-0F">
+      <h3>0x0F 1553 数据配置 <span class="tag">数据 2 + 3N 字节</span></h3>
+      <div class="grid2">
+        <label>端口/通道号 (1~4)
+          <input type="number" id="pF-port" value="1" min="1" max="4"></label>
+        <label>字个数 N (自动)
+          <input type="text" id="pF-n" value="auto" readonly style="color:#7d8da1"></label>
+      </div>
+      <label style="display:flex;flex-direction:column;gap:3px;font-size:11.5px;color:var(--muted)">
+        数据字（每 3 字节为 1 个字）
+        <textarea class="mono" id="pF-data" rows="3" spellcheck="false">AA BB CC</textarea>
+      </label>
+      <div class="hint" id="pF-warn" style="display:none"></div>
+      <div class="actions"><button class="primary" data-add="0F">加入列表</button></div>
+      <pre class="preview" id="preview-0F">—</pre>
+    </section>
+
+    <section class="card" id="cmd-10">
+      <h3>0x10 1553 发送使能 <span class="tag">数据 2 字节</span></h3>
+      <div class="grid2">
+        <label>通道号 (1~4)
+          <input type="number" id="p10-ch" value="1" min="1" max="4"></label>
+        <label>控制发送
+          <select id="p10-en"><option value="1" selected>1 - 启动发送</option>
+            <option value="0">0 - 不启动</option></select></label>
+      </div>
+      <div class="actions"><button class="primary" data-add="10">加入列表</button></div>
+      <pre class="preview" id="preview-10">—</pre>
+    </section>
+
+    <section class="card" id="cmd-0B">
+      <h3>0x0B 时钟使能控制 <span class="tag">数据 1 字节</span></h3>
+      <div class="grid2">
+        <label>控制脉冲使能
+          <select id="pB-en"><option value="1" selected>1 - 使能</option>
+            <option value="0">0 - 不使能</option></select></label>
+      </div>
+      <div class="actions"><button class="primary" data-add="0B">加入列表</button></div>
+      <pre class="preview" id="preview-0B">—</pre>
+    </section>
+
+    <section class="card" id="cmd-07">
+      <h3>0x07 板卡模式配置 <span class="tag">数据 1 字节</span></h3>
+      <p class="desc">切换板卡工作模式，同步刷新顶部模式面板与通道高亮。</p>
+      <div class="grid2">
+        <label>模式
+          <select id="p7-mode">
+            <option value="0" selected>0 - 默认（校准/控制/激励）</option>
+            <option value="1">1 - 模式一（tr）</option>
+            <option value="2">2 - 模式二（flash）</option>
+            <option value="3">3 - 模式三（pf）</option></select></label>
+      </div>
+      <div class="actions">
+        <button class="primary" data-add="07">加入列表</button>
+        <button class="mini" id="btn-mode-apply">同步到顶部模式面板</button>
+      </div>
+      <pre class="preview" id="preview-07">—</pre>
+    </section>
+
+  </main>
+
+  <aside class="outpanel">
+    <h2>输出列表
+      <span class="badge" id="count">0</span>
+      <span class="badge mode" id="cur-mode-badge">bk=0</span>
+      <span class="badge sub" id="cur-sub-badge">校准</span>
+    </h2>
+
+    <!-- 格式切换 -->
+    <div class="fmtbar">
+      <span class="lbl">输出格式</span>
+      <button class="fmtbtn active fmt-sim" data-fmt="sim" title="仅 CMD LEN DATA…，供 testbench 的 send_frame 使用">仿真调试</button>
+      <button class="fmtbtn fmt-hw" data-fmt="hw" title="完整串口帧 55 AA LEN CMD DATA… CRC 48 4A，供串口工具直发">硬件调试</button>
+      <button class="fmtbtn fmt-both" data-fmt="both" title="双栏对照，用 // 分隔">双栏对照</button>
+    </div>
+
+    <div class="outlist" id="outlist">
+      <div class="empty">暂无指令 — 在左侧配置并「加入列表」</div>
+    </div>
+
+    <div class="outbtns">
+      <button class="primary" id="btn-demo">加载示例</button>
+      <button id="btn-copy">复制</button>
+      <button id="btn-download">下载</button>
+      <button id="btn-download-both">下载两种</button>
+      <button id="btn-clear">清空</button>
+    </div>
+
+    <textarea class="mono" id="preview-txt" rows="8" readonly
+      style="margin-top:10px;background:#070a0e;color:#8fb3d9"></textarea>
+
+    <div class="note" id="fmt-note"></div>
+  </aside>
+
+</div>
+
+<script>
+/* =========================================================
+ *  基础工具
+ * ========================================================= */
+const $  = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+const h2 = n => (n & 0xFF).toString(16).toUpperCase().padStart(2, '0');
+function u16(v){ v = Math.floor(v) & 0xFFFF; return [(v >> 8) & 0xFF, v & 0xFF]; }
+function u32(v){ v = Math.floor(v) >>> 0;
+  return [(v >>> 24) & 0xFF, (v >>> 16) & 0xFF, (v >>> 8) & 0xFF, v & 0xFF]; }
+function num(id){ const v = parseInt($('#' + id).value, 10); return isNaN(v) ? 0 : v; }
+function sel(id){ const v = parseInt($('#' + id).value, 10); return isNaN(v) ? 0 : v; }
+function clamp(v, lo, hi){ return Math.min(hi, Math.max(lo, v)); }
+function parseHex(str){
+  if (!str) return [];
+  const t = String(str).replace(/0x/gi, '').replace(/[^0-9a-fA-F]/g, '');
+  if (t.length % 2 !== 0) return null;
+  const out = [];
+  for (let i = 0; i < t.length; i += 2) out.push(parseInt(t.substr(i, 2), 16));
+  return out;
+}
+
+/* =========================================================
+ *  CRC16-MODBUS
+ *  参数：多项式 0x8005 / 初值 0xFFFF / 输入反射 / 输出反射 / 结果异或 0
+ *  等价于反射多项式 0xA001 的标准 MODBUS CRC 实现
+ *  计算范围：包头(55 AA) + 命令字 + 数据内容（不含长度字段）
+ * ========================================================= */
+function crc16modbus(bytes){
+  let crc = 0xFFFF;
+  for (let i = 0; i < bytes.length; i++){
+    crc ^= bytes[i] & 0xFF;
+    for (let j = 0; j < 8; j++){
+      if (crc & 1) crc = (crc >>> 1) ^ 0xA001;
+      else         crc = crc >>> 1;
+    }
+  }
+  return crc & 0xFFFF;
+}
+
+/* =========================================================
+ *  仿真格式（裸数据行）：
+ *    CMD LEN D0 D1 ... D(LEN-1)
+ *  LEN = 数据内容字节数（不含命令字本身）
+ * ========================================================= */
+function fmtSim(cmd, data){
+  return [cmd & 0xFF, data.length, ...data].map(h2).join(' ');
+}
+
+/* =========================================================
+ *  硬件格式（完整串口帧）：
+ *    55 AA LEN_H LEN_L CMD D0 D1 ... D(LEN-1) CRC_L CRC_H 48 4A
+ *  LEN = 命令字 + 数据内容字节数 = 1 + data.length
+ *  CRC 计算范围：55 AA CMD DATA...（不含 LEN 字段）
+ * ========================================================= */
+function fmtHW(cmd, data){
+  const len = 1 + data.length;
+  const lenH = (len >> 8) & 0xFF;
+  const lenL = len & 0xFF;
+  const crcInput = [0x55, 0xAA, cmd & 0xFF, ...data];
+  const crc = crc16modbus(crcInput);
+  const crcL = crc & 0xFF;
+  const crcH = (crc >> 8) & 0xFF;
+  return [
+    0x55, 0xAA, lenH, lenL, cmd & 0xFF, ...data, crcL, crcH, 0x48, 0x4A
+  ].map(h2).join(' ');
+}
+
+/* 拆出 CRC 值方便显示 */
+function getCRC(cmd, data){
+  return crc16modbus([0x55, 0xAA, cmd & 0xFF, ...data]);
+}
+
+/* =========================================================
+ *  ★ 三套 TTL 名称（同前）
+ * ========================================================= */
+const TTL_NAMES_CAL = {
+  1:'KZTD_BANK1 (校准)', 2:'KZTD_BANK2 (校准)', 3:'KZTD_BANK3 (校准)', 4:'KZTD_BANK4 (校准)',
+  5:'JZMK_KG', 9:'JZMK_WD_JC', 10:'JZMK_ZX_JC',
+  49:'KZTD_BANK1_2 (校准)', 50:'KZTD_BANK2_2 (校准)', 51:'KZTD_BANK3_2 (校准)', 52:'KZTD_BANK4_2 (校准)',
+  53:'JZMK_KG_2', 57:'JZMK_WD_JC_2', 58:'JZMK_ZX_JC_2',
+};
+const TTL_NAMES_CTRL = {
+  1:'KZTD_BANK0', 2:'KZTD_BANK1', 3:'KZTD_BANK2', 4:'KZTD_BANK3',
+  5:'KZTD_TR', 6:'KZTD_AM', 7:'KZTD_JZ_KG0', 8:'KZTD_JZ_KG1',
+  9:'KZTD_WD_JC', 10:'KZTD_ZX_JC', 11:'KZTD_D5', 12:'KZTD_D4',
+  13:'KZTD_D3', 14:'KZTD_D2', 15:'KZTD_D1', 16:'KZTD_D0',
+  49:'KZTD_BANK0_2', 50:'KZTD_BANK1_2', 51:'KZTD_BANK2_2', 52:'KZTD_BANK3_2',
+  53:'KZTD_TR_2', 54:'KZTD_AM_2', 55:'KZTD_JZ_KG0_2', 56:'KZTD_JZ_KG1_2',
+  57:'KZTD_WD_JC_2', 58:'KZTD_ZX_JC_2', 59:'KZTD_D5_2', 60:'KZTD_D4_2',
+  61:'KZTD_D3_2', 62:'KZTD_D2_2', 63:'KZTD_D1_2', 64:'KZTD_D0_2',
+};
+const TTL_NAMES_STIM = {
+  1:'JL_T_R_SW', 2:'JL_T_R_SW_CTRL_1', 3:'JL_T_R_SW_CTRL_2', 4:'JL_T_R_SW_JZ',
+  5:'JL_MODE_SLE_1', 6:'JL_MODE_SLE_2', 7:'JL_ZZ_QZ', 8:'JL_XB_SLE_1',
+  9:'JL_XB_SLE_2', 10:'JL_XB_SLE_3', 11:'JL_XB_SLE_4', 12:'JL_XB_SLE_5',
+  13:'JL_XB_SLE_6', 14:'JL_CHECK_CTRL_1', 15:'JL_CHECK_CTRL_2',
+  16:'JL_ZZ1_SJ_1', 17:'TEMP_JL',
+  25:'JL_ZZ1_SJ_2', 26:'JL_ZZ1_SJ_3', 27:'JL_ZZ1_SJ_4', 28:'JL_ZZ1_SJ_5',
+  29:'JL_ZZ2_SJ_1', 30:'JL_ZZ2_SJ_2', 31:'JL_ZZ2_SJ_3', 32:'JL_ZZ2_SJ_4',
+  33:'JL_ZZ2_SJ_5', 34:'JL_JL_JZ_FS_SLE_1', 35:'JL_JL_JZ_FS_SLE_2',
+  36:'JL_JL_ZJ_SLE', 37:'JL_PULSE_SLE', 38:'JL_ZD_KJ', 39:'JL_FS_JB',
+  40:'JL_WF_SLE_1', 41:'JL_WF_SLE_2', 42:'JL_FS_SK_1', 43:'JL_FS_SK_2',
+  44:'JL_FS_SK_3', 45:'JL_FS_SK_4', 46:'JL_FS_SK_5',
+  49:'JL_T_R_SW_2', 50:'JL_T_R_SW_CTRL_1_2', 51:'JL_T_R_SW_CTRL_2_2', 52:'JL_T_R_SW_JZ_2',
+  53:'JL_MODE_SLE_1_2', 54:'JL_MODE_SLE_2_2', 55:'JL_ZZ_QZ_2', 56:'JL_XB_SLE_1_2',
+  57:'JL_XB_SLE_2_2', 58:'JL_XB_SLE_3_2', 59:'JL_XB_SLE_4_2', 60:'JL_XB_SLE_5_2',
+  61:'JL_XB_SLE_6_2', 62:'JL_CHECK_CTRL_1_2', 63:'JL_CHECK_CTRL_2_2',
+  64:'JL_ZZ1_SJ_1_2', 65:'TEMP_JL_2',
+  73:'JL_ZZ1_SJ_2_2', 74:'JL_ZZ1_SJ_3_2', 75:'JL_ZZ1_SJ_4_2', 76:'JL_ZZ1_SJ_5_2',
+  77:'JL_ZZ2_SJ_1_2', 78:'JL_ZZ2_SJ_2_2', 79:'JL_ZZ2_SJ_3_2', 80:'JL_ZZ2_SJ_4_2',
+  81:'JL_ZZ2_SJ_5_2', 82:'JL_JL_JZ_FS_SLE_1_2', 83:'JL_JL_JZ_FS_SLE_2_2',
+  84:'JL_JL_JZ_SLE_2', 85:'JL_PULSE_SLE_2', 86:'JL_ZD_KJ_2', 87:'JL_FS_JB_2',
+  88:'JL_WF_SLE_1_2', 89:'JL_WF_SLE_2_2', 90:'JL_FS_SK_1_2', 91:'JL_FS_SK_2_2',
+  92:'JL_FS_SK_3_2', 93:'JL_FS_SK_4_2', 94:'JL_FS_SK_5_2',
+};
+const TTL_NAMES_SINGLE = {
+  1:'TR_JL_KG', 2:'TR JS EN', 3:'TR JL AM', 4:'KZ_T_EN', 5:'KZ JS JZ',
+  6:'KZ JZ GD', 7:'KZ JZ KG3', 8:'KZ JZ KGI', 9:'KZ JZ KG2', 10:'KZ XP KG1',
+  11:'KZ XP KG2', 13:'POWER EN', 14:'PLL LO SW2', 15:'PLL LO SWI',
+  33:'TR BFI', 34:'TR BF2', 35:'TR SW1', 36:'TR SW2', 37:'IR SW3',
+  38:'TR SW4', 39:'TR SW5', 40:'TR SW6', 41:'TR SW7', 42:'TR SW8',
+};
+Object.keys(TTL_NAMES_SINGLE).forEach(k => {
+  const v = parseInt(k, 10);
+  if (v + 48 <= 96 && !TTL_NAMES_SINGLE[v + 48]) TTL_NAMES_SINGLE[v + 48] = TTL_NAMES_SINGLE[k] + '_2';
+});
+let TTL_NAMES = TTL_NAMES_CAL;
+const TTL_DEFAULTS = {1:0,2:1,3:0,4:0,5:0,6:0,7:1,8:1,9:0,10:0,11:0,
+  13:1,14:0,15:0,35:1,36:1,37:1,38:1,39:1,40:1,41:1,42:1};
+
+const SPI_NAMES = {
+  1:'TR1 SPI DATA', 2:'TR2 SPI DATA', 3:'TR3 SPI DATA', 4:'TR4 SPI DATA',
+  5:'TR5 SPI DATA', 6:'TR6 SPI DATA', 7:'TR7 SPI DATA', 8:'TR8 SPI DATA',
+  9:'TR9 SPI DATA', 10:'TEMP DATA',
+  11:'PF1 SPI DATA', 12:'PF2 SPI DATA', 13:'PF3 SPI DATA',
+  14:'KZ SPI DATA1', 15:'FLASH CS', 16:'FLASH CLK',
+  17:'TR1 SPI DATA(2nd)', 18:'TR2 SPI DATA(2nd)', 19:'TR3 SPI DATA(2nd)', 20:'TR4 SPI DATA(2nd)',
+  21:'TR5 SPI DATA(2nd)', 22:'TR6 SPI DATA(2nd)', 23:'TR7 SPI DATA(2nd)', 24:'TR8 SPI DATA(2nd)',
+  25:'TR9 SPI DATA(2nd)', 26:'TEMP DATA(2nd)',
+  27:'PF1 SPI DATA(2nd)', 28:'PF2 SPI DATA(2nd)', 29:'PF3 SPI DATA(2nd)',
+  30:'KZ SPI DATA1(2nd)', 31:'FLASH D0', 32:'FLASH DI',
+};
+const TEMP_CH = new Set([10, 26]);
+const QSPI_CH = new Set([15, 16, 31, 32]);
+const KZ_CH   = new Set([14, 30]);
+const PF_CH   = new Set([11, 12, 13, 27, 28, 29]);
+const TR_CH   = new Set([1,2,3,4,5,6,7,8,9, 17,18,19,20,21,22,23,24,25]);
+
+/* =========================================================
+ *  模式通道定义（修正校准通道）
+ * ========================================================= */
+const MODE_CHANNELS = {
+  '0-cal': {
+    /* 校准(1~10) + 校准公分(49~58)，SPI: CH5(校准) + CH17(校准公分) */
+    ttl: [1,2,3,4,5,9,10, 49,50,51,52,53,57,58],
+    spi: [5, 1]
+  },
+  '0-ctrl': {
+    ttl: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,
+          49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64],
+    spi: []
+  },
+  '0-stim': {
+    ttl: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,
+          25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,
+          49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,
+          73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,91,92,93,94],
+    spi: []
+  },
+  '1': {
+    ttl: [1,2,3,33,34,35,36,37,38,39,40,41,42,
+          49,50,51,81,82,83,84,85,86,87,88,89,90],
+    spi: [1,2,3,4,5,6,7,8,9,17,18,19,20,21,22,23,24,25]
+  },
+  '2': { ttl: [1,2], spi: [15,16,31,32] },
+  '3': { ttl: [1,2,3,4,5,6,7,8,9], spi: [11,12,13,27,28,29] }
+};
+
+const MODE_COLOR = {
+  '0-cal':'#f8961e','0-ctrl':'#90be6d','0-stim':'#f9c74f',
+  '1':'#ff9f6e','2':'#4ea1ff','3':'#6fd3a0'
+};
+const MODE_COLOR_LABEL = {
+  '0-cal':'校准通道','0-ctrl':'控制通道','0-stim':'激励通道',
+  '1':'TR 通道','2':'Flash 通道','3':'PF 通道'
+};
+const MODE_SOURCE = {
+  '0-cal':'校准和校准公分.xlsx','0-ctrl':'控制模块配置·.xlsx','0-stim':'激励模块定义表.xlsx',
+  '1':'top.v / 输出离散','2':'top.v / flash_spi','3':'top.v / 本振pf_spi'
+};
+
+function modeKey(){ return currentMode === 0 ? `0-${currentSub}` : `${currentMode}`; }
+
+const MODES = {
+  0: { name:'模式 0 · 默认模式', sw:"bk_mode = 3'd0",
+       lsl:"lsl_dir = {4'b1110, oe, 5'b11110, oe, 1'b1}", tagline:'ok' },
+  1: { name:'模式 1 · TR 模式', sw:"bk_mode = 3'd1", lsl:"lsl_dir = 12'b111011111011", tagline:'hl',
+       cols: [
+         ['引脚方向','<b>固定方向</b>：lsl_dir[9] 与 lsl_dir[3] 为输入，其余输出'],
+         ['TR 模块','CH1~CH9 的 TR1~TR9 SPI DATA 全功能开放'],
+         ['活跃通道','TTL 1/2/3 + 33~42（+48）；SPI CH1~9 + CH17~25'],
+       ] },
+  2: { name:'模式 2 · Flash 烧录模式', sw:"bk_mode = 3'd2",
+       lsl:"lsl_dir = {4'b1110, oe, 5'b11110, oe, 1'b1}", tagline:'hl',
+       cols: [
+         ['Flash 映射','fpga_lsl[1]=sclk，fpga_lsl[2]=cs_n；fpga_lsl[9:12]=o0~o3'],
+         ['QSPI 控制器','qspi_master 启动条件：spi_start && (spi_channel[14]||[30]||[15]||[31])'],
+         ['活跃通道','TTL 1/2 被占用；SPI CH15/16/31/32 → QSPI Flash'],
+       ] },
+  3: { name:'模式 3 · PF 配置模式', sw:"bk_mode = 3'd3", lsl:"lsl_dir = 12'b111011111011", tagline:'hl',
+       cols: [
+         ['引脚方向','固定方向，与模式 1 相同'],
+         ['PF 模块','PF1→lsl[1]/[2]/[3]；PF2→[4]/[5]/[6]；PF3→[7]/[8]/[9]'],
+         ['活跃通道','TTL 1~9；SPI CH11~13 + CH27~29'],
+       ] }
+};
+
+const SUBMODES = {
+  cal: { name:'校准模块', prefix:'JZMK_*', cls:'jzmk', sub:'校准', src:'校准和校准公分.xlsx',
+    cols: [
+      ['主用 TTL（校准）','TTL 1~4 = KZTD_BANK1~4；TTL 5 = JZMK_KG；TTL 9 = JZMK_WD_JC；TTL 10 = JZMK_ZX_JC'],
+      ['主用 TTL（校准公分）','TTL 49~52 = KZTD_BANK1~4_2；TTL 53 = JZMK_KG_2；TTL 57 = JZMK_WD_JC_2；TTL 58 = JZMK_ZX_JC_2'],
+      ['SPI 接口（2 个）','第一块（校准）：JZMK_SPI_CLK → CH5（SPI 序列号 5）；第二块（校准公分）：JZMK_SPI_CLK → CH1（SPI 序列号 1，第一组）'],
+      ['LVDS 接口','JZMK_CLK_P / CLK_N 由 J14A-51TJ 引脚 14/15 引出'],
+      ['典型用途','校准源 / 校准公分的开关与检测，配合 SPI 读写校准参数'],
+    ] },
+  ctrl: { name:'控制模块', prefix:'KZTD_*', cls:'kztd', sub:'控制', src:'控制模块配置·.xlsx',
+    cols: [
+      ['TTL 1~8','KZTD_BANK0~3 / KZTD_TR / KZTD_AM / KZTD_JZ_KG0 / KZTD_JZ_KG1'],
+      ['TTL 9~16','KZTD_WD_JC / KZTD_ZX_JC / KZTD_D5~D0'],
+      ['第二组','通道 +48：49~64 对应 KZTD_*_2（多板控制）'],
+      ['SPI 接口','无专用 SPI；如需 SPI 走 TR 或 KZ 通道'],
+      ['典型用途','控制模块的离散量输出'],
+    ] },
+  stim: { name:'激励模块', prefix:'JL_*', cls:'jl', sub:'激励', src:'激励模块定义表.xlsx',
+    cols: [
+      ['TTL 1~4','JL_T_R_SW / JL_T_R_SW_CTRL_1/2 / JL_T_R_SW_JZ'],
+      ['TTL 5~15','JL_MODE_SLE_1/2、JL_ZZ_QZ、JL_XB_SLE_1~6、JL_CHECK_CTRL_1/2'],
+      ['TTL 16~46','JL_ZZ1/ZZ2_SJ_*、JL_JL_JZ_*、JL_PULSE_SLE、JL_ZD_KJ、JL_FS_* 系列'],
+      ['第二组','通道 +48：49~94 对应 JL_*_2；65 = TEMP_JL_2'],
+      ['典型用途','激励模块的 T/R 开关、延时控制、模式选择、脉冲触发等'],
+    ] }
+};
+
+/* =========================================================
+ *  位网格
+ * ========================================================= */
+function buildGrid(container, totalBits, labelFn, cellFn, classFn, highBit){
+  container.innerHTML = '';
+  highBit = (highBit === undefined) ? totalBits : highBit;
+  const rows = totalBits / 8;
+  for (let r = 0; r < rows; r++){
+    const hi = highBit - 8 * r;
+    const lo = hi - 7;
+    const row = document.createElement('div');
+    row.className = 'bitgrid-row';
+    const lbl = document.createElement('span');
+    lbl.className = 'bitgrid-label';
+    lbl.textContent = labelFn(hi, lo, r);
+    row.appendChild(lbl);
+    for (let k = 0; k < 8; k++){
+      const bit = hi - k;
+      const cell = document.createElement('label');
+      cell.className = 'bitcell';
+      const cls = classFn ? classFn(bit) : '';
+      if (cls) cell.classList.add(cls);
+      const cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.dataset.bit = bit;
+      const sp = document.createElement('span');
+      sp.textContent = cellFn(bit);
+      cell.appendChild(cb);
+      cell.appendChild(sp);
+      row.appendChild(cell);
+    }
+    container.appendChild(row);
+  }
+}
+
+function getGridBytes(container){
+  const cells = [...container.querySelectorAll('input[type=checkbox]')];
+  const nBytes = cells.length / 8;
+  const out = new Array(nBytes).fill(0);
+  cells.forEach((cb, i) => {
+    if (cb.checked){
+      const b = Math.floor(i / 8);
+      const p = 7 - (i % 8);
+      out[b] |= (1 << p);
+    }
+  });
+  return out;
+}
+function setGridBytes(container, bytes){
+  const cells = [...container.querySelectorAll('input[type=checkbox]')];
+  if (cells.length !== bytes.length * 8) return;
+  cells.forEach((cb, i) => {
+    const b = Math.floor(i / 8);
+    const p = 7 - (i % 8);
+    cb.checked = !!((bytes[b] >> p) & 1);
+  });
+}
+function gridToHex(container){ return getGridBytes(container).map(h2).join(' '); }
+function hexToGrid(container, str){
+  const b = parseHex(str);
+  if (!b || b.length !== container.querySelectorAll('input[type=checkbox]').length / 8) return;
+  setGridBytes(container, b);
+}
+
+buildGrid($('#grid-ttl1'), 96, (hi, lo, r) => `B${r + 1} bit${hi}~${lo}`, b => b, () => '', 96);
+buildGrid($('#grid-ttl8'), 96, (hi, lo, r) => `B${r + 1} bit${hi}~${lo}`, b => b, () => '', 96);
+
+function decorateTTLGrid(gridId, subKey){
+  const cls = subKey === 'cal' ? 'jzmk' : subKey === 'ctrl' ? 'kztd' : subKey === 'stim' ? 'jl' : '';
+  $$('#' + gridId + ' .bitcell').forEach(cell => {
+    cell.classList.remove('jl','kztd','jzmk');
+    cell.querySelectorAll('.sp-dot').forEach(d => d.remove());
+    const cb = cell.querySelector('input');
+    const bit = parseInt(cb.dataset.bit, 10);
+    const name = TTL_NAMES[bit] || '';
+    const def  = TTL_DEFAULTS[bit];
+    let tip = `TTL[${bit}]`;
+    if (name) tip += ` → ${name}`;
+    if (def !== undefined) tip += `（默认 ${def}）`;
+    cell.title = tip;
+    if (cls && name){
+      cell.classList.add(cls);
+      const dot = document.createElement('span');
+      dot.className = 'sp-dot';
+      cell.appendChild(dot);
+    }
+  });
+}
+
+buildGrid($('#grid-spi4'), 32,
+  (hi, lo) => `CH${lo + 1}~${hi + 1}`,
+  b => (b + 1),
+  b => {
+    const ch = b + 1;
+    if (TEMP_CH.has(ch)) return 'sp';
+    if (QSPI_CH.has(ch)) return 'qspi';
+    if (KZ_CH.has(ch))   return 'kz';
+    if (PF_CH.has(ch))   return 'pf';
+    if (TR_CH.has(ch))   return 'tr';
+    return '';
+  }, 31);
+
+(function decorateSPI(){
+  $$('#grid-spi4 .bitcell').forEach(cell => {
+    const cb = cell.querySelector('input');
+    const ch = parseInt(cb.dataset.bit, 10) + 1;
+    let tip = `CH${ch}`;
+    if (SPI_NAMES[ch]) tip += ` → ${SPI_NAMES[ch]}`;
+    if (TEMP_CH.has(ch)) tip += '（温度传感器）';
+    else if (QSPI_CH.has(ch)) tip += '（QSPI Flash）';
+    else if (KZ_CH.has(ch)) tip += '（KZ_SPI）';
+    else if (PF_CH.has(ch)) tip += '（PF_SPI）';
+    else if (TR_CH.has(ch)) tip += '（TR SPI）';
+    cell.title = tip;
+    const hasClass = ['sp','qspi','kz','pf','tr'].some(c => cell.classList.contains(c));
+    if (hasClass){
+      const dot = document.createElement('span');
+      dot.className = 'sp-dot';
+      cell.appendChild(dot);
+    }
+  });
+})();
+
+function bindHexPair(gridEl, hexEl){
+  const push = () => { hexEl.value = gridToHex(gridEl); };
+  gridEl.addEventListener('change', push);
+  hexEl.addEventListener('input', () => hexToGrid(gridEl, hexEl.value));
+  push();
+}
+bindHexPair($('#grid-ttl1'), $('#hex-ttl1'));
+bindHexPair($('#grid-ttl8'), $('#hex-ttl8'));
+bindHexPair($('#grid-spi4'), $('#hex-spi4'));
+
+$$('[data-act]').forEach(btn => {
+  btn.onclick = () => {
+    const grid = document.getElementById(btn.dataset.grid);
+    const cells = [...grid.querySelectorAll('input[type=checkbox]')];
+    switch (btn.dataset.act){
+      case 'all':  cells.forEach(c => c.checked = true); break;
+      case 'none': cells.forEach(c => c.checked = false); break;
+      case 'inv':  cells.forEach(c => c.checked = !c.checked); break;
+      case 'rev': {
+        const bytes = getGridBytes(grid).reverse();
+        setGridBytes(grid, bytes);
+        break;
+      }
+    }
+    grid.dispatchEvent(new Event('change', { bubbles: true }));
+  };
+});
+$$('[data-toggle]').forEach(btn => {
+  btn.onclick = () => document.getElementById(btn.dataset.toggle).classList.toggle('show');
+});
+
+/* =========================================================
+ *  模式高亮
+ * ========================================================= */
+function applyModeHighlight(){
+  const key    = modeKey();
+  const active = MODE_CHANNELS[key] || { ttl: [], spi: [] };
+  const ttlSet = new Set(active.ttl || []);
+  const spiSet = new Set(active.spi || []);
+  const color  = MODE_COLOR[key] || '#4ea1ff';
+
+  ['grid-ttl1', 'grid-ttl8'].forEach(gridId => {
+    const grid = document.getElementById(gridId);
+    if (!grid) return;
+    grid.style.setProperty('--mode-color', color);
+    grid.querySelectorAll('.bitcell').forEach(cell => {
+      const bit = parseInt(cell.querySelector('input').dataset.bit, 10);
+      const isActive = ttlSet.has(bit);
+      cell.classList.toggle('mode-active', isActive);
+      cell.classList.toggle('mode-inactive', !isActive);
+    });
+  });
+  const spiGrid = document.getElementById('grid-spi4');
+  if (spiGrid){
+    spiGrid.style.setProperty('--mode-color', color);
+    spiGrid.querySelectorAll('.bitcell').forEach(cell => {
+      const ch = parseInt(cell.querySelector('input').dataset.bit, 10) + 1;
+      const isActive = spiSet.has(ch);
+      cell.classList.toggle('mode-active', isActive);
+      cell.classList.toggle('mode-inactive', !isActive);
+    });
+  }
+  const src = MODE_SOURCE[key] || '—';
+  const legendHTML = `
+    <span class="item"><span class="swatch active"></span>${MODE_COLOR_LABEL[key] || '活跃通道'}（${ttlSet.size} TTL / ${spiSet.size} SPI）</span>
+    <span class="item"><span class="swatch inactive"></span>当前模式下未使用</span>
+    <span class="item" style="color:#55637a">源：${src}</span>`;
+  ['legend-ttl1', 'legend-ttl8', 'legend-spi4'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = legendHTML;
+  });
+  const dot = document.getElementById('mode-color-dot');
+  if (dot){
+    dot.style.background = color;
+    document.getElementById('mode-color-label').textContent = MODE_COLOR_LABEL[key] || '活跃通道标识';
+  }
+  const srcEl = document.getElementById('mode-src');
+  if (srcEl) srcEl.textContent = '源：' + src;
+}
+
+/* =========================================================
+ *  映射表
+ * ========================================================= */
+function buildTTLMapHTML(){
+  const key = modeKey();
+  const activeSet = new Set((MODE_CHANNELS[key] || {}).ttl || []);
+  let sections = [];
+  if (currentMode === 0 && currentSub === 'cal'){
+    sections = [['校准 + 校准公分（源：校准和校准公分.xlsx）',
+      [1,2,3,4,5,9,10, 49,50,51,52,53,57,58]]];
+  } else if (currentMode === 0 && currentSub === 'ctrl'){
+    sections = [
+      ['控制模块 KZTD_* 第一组', [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16]],
+      ['控制模块 KZTD_* 第二组（+48）', [49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64]]];
+  } else if (currentMode === 0 && currentSub === 'stim'){
+    sections = [
+      ['激励模块 JL_* 第一组',
+       [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46]],
+      ['激励模块 JL_* 第二组（+48）',
+       [49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,91,92,93,94]]];
+  } else {
+    sections = [
+      ['单板 · 输出离散', [1,2,3,4,5,6,7,8,9,10,11,13,14,15,33,34,35,36,37,38,39,40,41,42]],
+      ['单板 · 第二组（+48）', [49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,81,82,83,84,85,86,87,88,89,90]]];
+  }
+  const cls = currentSub === 'cal' ? 'jzmk' : currentSub === 'ctrl' ? 'kztd' : currentSub === 'stim' ? 'jl' : '';
+  let html = `<table><thead><tr><th>通道</th><th>信号名</th><th>默认</th></tr></thead><tbody>`;
+  sections.forEach(([title, list]) => {
+    html += `<tr><td colspan="3" class="sec">${title}</td></tr>`;
+    list.forEach(ch => {
+      const name = TTL_NAMES[ch] || '—';
+      const def  = TTL_DEFAULTS[ch] !== undefined ? TTL_DEFAULTS[ch] : '—';
+      const hi   = activeSet.has(ch) ? 'mode-hi' : 'mode-dim';
+      html += `<tr class="${hi}"><td class="ch">${ch}</td><td class="name ${cls}">${name}</td><td class="def">${def}</td></tr>`;
+    });
+  });
+  html += `</tbody></table>`;
+  return html;
+}
+
+function buildSPIMapHTML(){
+  const key = modeKey();
+  const activeSet = new Set((MODE_CHANNELS[key] || {}).spi || []);
+  function row(ch){
+    const name = SPI_NAMES[ch] || '—';
+    let type = '普通', cls = '';
+    if (TEMP_CH.has(ch)) { type = '温度传感器'; cls = 'm3'; }
+    else if (QSPI_CH.has(ch)) { type = 'QSPI Flash'; cls = 'm2'; }
+    else if (KZ_CH.has(ch)) { type = 'KZ_SPI'; cls = 'm1'; }
+    else if (PF_CH.has(ch)) { type = 'PF_SPI'; cls = 'm1'; }
+    else if (TR_CH.has(ch)) { type = 'TR SPI'; cls = 'm0'; }
+    let note = '';
+    if (key === '0-cal'){
+      if (ch === 5)  note = ' ← JZMK_SPI_CLK（校准）';
+      if (ch === 1) note = ' ← JZMK_SPI_CLK（校准公分）';
+    }
+    const hi = activeSet.has(ch) ? 'mode-hi' : 'mode-dim';
+    return `<tr class="${hi}"><td class="ch">CH${ch}</td><td class="name">${name}${note}</td><td class="${cls}">${type}</td></tr>`;
+  }
+  let html = `<table><thead><tr><th>通道</th><th>信号名</th><th>用途</th></tr></thead><tbody>`;
+  html += `<tr><td colspan="3" class="sec">TR SPI（CH1~CH9 / CH17~CH25）</td></tr>`;
+  [1,2,3,4,5,6,7,8,9,17,18,19,20,21,22,23,24,25].forEach(ch => html += row(ch));
+  html += `<tr><td colspan="3" class="sec">温度传感器（CH10 / CH26）</td></tr>`;
+  [10,26].forEach(ch => html += row(ch));
+  html += `<tr><td colspan="3" class="sec">PF_SPI（CH11~13 / CH27~29）</td></tr>`;
+  [11,12,13,27,28,29].forEach(ch => html += row(ch));
+  html += `<tr><td colspan="3" class="sec">KZ_SPI（CH14 / CH30）</td></tr>`;
+  [14,30].forEach(ch => html += row(ch));
+  html += `<tr><td colspan="3" class="sec">QSPI Flash（CH15/16 / CH31/32）</td></tr>`;
+  [15,16,31,32].forEach(ch => html += row(ch));
+  html += `</tbody></table>`;
+  return html;
+}
+
+/* =========================================================
+ *  生成函数（返回 {cmd, data}）
+ * ========================================================= */
+const GEN = {
+  '01': () => ({cmd:0x01, data:getGridBytes($('#grid-ttl1'))}),
+  '08': () => ({cmd:0x08, data:getGridBytes($('#grid-ttl8'))}),
+  '09': () => ({cmd:0x09, data:[clamp(num('p9-ch'),1,96),
+    ...u32(num('p9-period')), ...u32(num('p9-width')), clamp(num('p9-count'),0,255)]}),
+  '0A': () => ({cmd:0x0A, data:[clamp(num('pA-ch'),1,96), sel('pA-en') & 0xFF]}),
+  '02': () => ({cmd:0x02, data:[
+    ...u32(num('p2-clk')), num('p2-loadd') & 0xFF, num('p2-loaddur') & 0xFF,
+    sel('p2-loadpol') & 0xFF, sel('p2-sel1') & 0xFF, sel('p2-sel2') & 0xFF,
+    sel('p2-cpal') & 0xFF, sel('p2-cpol') & 0xFF,
+    ...u32(num('p2-cslead')), ...u32(num('p2-cslag')),
+    sel('p2-bitorder') & 0xFF]}),
+  '03': () => {
+    const ch = clamp(num('p3-ch'), 1, 32);
+    const payload = parseHex($('#p3-data').value) || [];
+    return {cmd:0x03, data:[ch, ...u16(num('p3-total') & 0xFFFF),
+      ...u16(num('p3-single') & 0xFFFF), num('p3-sel') & 0xFF, ch, ...payload]};
+  },
+  '04': () => ({cmd:0x04, data:getGridBytes($('#grid-spi4'))}),
+  '05': () => ({cmd:0x05, data:[sel('p5-en') & 0xFF]}),
+  '06': () => ({cmd:0x06, data:[...u32(num('p6-addr')), ...u32(num('p6-data')), sel('p6-mode') & 0xFF]}),
+  '0C': () => ({cmd:0x0C, data:[...u32(num('pC-baud')), num('pC-umod') & 0xFF,
+    clamp(num('pC-ch'),1,16), sel('pC-stop') & 0xFF, sel('pC-check') & 0xFF]}),
+  '0D': () => {
+    const ch = clamp(num('pD-ch'), 1, 16);
+    const payload = parseHex($('#pD-data').value) || [];
+    return {cmd:0x0D, data:[...u16(payload.length), ch, ...payload]};
+  },
+  '0E': () => ({cmd:0x0E, data:[clamp(num('pE-ch'),1,16), sel('pE-en') & 0xFF]}),
+  '0F': () => {
+    const payload = parseHex($('#pF-data').value) || [];
+    const n = Math.floor(payload.length / 3);
+    return {cmd:0x0F, data:[clamp(num('pF-port'),1,4), n & 0xFF, ...payload.slice(0, n * 3)]};
+  },
+  '10': () => ({cmd:0x10, data:[clamp(num('p10-ch'),1,4), sel('p10-en') & 0xFF]}),
+  '0B': () => ({cmd:0x0B, data:[sel('pB-en') & 0xFF]}),
+  '07': () => ({cmd:0x07, data:[sel('p7-mode') & 0xFF]})
+};
+
+/* =========================================================
+ *  实时预览
+ * ========================================================= */
+function refreshAll(){
+  const dPayload = parseHex($('#pD-data').value);
+  $('#pD-len').value = dPayload ? `${dPayload.length} (0x${h2(dPayload.length)})` : '格式错误';
+  const fPayload = parseHex($('#pF-data').value);
+  $('#pF-n').value = fPayload ? `${Math.floor(fPayload.length/3)} (0x${h2(Math.floor(fPayload.length/3))})` : '格式错误';
+
+  const ttl9ch = clamp(num('p9-ch'), 1, 96);
+  $('#p9-name').textContent = TTL_NAMES[ttl9ch] ? `→ ${TTL_NAMES[ttl9ch]}` : '';
+  const ttlAch = clamp(num('pA-ch'), 1, 96);
+  $('#pA-name').textContent = TTL_NAMES[ttlAch] ? `→ ${TTL_NAMES[ttlAch]}` : '';
+
+  const ch3 = clamp(num('p3-ch'), 1, 32);
+  let name3 = SPI_NAMES[ch3] || '';
+  if (currentMode === 0 && currentSub === 'cal'){
+    if (ch3 === 5)  name3 = 'JZMK_SPI_CLK（校准）';
+    if (ch3 === 1) name3 = 'JZMK_SPI_CLK（校准公分）';
+  }
+  $('#p3-name').textContent = name3 ? `→ ${name3}` : '';
+  const warn = $('#p3-warn');
+  const curM = currentMode;
+  let msg = '', color = 'warn';
+  if (currentMode === 0 && currentSub === 'cal' && (ch3 === 5 || ch3 === 1)){
+    msg = `✓ CH${ch3} → <b>${name3}</b>，校准子类型专用 SPI 通道。`;
+    color = 'jzmk';
+  } else if (TEMP_CH.has(ch3)){
+    msg = `⚠ CH${ch3}（${SPI_NAMES[ch3]}）→ 温度传感器专用通道；需使用 16 bit 单次长度。`;
+  } else if (QSPI_CH.has(ch3)){
+    if (curM === 2){
+      msg = `✓ CH${ch3}（${SPI_NAMES[ch3]}）→ QSPI Flash，当前 <b>模式 2（Flash）</b>。`;
+      color = 'ok';
+    } else {
+      msg = `⚠ CH${ch3}（${SPI_NAMES[ch3]}）→ QSPI Flash，仅 <b>模式 2</b> 下由 qspi_master 接管。`;
+    }
+  } else if (KZ_CH.has(ch3)){
+    msg = `ℹ CH${ch3}（${SPI_NAMES[ch3]}）→ KZ_SPI，所有板卡模式均有效。`;
+    color = 'mode';
+  } else if (PF_CH.has(ch3)){
+    if (curM === 3){
+      msg = `✓ CH${ch3}（${SPI_NAMES[ch3]}）→ PF_SPI，当前 <b>模式 3（PF）</b>。`;
+      color = 'ok';
+    } else {
+      msg = `⚠ CH${ch3}（${SPI_NAMES[ch3]}）→ PF_SPI，仅 <b>模式 3</b> 下生效。`;
+    }
+  } else if (TR_CH.has(ch3)){
+    if (curM === 1){
+      msg = `✓ CH${ch3}（${SPI_NAMES[ch3]}）→ TR SPI，当前 <b>模式 1（TR）</b>。`;
+      color = 'ok';
+    } else {
+      msg = `ℹ CH${ch3}（${SPI_NAMES[ch3]}）→ TR SPI，模式 1（TR）为主用模式。`;
+      color = 'mode';
+    }
+  }
+  if (msg){
+    warn.style.display = 'block';
+    warn.className = 'hint' + (color !== 'warn' ? ' ' + color : '');
+    warn.innerHTML = msg;
+  } else warn.style.display = 'none';
+
+  const fw = $('#pF-warn');
+  if (fPayload && fPayload.length % 3 !== 0){
+    fw.style.display = 'block';
+    fw.textContent = `⚠ 数据字节数 ${fPayload.length} 不是 3 的倍数。`;
+  } else fw.style.display = 'none';
+
+  /* 卡片预览 */
+  for (const cmd in GEN){
+    const el = document.getElementById('preview-' + cmd);
+    if (!el) continue;
+    let obj;
+    try { obj = GEN[cmd](); } catch(e){ obj = null; }
+    if (obj){
+      const sim = fmtSim(obj.cmd, obj.data);
+      const hw  = fmtHW(obj.cmd, obj.data);
+      const crc = getCRC(obj.cmd, obj.data);
+      el.innerHTML =
+        `<span style="color:#7d8da1">[仿真]</span> ${sim}   <span class="len">// ${obj.data.length}B</span>\n` +
+        `<span style="color:#ffd479">[硬件]</span> ${hw}\n` +
+        `<span class="len">CRC16 = 0x${h2((crc>>8)&0xFF)}${h2(crc&0xFF)}</span>`;
+    } else el.textContent = '—';
+  }
+}
+
+document.addEventListener('input', refreshAll);
+document.addEventListener('change', refreshAll);
+
+/* =========================================================
+ *  输出列表 —— 存储 {cmd, data}
+ * ========================================================= */
+const lines = [];
+let displayFormat = 'sim'; /* sim | hw | both */
+
+function addLine(obj){ lines.push(obj); renderLines(); }
+
+function lineToText(obj){
+  const sim = fmtSim(obj.cmd, obj.data);
+  const hw  = fmtHW(obj.cmd, obj.data);
+  if (displayFormat === 'sim')  return sim;
+  if (displayFormat === 'hw')   return hw;
+  /* both：仿真 // 硬件 */
+  return sim.padEnd(60, ' ') + '  //  ' + hw;
+}
+
+function renderLines(){
+  const box = $('#outlist');
+  if (!lines.length){
+    box.innerHTML = '<div class="empty">暂无指令 — 在左侧配置并「加入列表」</div>';
+  } else {
+    box.innerHTML = lines.map((obj, i) => {
+      const sim = fmtSim(obj.cmd, obj.data);
+      const hw  = fmtHW(obj.cmd, obj.data);
+      const crc = getCRC(obj.cmd, obj.data);
+      const crcStr = `0x${h2((crc>>8)&0xFF)}${h2(crc&0xFF)}`;
+
+      let body = '';
+      if (displayFormat === 'sim'){
+        body = `<code>${sim} <span class="cmt">// LEN=${obj.data.length}B</span></code>`;
+      } else if (displayFormat === 'hw'){
+        /* 高亮：包头/包尾/CRC/LEN */
+        const bytes = hw.split(' ');
+        const hl = bytes.map((b, idx) => {
+          if (idx === 0 || idx === 1) return `<span class="hl">${b}</span>`;    /* 包头 */
+          if (idx === 2 || idx === 3) return `<span class="ck">${b}</span>`;    /* LEN */
+          if (idx === 4) return `<span class="crc">${b}</span>`;                /* CMD */
+          if (idx >= bytes.length - 4 && idx < bytes.length - 2)
+            return `<span class="crc">${b}</span>`;                             /* CRC */
+          if (idx >= bytes.length - 2) return `<span class="tl">${b}</span>`;   /* 包尾 */
+          return b;
+        }).join(' ');
+        body = `<code>${hl} <span class="cmt">// CRC=${crcStr}</span></code>`;
+      } else {
+        /* both */
+        body = `<code><span style="color:#7d8da1">[仿真]</span> ${sim} <span class="sep">|</span> <span style="color:#ff9f6e">[硬件]</span> ${hw} <span class="cmt">// CRC=${crcStr}</span></code>`;
+      }
+      return `<div class="oline"><span class="ln">${i+1}</span>${body}` +
+             `<button class="del" data-i="${i}" title="删除">×</button></div>`;
+    }).join('');
+    box.querySelectorAll('.del').forEach(b => {
+      b.onclick = () => { lines.splice(+b.dataset.i, 1); renderLines(); };
+    });
+    box.scrollTop = box.scrollHeight;
+  }
+  $('#count').textContent = lines.length;
+  $('#preview-txt').value = lines.map(o => lineToText(o)).join('\n');
+}
+
+$$('[data-add]').forEach(btn => {
+  btn.onclick = () => {
+    let obj;
+    try { obj = GEN[btn.dataset.add](); } catch(e){ obj = null; }
+    if (obj) addLine(obj);
+  };
+});
+
+$('#btn-C-all').onclick = () => {
+  const baud = num('pC-baud'), umod = num('pC-umod') & 0xFF;
+  const stop = sel('pC-stop') & 0xFF, check = sel('pC-check') & 0xFF;
+  for (let ch = 1; ch <= 16; ch++)
+    lines.push({cmd:0x0C, data:[...u32(baud), umod, ch, stop, check]});
+  renderLines();
+};
+$('#btn-E-all').onclick = () => {
+  const en = sel('pE-en') & 0xFF;
+  for (let ch = 1; ch <= 16; ch++) lines.push({cmd:0x0E, data:[ch, en]});
+  renderLines();
+};
+$('#btn-clear').onclick = () => {
+  if (lines.length && !confirm('确定清空全部指令？')) return;
+  lines.length = 0; renderLines();
+};
+
+/* 格式切换 */
+$$('.fmtbtn').forEach(btn => {
+  btn.onclick = () => {
+    displayFormat = btn.dataset.fmt;
+    $$('.fmtbtn').forEach(b => b.classList.toggle('active', b === btn));
+    updateFmtNote();
+    renderLines();
+  };
+});
+
+function updateFmtNote(){
+  const note = $('#fmt-note');
+  if (displayFormat === 'sim'){
+    note.innerHTML = `
+      <b>仿真调试格式</b>：<code>CMD LEN D0…D(LEN−1)</code><br>
+      LEN = 数据内容字节数（不含命令字本身），由 testbench 的 <code>send_frame</code> 自动加包头/包尾/CRC。<br>
+      <b>直接写入 inputdata.txt</b> 供仿真使用。`;
+  } else if (displayFormat === 'hw'){
+    note.innerHTML = `
+      <b>硬件调试格式（完整串口帧）</b>：<br>
+      <code>55 AA LEN_H LEN_L CMD D0…D(LEN−1) CRC_L CRC_H 48 4A</code><br>
+      LEN = 1 + 数据内容字节数；CRC 计算范围：<code>55 AA CMD DATA…</code>（不含 LEN 字段），低字节在前。<br>
+      <b>可直接用串口工具（4 Mbps / 8N1 / 无流控）发送</b>。`;
+  } else {
+    note.innerHTML = `
+      <b>双栏对照</b>：左为仿真格式，右为硬件格式，用 <code>//</code> 分隔。<br>
+      便于核对两条路径的对应关系，实际使用时按需选择单栏格式。`;
+  }
+}
+
+/* 复制 */
+$('#btn-copy').onclick = () => {
+  const txt = lines.map(o => lineToText(o)).join('\n');
+  if (!txt) return;
+  navigator.clipboard.writeText(txt).then(
+    () => alert('已复制 ' + lines.length + ' 行（' + displayFormat + ' 格式）'),
+    () => alert('复制失败，请手动选择文本框内容'));
+};
+
+/* 下载当前格式 */
+$('#btn-download').onclick = () => {
+  if (!lines.length) return alert('列表为空');
+  const txt = lines.map(o => lineToText(o)).join('\n') + '\n';
+  const name = displayFormat === 'hw' ? 'inputdata_hw.txt'
+             : displayFormat === 'both' ? 'inputdata_both.txt'
+             : 'inputdata_sim.txt';
+  downloadFile(name, txt);
+};
+
+/* 下载两种格式（分别输出两个文件） */
+$('#btn-download-both').onclick = () => {
+  if (!lines.length) return alert('列表为空');
+  const simTxt = lines.map(o => fmtSim(o.cmd, o.data)).join('\n') + '\n';
+  const hwTxt  = lines.map(o => fmtHW(o.cmd, o.data)).join('\n') + '\n';
+  downloadFile('inputdata_sim.txt', simTxt);
+  setTimeout(() => downloadFile('inputdata_hw.txt', hwTxt), 300);
+};
+
+function downloadFile(name, txt){
+  const blob = new Blob([txt], {type:'text/plain;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = name;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(a.href), 1500);
+}
+
+/* =========================================================
+ *  模式 / 子类型切换
+ * ========================================================= */
+let currentMode = 0;
+let currentSub  = 'cal';
+
+function setTTLNames(){
+  if (currentMode === 0){
+    TTL_NAMES = currentSub === 'cal' ? TTL_NAMES_CAL
+              : currentSub === 'ctrl' ? TTL_NAMES_CTRL
+              : TTL_NAMES_STIM;
+  } else TTL_NAMES = TTL_NAMES_SINGLE;
+}
+
+function renderModePanel(){
+  const cfg = MODES[currentMode];
+  $('#mode-title').textContent = cfg.name;
+  $('#mode-sw').textContent = cfg.sw;
+  $('#mode-tag').textContent = cfg.lsl;
+  $('#mode-tag').className = 'tagline ' + cfg.tagline;
+  const cols = (currentMode === 0) ? SUBMODES[currentSub].cols : (cfg.cols || []);
+  $('#mode-cols').innerHTML = cols.map(([k, v]) => `<div><b>${k}</b><br>${v}</div>`).join('');
+}
+
+function applyMode(m){
+  currentMode = m;
+  $('#cur-mode-badge').textContent = 'bk=' + m;
+  $$('.modebtn').forEach(b => b.classList.toggle('active', +b.dataset.mode === m));
+  $('#subbar').classList.toggle('hide', m !== 0);
+  $$('.subbtn').forEach(b => b.classList.toggle('active', b.dataset.sub === currentSub && m === 0));
+  setTTLNames();
+  const subKey = m === 0 ? currentSub : '';
+  decorateTTLGrid('grid-ttl1', subKey);
+  decorateTTLGrid('grid-ttl8', subKey);
+  applyModeHighlight();
+  renderModePanel();
+  $('#map-ttl1').innerHTML = buildTTLMapHTML();
+  $('#map-ttl8').innerHTML = buildTTLMapHTML();
+  $('#map-spi4').innerHTML = buildSPIMapHTML();
+  updateCardTags();
+  updateSidebarHighlight();
+  updateHint01();
+  refreshAll();
+}
+
+function applySub(s){
+  currentSub = s;
+  if (currentMode !== 0) currentMode = 0;
+  $$('.modebtn').forEach(b => b.classList.toggle('active', +b.dataset.mode === 0));
+  $('#subbar').classList.remove('hide');
+  $$('.subbtn').forEach(b => b.classList.toggle('active', b.dataset.sub === s));
+  $('#cur-sub-badge').textContent = SUBMODES[s].sub;
+  $('#cur-mode-badge').textContent = 'bk=0';
+  setTTLNames();
+  decorateTTLGrid('grid-ttl1', s);
+  decorateTTLGrid('grid-ttl8', s);
+  applyModeHighlight();
+  renderModePanel();
+  $('#map-ttl1').innerHTML = buildTTLMapHTML();
+  $('#map-ttl8').innerHTML = buildTTLMapHTML();
+  $('#map-spi4').innerHTML = buildSPIMapHTML();
+  updateCardTags();
+  updateSidebarHighlight();
+  updateHint01();
+  refreshAll();
+}
+
+function updateHint01(){
+  const hint01 = $('#hint-01');
+  const key = modeKey();
+  const ch = MODE_CHANNELS[key] || {ttl:[], spi:[]};
+  if (currentMode === 0){
+    const sm = SUBMODES[currentSub];
+    hint01.className = 'hint ' + sm.cls;
+    hint01.innerHTML = `<b>当前子类型：${sm.name}（${sm.prefix}）</b>　源：<code>${sm.src}</code><br>
+      彩色环标记 <span style="color:${MODE_COLOR[key]}">${MODE_COLOR_LABEL[key]}</span>（${ch.ttl.length} TTL / ${ch.spi.length} SPI）`;
+  } else {
+    const cfg = MODES[currentMode];
+    hint01.className = 'hint ok';
+    hint01.innerHTML = `<b>当前模式：${cfg.name}</b>　源：<code>${MODE_SOURCE[`${currentMode}`]}</code><br>
+      彩色环标记 <span style="color:${MODE_COLOR[`${currentMode}`]}">${MODE_COLOR_LABEL[`${currentMode}`]}</span>（${ch.ttl.length} TTL / ${ch.spi.length} SPI）`;
+  }
+}
+
+function updateCardTags(){
+  const marks = {
+    1:['01','02','03','04','05','08','09','0A','0C','0D','0E'],
+    2:['04','05','06','0B','07'],
+    3:['01','02','03','04','05','0C','0D','0E']
+  };
+  for (let c = 1; c <= 0x10; c++){
+    const tag = document.getElementById('tag-' + h2(c) + '-mode');
+    if (tag) tag.style.display = 'none';
+  }
+  if (currentMode !== 0){
+    const catName = {1:'TR 主用', 2:'Flash 主用', 3:'PF 主用'};
+    (marks[currentMode] || []).forEach(c => {
+      const tag = document.getElementById('tag-' + c + '-mode');
+      if (tag){ tag.style.display = 'inline-block'; tag.textContent = catName[currentMode]; }
+    });
+  }
+  ['01','08','09','0A'].forEach(c => {
+    const tag = document.getElementById('tag-' + c + '-sub');
+    if (!tag) return;
+    if (currentMode === 0){
+      const sm = SUBMODES[currentSub];
+      tag.style.display = 'inline-block';
+      tag.className = 'tag ' + sm.cls;
+      tag.textContent = sm.sub;
+    } else tag.style.display = 'none';
+  });
+}
+
+function updateSidebarHighlight(){
+  $$('.sidebar a').forEach(a => a.classList.remove('mode-on'));
+  let list = [];
+  if (currentMode === 1) list = ['#cmd-01','#cmd-02','#cmd-03','#cmd-04','#cmd-05','#cmd-08','#cmd-09','#cmd-0A','#cmd-0C','#cmd-0D','#cmd-0E'];
+  else if (currentMode === 2) list = ['#cmd-04','#cmd-05','#cmd-06','#cmd-0B','#cmd-07'];
+  else if (currentMode === 3) list = ['#cmd-01','#cmd-02','#cmd-03','#cmd-04','#cmd-05','#cmd-0C','#cmd-0D','#cmd-0E'];
+  else list = ['#cmd-01','#cmd-02','#cmd-03','#cmd-04','#cmd-05','#cmd-08','#cmd-09','#cmd-0A'];
+  list.forEach(id => {
+    const el = document.querySelector(`.sidebar a[href="${id}"]`);
+    if (el) el.classList.add('mode-on');
+  });
+}
+
+$$('.modebtn').forEach(b => b.onclick = () => applyMode(+b.dataset.mode));
+$$('.subbtn').forEach(b => b.onclick = () => applySub(b.dataset.sub));
+$('#btn-mode-apply').onclick = () => {
+  const m = sel('p7-mode');
+  applyMode(m);
+  addLine({cmd:0x07, data:[m]});
+};
+
+/* =========================================================
+ *  示例加载
+ * ========================================================= */
+$('#btn-demo').onclick = () => {
+  const P = (cmd, data) => lines.push({cmd, data});
+  const u = u32, w = u16;
+  P(0x07, [currentMode]);
+  P(0x01, new Array(12).fill(0x00));
+  P(0x01, new Array(12).fill(0xFF));
+  P(0x01, new Array(12).fill(0xAA));
+  P(0x08, new Array(12).fill(0x00));
+  P(0x08, new Array(12).fill(0xFF));
+  const key = modeKey();
+  const ttlList = (MODE_CHANNELS[key] || {}).ttl || [];
+  const spiList = (MODE_CHANNELS[key] || {}).spi || [];
+  ttlList.slice(0, 3).forEach((ch, i) => {
+    P(0x09, [ch, ...u(1000*(i+1)), ...u(500*(i+1)), 0x0A*(i+1)]);
+  });
+  ttlList.slice(0, 4).forEach(ch => P(0x0A, [ch, 0x01]));
+  P(0x0A, [0x01, 0x00]);
+  P(0x02, [...u(100), 1, 1, 1, 0, 0, 0, 0, ...u(0), ...u(0), 1]);
+  P(0x02, [...u(200), 2, 2, 0, 1, 1, 0, 0, ...u(50), ...u(100), 0]);
+  const spiSend = spiList.length ? spiList : [1,2,3];
+  spiSend.slice(0, 8).forEach(ch => P(0x03, [ch, ...w(32), ...w(8), 0x01, ch, 0x11, 0x22, 0x33]));
+  [10, 26].forEach(ch => P(0x03, [ch, ...w(16), ...w(16), 0x01, ch, 0x00, 0x00]));
+  for (let bit = 0; bit < 32; bit++) P(0x04, u((1 << bit) >>> 0));
+  P(0x04, [0, 0, 0, 0x05]);
+  P(0x04, [0xFF, 0xFF, 0xFF, 0xFF]);
+  for (let i = 0; i < 4; i++) P(0x05, [0x01]);
+  P(0x05, [0x00]);
+  P(0x06, [...u(0x00000000), ...u(0x5A5A5A5A), 0x00]);
+  P(0x06, [...u(0x00001000), ...u(0xA5A5A5A5), 0x01]);
+  P(0x06, [...u(0x00010000), ...u(0x12345678), 0x02]);
+  P(0x0B, [0x01]);
+  for (let ch = 1; ch <= 16; ch++) P(0x0C, [...u(4000000), 0x00, ch, 0x00, 0x00]);
+  for (let ch = 1; ch <= 4; ch++){
+    const payload = [ch, 0xAA, 0xBB, 0xCC];
+    P(0x0D, [...w(payload.length), ch, ...payload]);
+  }
+  for (let ch = 1; ch <= 4; ch++) P(0x0E, [ch, 0x01]);
+  P(0x0E, [0x01, 0x00]);
+  P(0x0F, [0x01, 0x01, 0xAA, 0xBB, 0xCC]);
+  P(0x0F, [0x02, 0x02, 0x12, 0x34, 0x56, 0x78, 0x9A, 0xBC]);
+  P(0x0F, [0x01, 0x03, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99]);
+  P(0x10, [0x01, 0x01]);
+  P(0x10, [0x02, 0x01]);
+  P(0x10, [0x01, 0x00]);
+  renderLines();
+  const subText = currentMode === 0 ? ` / ${SUBMODES[currentSub].name}` : '';
+  alert(`已加载模式 ${currentMode}${subText} 示例（${lines.length} 行）`);
+};
+
+/* 初始化 */
+updateFmtNote();
+applyMode(0);
+applySub('cal');
+</script>
+</body>
+</html>
